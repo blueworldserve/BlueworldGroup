@@ -20,6 +20,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAccessRequestsRouteImport } from './routes/admin.access-requests'
 import { Route as AdminBlogRouteImport } from './routes/admin.blog'
 import { Route as AdminBusinessUnitsRouteImport } from './routes/admin.business-units'
+import { Route as AdminCountryShowcaseRouteImport } from './routes/admin.country-showcase'
 import { Route as AdminHeroSlidesRouteImport } from './routes/admin.hero-slides'
 import { Route as AdminJobsRouteImport } from './routes/admin.jobs'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
@@ -90,6 +91,11 @@ const AdminBlogRoute = AdminBlogRouteImport.update({
 const AdminBusinessUnitsRoute = AdminBusinessUnitsRouteImport.update({
   id: '/admin/business-units',
   path: '/admin/business-units',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCountryShowcaseRoute = AdminCountryShowcaseRouteImport.update({
+  id: '/admin/country-showcase',
+  path: '/admin/country-showcase',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminHeroSlidesRoute = AdminHeroSlidesRouteImport.update({
@@ -183,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/admin/access-requests': typeof AdminAccessRequestsRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/business-units': typeof AdminBusinessUnitsRoute
+  '/admin/country-showcase': typeof AdminCountryShowcaseRoute
   '/admin/hero-slides': typeof AdminHeroSlidesRoute
   '/admin/jobs': typeof AdminJobsRoute
   '/admin/login': typeof AdminLoginRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/admin/access-requests': typeof AdminAccessRequestsRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/business-units': typeof AdminBusinessUnitsRoute
+  '/admin/country-showcase': typeof AdminCountryShowcaseRoute
   '/admin/hero-slides': typeof AdminHeroSlidesRoute
   '/admin/jobs': typeof AdminJobsRoute
   '/admin/login': typeof AdminLoginRoute
@@ -242,6 +250,7 @@ export interface FileRoutesById {
   '/admin/access-requests': typeof AdminAccessRequestsRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/business-units': typeof AdminBusinessUnitsRoute
+  '/admin/country-showcase': typeof AdminCountryShowcaseRoute
   '/admin/hero-slides': typeof AdminHeroSlidesRoute
   '/admin/jobs': typeof AdminJobsRoute
   '/admin/login': typeof AdminLoginRoute
@@ -273,6 +282,7 @@ export interface FileRouteTypes {
     | '/admin/access-requests'
     | '/admin/blog'
     | '/admin/business-units'
+    | '/admin/country-showcase'
     | '/admin/hero-slides'
     | '/admin/jobs'
     | '/admin/login'
@@ -302,6 +312,7 @@ export interface FileRouteTypes {
     | '/admin/access-requests'
     | '/admin/blog'
     | '/admin/business-units'
+    | '/admin/country-showcase'
     | '/admin/hero-slides'
     | '/admin/jobs'
     | '/admin/login'
@@ -331,6 +342,7 @@ export interface FileRouteTypes {
     | '/admin/access-requests'
     | '/admin/blog'
     | '/admin/business-units'
+    | '/admin/country-showcase'
     | '/admin/hero-slides'
     | '/admin/jobs'
     | '/admin/login'
@@ -361,6 +373,7 @@ export interface RootRouteChildren {
   AdminAccessRequestsRoute: typeof AdminAccessRequestsRoute
   AdminBlogRoute: typeof AdminBlogRoute
   AdminBusinessUnitsRoute: typeof AdminBusinessUnitsRoute
+  AdminCountryShowcaseRoute: typeof AdminCountryShowcaseRoute
   AdminHeroSlidesRoute: typeof AdminHeroSlidesRoute
   AdminJobsRoute: typeof AdminJobsRoute
   AdminLoginRoute: typeof AdminLoginRoute
@@ -458,6 +471,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/business-units'
       fullPath: '/admin/business-units'
       preLoaderRoute: typeof AdminBusinessUnitsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/country-showcase': {
+      id: '/admin/country-showcase'
+      path: '/admin/country-showcase'
+      fullPath: '/admin/country-showcase'
+      preLoaderRoute: typeof AdminCountryShowcaseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/hero-slides': {
@@ -585,6 +605,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminAccessRequestsRoute: AdminAccessRequestsRoute,
   AdminBlogRoute: AdminBlogRoute,
   AdminBusinessUnitsRoute: AdminBusinessUnitsRoute,
+  AdminCountryShowcaseRoute: AdminCountryShowcaseRoute,
   AdminHeroSlidesRoute: AdminHeroSlidesRoute,
   AdminJobsRoute: AdminJobsRoute,
   AdminLoginRoute: AdminLoginRoute,

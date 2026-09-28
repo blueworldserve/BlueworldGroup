@@ -1,137 +1,118 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ButtonLink } from "@/components/site/primitives";
 import { resolveImage } from "@/data/images";
 import type { HeroSlide } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+const SLIDE_MS = 7000;
+
 export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
-  const ordered = [...slides].sort((a, b) => a.order - b.order);
-  const pairCount = Math.max(1, Math.ceil(ordered.length / 2));
-  const [pairIndex, setPairIndex] = useState(0);
+  const ordered = useMemo(() => [...slides].sort((a, b) => a.order - b.order), [slides]);
+  const count = ordered.length;
+  const [index, setIndex] = useState(0);
 
+  // A timeout keyed on `index` (not an interval) so clicking a dot restarts
+  // the countdown instead of the next auto-advance firing a moment later.
   useEffect(() => {
-    if (pairCount < 2) return;
-    const t = setInterval(() => setPairIndex((i) => (i + 1) % pairCount), 7000);
-    return () => clearInterval(t);
-  }, [pairCount]);
+    if (count < 2) return;
+    const t = setTimeout(() => setIndex((i) => (i + 1) % count), SLIDE_MS);
+    return () => clearTimeout(t);
+  }, [index, count]);
 
-  if (ordered.length === 0) return null;
+  // Warm the next slide's images so the crossfade never shows a blank frame.
+  useEffect(() => {
+    if (count < 2) return;
+    const next = ordered[(index + 1) % count];
+    if (!next) return;
+    [next.image, next.mobileImage].forEach((src) => {
+      if (!src) return;
+      const img = new Image();
+      img.src = resolveImage(src);
+    });
+  }, [index, count, ordered]);
 
-  const left = ordered[(pairIndex * 2) % ordered.length]!;
-  const right = ordered[(pairIndex * 2 + 1) % ordered.length] ?? left;
-  const copy = left;
+  if (count === 0) return null;
+
+  const active = index % count;
+  const slide = ordered[active]!;
 
   return (
-    <section
-      className={cn(
-        // dvh (dynamic viewport height) tracks the real visible area on
-        // mobile browsers instead of vh, which is measured including the
-        // address bar and causes the hero to jump/overflow as it collapses
-        // on scroll. Height is deliberately shorter and capped on mobile so
-        // portrait photos aren't forced into an oversized, heavily-cropped
-        // box — it scales back up to the original figures from sm/md up.
-        "relative h-[68dvh] min-h-[420px] max-h-[620px] w-full overflow-hidden bg-primary-deep",
-        "sm:h-[85dvh] sm:max-h-none md:h-[92dvh]",
-      )}
-    >
-      <div className="absolute inset-0 flex">
-        {/* Left slot — this is what mobile shows full-width. Uses the
-            slide's own mobileImage when set, falling back to the desktop
-            photo so nothing breaks for slides that haven't been given one. */}
-        <div className="relative h-full w-full md:w-1/2">
-          <AnimatePresence mode="sync">
-            <motion.img
-              key={`${left.id}-mobile`}
-              src={resolveImage(left.mobileImage || left.image)}
+    <section className="relative h-[82svh] min-h-[520px] w-full overflow-hidden bg-primary-deep md:h-[92vh]">
+      {/* One photo at a time. <picture> lets the browser pick the right file
+          for the screen and only download that one: the slide's main photo
+          from 768px up, its mobile photo below that (falling back to the main
+          photo if no mobile one was uploaded). */}
+      <AnimatePresence mode="sync">
+        <motion.div
+          key={slide.id}
+          initial={{ opacity: 0, scale: 1.04 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.2, ease: "easeInOut" }}
+          className="absolute inset-0"
+        >
+          <picture>
+            <source media="(min-width: 768px)" srcSet={resolveImage(slide.image)} />
+            <img
+              src={resolveImage(slide.mobileImage || slide.image)}
               alt=""
-              initial={{ opacity: 0, scale: 1.03 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1.2, ease: "easeInOut" }}
-              className="absolute inset-0 h-full w-full object-cover object-center md:hidden"
+              draggable={false}
+              className="absolute inset-0 h-full w-full object-cover object-[50%_22%] md:object-[50%_30%]"
             />
-            <motion.img
-              key={`${left.id}-desktop`}
-              src={resolveImage(left.image)}
-              alt=""
-              initial={{ opacity: 0, scale: 1.03 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1.2, ease: "easeInOut" }}
-              className="absolute inset-0 hidden h-full w-full object-cover object-center md:block"
-            />
-          </AnimatePresence>
-        </div>
+          </picture>
+        </motion.div>
+      </AnimatePresence>
 
-        {/* Right slot — desktop only, unchanged from before */}
-        <div className="relative hidden h-full w-1/2 md:block">
-          <AnimatePresence mode="sync">
-            <motion.img
-              key={right.id}
-              src={resolveImage(right.image)}
-              alt=""
-              initial={{ opacity: 0, scale: 1.03 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1.2, ease: "easeInOut" }}
-              className="absolute inset-0 h-full w-full object-cover object-center"
-            />
-          </AnimatePresence>
-        </div>
-      </div>
-
+      {/* Legibility scrims. The mobile one is heavier at the bottom because
+          the text sits there on phones. */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/25 via-black/5 to-black/35" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent md:hidden" />
 
-      <div className="relative flex h-full items-center justify-center px-5 text-center sm:px-6">
+      {/* Phones: text is anchored to the bottom so the model's face stays
+          clear, with room left for the dots. md and up: centered as before. */}
+      <div className="relative flex h-full items-end justify-center px-6 pb-20 text-center md:items-center md:pb-0">
         <AnimatePresence mode="wait">
           <motion.div
-            key={`copy-${copy.id}`}
+            key={`copy-${slide.id}`}
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.6 }}
-            className="max-w-xl"
+            className="w-full max-w-xl"
           >
-            {copy.eyebrow && (
-              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-white/80 sm:text-xs sm:tracking-[0.35em]">
-                {copy.eyebrow}
+            {slide.eyebrow && (
+              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-white/85 sm:text-xs sm:tracking-[0.35em]">
+                {slide.eyebrow}
               </p>
             )}
-            {/* Smoothed the size jump across breakpoints so small phones
-                (<380px) get a size in between the old 2xl->3xl->5xl jumps,
-                keeping the headline from crowding the slide on narrow screens. */}
-            <h1 className="mt-3 text-xl font-extrabold uppercase leading-tight tracking-wide text-white sm:mt-4 sm:text-3xl lg:text-5xl">
-              {copy.title}
+            <h1 className="mt-3 text-2xl font-extrabold uppercase leading-tight tracking-wide text-white sm:mt-4 sm:text-3xl lg:text-5xl">
+              {slide.title}
             </h1>
-            <div className="mt-6 sm:mt-8">
-              <ButtonLink href={copy.ctaHref} variant="outline">
-                {copy.ctaLabel}
-              </ButtonLink>
-            </div>
+            {slide.ctaLabel && slide.ctaHref && (
+              <div className="mt-6 md:mt-8">
+                <ButtonLink href={slide.ctaHref} variant="outline">
+                  {slide.ctaLabel}
+                </ButtonLink>
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {pairCount > 1 && (
-        <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-2 sm:bottom-7">
-          {Array.from({ length: pairCount }).map((_, i) => (
+      {count > 1 && (
+        <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 gap-2">
+          {ordered.map((s, i) => (
             <button
-              key={i}
+              key={s.id}
               type="button"
               aria-label={`Show slide ${i + 1}`}
-              onClick={() => setPairIndex(i)}
-              // Extra vertical padding widens the touch target on mobile
-              // without changing the visible dot size.
-              className="py-2"
-            >
-              <span
-                className={cn(
-                  "block h-1.5 rounded-full transition-all",
-                  i === pairIndex ? "w-8 bg-white" : "w-4 bg-white/40 hover:bg-white/70",
-                )}
-              />
-            </button>
+              onClick={() => setIndex(i)}
+              className={cn(
+                "h-1.5 rounded-full transition-all",
+                i === active ? "w-8 bg-white" : "w-4 bg-white/40 hover:bg-white/70",
+              )}
+            />
           ))}
         </div>
       )}

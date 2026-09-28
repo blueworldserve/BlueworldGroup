@@ -223,7 +223,7 @@ export function RenderBlock({ block }: { block: PageBlock }) {
     return null;
   }
   return (
-    <Section {...orNothing({ tone: block.tone === "muted" ? "muted" : undefined })}>
+      <Section {...orNothing({ tone: block.tone === "muted" ? ("muted" as const) : undefined })}>
       <Component p={block.payload as P} />
     </Section>
   );

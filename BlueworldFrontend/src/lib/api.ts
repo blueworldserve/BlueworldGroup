@@ -25,6 +25,8 @@ export const ENDPOINTS = {
   users: "/auth/users",
   pages: "/cms/pages",
   adminPages: "/admin/pages",
+  countryShowcases: "/cms/country-showcases",
+  adminCountryShowcases: "/admin/country-showcases",
 } as const;
 
 /** Thrown when the backend actually responded but rejected the request. */

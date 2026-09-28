@@ -9,6 +9,7 @@ const COLLECTION_LABELS: Record<CollectionKey, string> = {
   teamMembers: "Team",
   blogPosts: "Blog Posts",
   jobPostings: "Job Postings",
+  countryShowcases: "Country Showcase",
   mediaLibrary: "Media Library",
 };
 

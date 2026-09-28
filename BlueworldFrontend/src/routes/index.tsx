@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
-import { useState } from "react";
-import { Globe2, MapPin } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Globe2, MapPin, X } from "lucide-react";
 import { HeroSlider } from "@/components/site/hero-slider";
 import { AppLink } from "@/components/site/app-link";
 import { BrandGlobe } from "@/components/brand/brand-globe";
@@ -13,13 +13,13 @@ import {
   Section,
   SectionHeading,
 } from "@/components/site/primitives";
-import { ProductCard } from "@/components/site/product-card";
 import { useBlogPosts, useBusinessUnits, useHeroSlides, useProducts } from "@/hooks/use-cms";
 import { ENDPOINTS, submitWithMock } from "@/lib/api";
 import { REACH_MARKERS } from "@/data/placeholder-content";
 import { HeroFlag } from "@/components/site/hero-context";
 import { ScrollRevealText } from "@/components/site/scroll-reveal-text";
-import { getShowcase } from "@/lib/country-showcase";
+import { useCollection } from "@/lib/cms-store";
+import type { Product } from "@/lib/types";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -59,11 +59,11 @@ function orderBusinessUnits<T extends { slug: string }>(units: T[]): T[] {
 }
 
 const TRUST_MARKERS = [
-  { k: "1998", v: "Founded in Lagos" },
+  { k: "2016", v: "Founded in Lagos" },
   { k: "500+", v: "People employed" },
   { k: "5", v: "Brands in the house" },
   { k: "120+", v: "SKUs in production" },
-  { k: "4", v: "Countries reached" },
+  { k: "9", v: "Countries reached" },
   { k: "11", v: "QC checks per batch" },
 ];
 
@@ -72,12 +72,27 @@ function HomePage() {
   const units = useBusinessUnits();
   const products = useProducts();
   const posts = useBlogPosts();
+  const countryShowcases = useCollection("countryShowcases");
   const [activeCountry, setActiveCountry] = useState<string | null>(null);
-  const activeShowcase = activeCountry ? getShowcase(activeCountry) : null;
+  const [openProduct, setOpenProduct] = useState<Product | null>(null);
+  const activeShowcase = activeCountry
+    ? countryShowcases.find((s) => s.name.toLowerCase() === activeCountry.toLowerCase()) ?? null
+    : null;
 
   const orderedUnits = orderBusinessUnits(units.data ?? []);
-  const featured = (products.data ?? []).filter((p) => p.featured).slice(0, 4);
   const latest = (posts.data ?? []).slice(0, 3);
+
+  // Up to 8 products: featured ones first choice, otherwise fall back to the whole catalogue
+  // so the marquee is never empty just because nothing has been flagged "featured" yet.
+  const marqueePool = useMemo(() => {
+    const all = products.data ?? [];
+    const featuredOnly = all.filter((p) => p.featured);
+    const base = featuredOnly.length >= 4 ? featuredOnly : all;
+    return base.slice(0, 8);
+  }, [products.data]);
+  const half = Math.ceil(marqueePool.length / 2);
+  const topRow = marqueePool.slice(0, half);
+  const bottomRow = marqueePool.slice(half);
 
   return (
     <>
@@ -138,7 +153,7 @@ function HomePage() {
             the other's, the shorter one stretches to match, instead of the
             two drifting apart the way they did with items-start. */}
         <div className="grid items-stretch gap-5 lg:grid-cols-2 lg:gap-6">
-          {/* Card A — globe, height-capped (max-h-72/80) so it no longer
+          {/* Card A — globe, height-capped (boxHeightClass) so it no longer
               dictates the row's height on its own. A row of country chips
               underneath fills the leftover space with real, useful content
               (and doubles as a second, easier way to trigger the same
@@ -160,9 +175,9 @@ function HomePage() {
             </p>
 
             <div className="mt-4">
-                <BrandGlobe
+              <BrandGlobe
                 markers={REACH_MARKERS}
-                boxHeightClass="h-64 sm:h-72 lg:h-80"
+                maxWidthClass="max-w-none"
                 background="midnight"
                 standText={null}
                 activeCountry={activeCountry}
@@ -191,112 +206,151 @@ function HomePage() {
             </div>
           </motion.div>
 
-          {/* Card B — default market-list panel, or the selected country's
-              write-up from country-showcase.ts, cross-fading between the two. */}
+          {/* Card B: on desktop it can never be taller than Card A. Its content
+              sits in an absolutely-positioned area, so only Card A decides the
+              row height and this card fills it. Content starts at the top and the
+              rows stretch to use the space. On mobile it stacks normally. */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-            className="flex flex-col rounded-3xl border border-border bg-card p-4 shadow-card sm:p-5 lg:p-6"
+            className="relative rounded-3xl border border-border bg-card shadow-card"
           >
-            <AnimatePresence mode="wait">
-              {activeShowcase ? (
-                                <motion.div
-                  key={activeCountry}
-                  initial={{ opacity: 0, x: 12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -12 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex flex-1 flex-col"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="eyebrow">{activeShowcase.place}</p>
-                      <h3 className="mt-2 font-display text-lg font-bold text-primary-deep sm:text-xl">
-                        {activeShowcase.headline}
-                      </h3>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setActiveCountry(null)}
-                      className="shrink-0 rounded-full border border-border px-3 py-1.5 text-xs font-bold text-primary-deep hover:bg-primary-soft"
-                    >
-                      ← Overview
-                    </button>
-                  </div>
-
-                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{activeShowcase.blurb}</p>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{activeShowcase.detail}</p>
-
-                  <div className="mt-4 flex items-center gap-3 rounded-2xl bg-accent-soft p-4">
-                    <span className="font-display text-2xl font-extrabold text-accent">
-                      {activeShowcase.stat.value}
-                    </span>
-                    <span className="text-xs font-semibold uppercase tracking-wide text-primary-deep/70">
-                      {activeShowcase.stat.label}
-                    </span>
-                  </div>
-
-                  <div className="mt-3 flex flex-1 flex-col justify-center gap-2 rounded-2xl border border-border p-4">
-                    {activeShowcase.points.map((point) => (
-                      <div key={point} className="flex items-center gap-2 text-sm font-semibold text-primary-deep">
-                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                        {point}
+            <div className="flex h-full flex-col p-4 sm:p-5 lg:absolute lg:inset-0 lg:overflow-y-auto lg:p-6">
+              <AnimatePresence mode="wait">
+                {activeShowcase ? (
+                  <motion.div
+                    key={activeCountry}
+                    initial={{ opacity: 0, x: 12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -12 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex flex-1 flex-col"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="eyebrow">{activeShowcase.place}</p>
+                        <h3 className="mt-2 font-display text-lg font-bold text-primary-deep sm:text-xl">
+                          {activeShowcase.headline}
+                        </h3>
                       </div>
-                    ))}
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="overview"
-                  initial={{ opacity: 0, x: 12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -12 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex flex-1 flex-col"
-                >
-                  <p className="eyebrow">Every marker, explained</p>
-                  <h3 className="mt-2 font-display text-lg font-bold text-primary-deep sm:text-xl">
-                    Four markets, one factory floor
-                  </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    Five Nigerian-made brands, trusted in homes across four countries and counting.
-                  </p>
-                  <div className="mt-4 flex flex-1 flex-col rounded-2xl bg-accent-soft p-4 sm:p-5">
-                    <div className="flex items-center gap-2 border-b border-primary-deep/10 pb-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-deep/10">
-                        <Globe2 size={16} className="text-primary-deep" />
+                      <button
+                        type="button"
+                        onClick={() => setActiveCountry(null)}
+                        className="shrink-0 rounded-full border border-border px-3 py-1.5 text-xs font-bold text-primary-deep hover:bg-primary-soft"
+                      >
+                        ← Overview
+                      </button>
+                    </div>
+
+                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{activeShowcase.blurb}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{activeShowcase.detail}</p>
+
+                    <div className="mt-4 flex items-center gap-3 rounded-2xl bg-accent-soft p-4">
+                      <span className="font-display text-2xl font-extrabold text-accent">
+                        {activeShowcase.statValue}
                       </span>
-                      <span className="text-xs font-bold uppercase tracking-[0.14em] text-primary-deep/70">
-                        Export map
+                      <span className="text-xs font-semibold uppercase tracking-wide text-primary-deep/70">
+                        {activeShowcase.statLabel}
                       </span>
                     </div>
-                    <div className="mt-4 flex flex-1 flex-col justify-center gap-3">
-                      {REACH_MARKERS.map((m) => (
-                        <motion.button
-                          key={m.name}
-                          type="button"
-                          onClick={() => setActiveCountry(m.name)}
-                          whileHover={{ scale: 1.02, y: -2 }}
-                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                          className="flex items-center gap-3 rounded-xl bg-card/70 px-3.5 py-2.5 text-left shadow-sm"
+
+                    {/* Each point is its own row and the rows share the leftover
+                        height evenly, so the list starts at the top and fills
+                        the card instead of clumping in the middle. */}
+                    <div className="mt-3 flex flex-1 flex-col rounded-2xl border border-border px-4">
+                      {activeShowcase.points.map((point) => (
+                        <div
+                          key={point}
+                          className="flex min-h-[2.25rem] flex-1 items-center gap-2 border-b border-border py-2 text-sm font-semibold text-primary-deep last:border-b-0"
                         >
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/15">
-                            <MapPin size={14} className="text-accent" />
-                          </span>
-                          <span className="flex-1 font-display text-sm font-bold text-primary-deep">{m.name}</span>
-                          <span className="text-right text-xs text-muted-foreground">{m.note}</span>
-                        </motion.button>
+                          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                          {point}
+                        </div>
                       ))}
                     </div>
-                    <p className="mt-3 border-t border-primary-deep/10 pt-3 text-center text-xs font-semibold text-primary-deep/60">
-                      {REACH_MARKERS.length} export markets and counting
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="overview"
+                    initial={{ opacity: 0, x: 12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -12 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex flex-1 flex-col"
+                  >
+                    <p className="eyebrow">Every marker, explained</p>
+                    <h3 className="mt-2 font-display text-lg font-bold text-primary-deep sm:text-xl">
+                      Four markets, one factory floor
+                    </h3>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      Five Nigerian-made brands, trusted in homes across four countries and counting.
                     </p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+
+                    <div className="mt-4 flex flex-1 flex-col rounded-2xl bg-accent-soft p-4 sm:p-5">
+                      <div className="flex items-center gap-2 border-b border-primary-deep/10 pb-3">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-deep/10">
+                          <Globe2 size={16} className="text-primary-deep" />
+                        </span>
+                        <span className="text-xs font-bold uppercase tracking-[0.14em] text-primary-deep/70">
+                          Export map
+                        </span>
+                      </div>
+
+                      {/* Rows are flex-1, so on desktop they stretch to fill the
+                          card's height from the top down. Each row now carries
+                          the city, a two-line summary and a headline number
+                          from the country's CMS entry. */}
+                      <div className="mt-4 flex flex-1 flex-col gap-2.5">
+                        {REACH_MARKERS.map((m) => {
+                          const s = countryShowcases.find((c) => c.name.toLowerCase() === m.name.toLowerCase());
+                          return (
+                            <motion.button
+                              key={m.name}
+                              type="button"
+                              onClick={() => setActiveCountry(m.name)}
+                              whileHover={{ scale: 1.02, y: -2 }}
+                              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                              className="flex min-h-[4rem] flex-1 items-center gap-3 rounded-xl bg-card/70 px-3.5 py-2.5 text-left shadow-sm"
+                            >
+                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/15">
+                                <MapPin size={14} className="text-accent" />
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="flex items-baseline gap-2">
+                                  <span className="font-display text-sm font-bold text-primary-deep">{m.name}</span>
+                                  {s?.place && (
+                                    <span className="text-[0.65rem] font-semibold uppercase tracking-wide text-accent">
+                                      {s.place}
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="mt-0.5 block text-xs text-muted-foreground">{m.note}</span>
+                              </span>
+                              {s && (
+                                <span className="shrink-0 text-right">
+                                  <span className="block font-display text-lg font-extrabold leading-none text-accent">
+                                    {s.statValue}
+                                  </span>
+                                  <span className="mt-1 block text-[0.6rem] font-semibold uppercase tracking-wide text-primary-deep/60">
+                                    {s.statLabel}
+                                  </span>
+                                </span>
+                              )}
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+
+                      <p className="mt-3 border-t border-primary-deep/10 pt-3 text-center text-xs font-semibold text-primary-deep/60">
+                        {REACH_MARKERS.length} export markets and counting
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </motion.div>
         </div>
       </Section>
@@ -359,15 +413,20 @@ function HomePage() {
         </div>
       </Section>
 
-      {/* Featured products — orange-tinted, warms up the page between two
-          otherwise-white sections and breaks the "all white" flatness */}
+      {/* Featured products — two slow-drifting rows (top → right, bottom → left).
+          Hover pauses the row and reveals the shine + description; click opens the
+          full product view. Orange-tinted background warms up the page between two
+          otherwise-white sections. */}
       <Section tone="warm" className="py-12 lg:py-16">
         <SectionHeading eyebrow="Featured products" title="What our lines are shipping right now" />
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <style>{MARQUEE_CSS}</style>
+        <div className="mt-10 space-y-4">
           {products.isLoading && <LoadingBlock label="Loading products…" />}
-          {featured.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
+          {!products.isLoading && marqueePool.length === 0 && (
+            <EmptyBlock label="No products published yet." />
+          )}
+          <ProductRow items={topRow} direction="right" secondsPerTile={6} onOpen={setOpenProduct} />
+          <ProductRow items={bottomRow} direction="left" secondsPerTile={5.5} onOpen={setOpenProduct} />
         </div>
       </Section>
 
@@ -422,7 +481,251 @@ function HomePage() {
       </Section>
 
       <NewsletterBlock />
+
+      <AnimatePresence>
+        {openProduct && (
+          <ProductDetail
+            key={openProduct.id}
+            product={openProduct}
+            onClose={() => setOpenProduct(null)}
+          />
+        )}
+      </AnimatePresence>
     </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Featured products: marquee rows + detail overlay                    */
+/* ------------------------------------------------------------------ */
+
+// Every row's track is [set, set] and slides exactly one set's width (-50%),
+// so the loop is seamless. Tiles use margin-right (not flex gap) so both sets
+// are precisely the same width. Reduced-motion users get a still row.
+const MARQUEE_CSS = `
+@keyframes bw-marquee-left  { from { transform: translateX(0); }    to { transform: translateX(-50%); } }
+@keyframes bw-marquee-right { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) { .bw-marquee-track { animation: none !important; } }
+`;
+
+// A set needs to be wider than the widest screen, otherwise a gap opens at the
+// right edge mid-loop — so short product lists get repeated up to this many tiles.
+const MIN_TILES_PER_SET = 12;
+
+function ProductRow({
+  items,
+  direction,
+  secondsPerTile,
+  onOpen,
+}: {
+  items: Product[];
+  direction: "left" | "right";
+  secondsPerTile: number;
+  onOpen: (product: Product) => void;
+}) {
+  const [paused, setPaused] = useState(false);
+
+  const filled = useMemo(() => {
+    if (items.length === 0) return [];
+    const reps = Math.max(1, Math.ceil(MIN_TILES_PER_SET / items.length));
+    return Array.from({ length: reps }).flatMap(() => items);
+  }, [items]);
+
+  if (filled.length === 0) return null;
+
+  const track = [...filled, ...filled];
+  const duration = filled.length * secondsPerTile;
+  const fade = "linear-gradient(to right, transparent, black 5%, black 95%, transparent)";
+
+  return (
+    <div
+      className="overflow-x-clip"
+      style={{ maskImage: fade, WebkitMaskImage: fade }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div
+        className="bw-marquee-track flex w-max"
+        style={{
+          animation: `${direction === "left" ? "bw-marquee-left" : "bw-marquee-right"} ${duration}s linear infinite`,
+          animationPlayState: paused ? "paused" : "running",
+        }}
+      >
+        {track.map((p, i) => (
+          <ProductTile
+            key={`${p.id}-${i}`}
+            product={p}
+            duplicate={i >= filled.length}
+            onOpen={onOpen}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProductTile({
+  product,
+  duplicate,
+  onOpen,
+}: {
+  product: Product;
+  duplicate: boolean;
+  onOpen: (product: Product) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(product)}
+      aria-hidden={duplicate}
+      tabIndex={duplicate ? -1 : 0}
+      className="group mr-3 block w-40 shrink-0 text-left sm:w-48 lg:w-56"
+    >
+      <div className="relative aspect-square overflow-hidden rounded-2xl bg-secondary">
+        <CmsImage
+          src={product.image}
+          alt={product.name}
+          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+        />
+        {/* Same diagonal shine as the business-unit cards */}
+        <div className="pointer-events-none absolute inset-0 -translate-x-[150%] skew-x-[-20deg] bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-[1100ms] ease-out group-hover:translate-x-[150%]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+      </div>
+
+      <div className="mt-3 px-1">
+        <p className="text-[0.6rem] font-bold uppercase tracking-[0.18em] text-accent">
+          {product.category} · {product.size}
+        </p>
+        <h3 className="mt-1 truncate font-display text-base font-bold text-primary-deep">
+          {product.name}
+        </h3>
+        {/* Fixed-height slot: the hint fades out and the description fades in, in the
+            same space — so hovering never changes the tile's height and the rows
+            below never jump. */}
+        <div className="relative mt-1.5 h-[3.7rem]">
+          <span className="absolute left-0 top-0 inline-block border-b border-accent pb-0.5 text-[0.6rem] font-bold uppercase tracking-[0.16em] text-accent transition-opacity duration-300 group-hover:opacity-0">
+            View details
+          </span>
+          <p className="absolute inset-0 line-clamp-3 translate-y-2 text-xs leading-relaxed text-muted-foreground opacity-0 transition-all duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-100">
+            {product.description}
+          </p>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function ProductDetail({ product, onClose }: { product: Product; onClose: () => void }) {
+  // Esc closes, and the page behind stops scrolling while the overlay is open.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [onClose]);
+
+  const facts = [
+    { label: "Category", value: product.category },
+    { label: "Pack size", value: product.size },
+    { label: "Made in", value: "Lagos, Nigeria" },
+  ];
+
+  return (
+    <motion.div
+      role="dialog"
+      aria-modal="true"
+      aria-label={product.name}
+      className="fixed inset-0 z-[70] overflow-y-auto text-white"
+      style={{
+        background:
+          "radial-gradient(ellipse at 18% 28%, rgba(245,166,35,0.30), transparent 55%), radial-gradient(ellipse at 85% 95%, rgba(238,138,30,0.18), transparent 50%), linear-gradient(160deg, #0d3170 0%, #0a2250 55%, #071838 100%)",
+      }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Close product"
+        className="fixed right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20 sm:right-6 sm:top-6"
+      >
+        <X size={18} />
+      </button>
+
+      <div className="mx-auto grid min-h-full max-w-7xl lg:grid-cols-2">
+        {/* Left — the product, on a glowing orange-tinted blue stage */}
+        <div className="relative flex items-center justify-center px-6 pb-6 pt-20 lg:px-12 lg:py-16">
+          <div className="pointer-events-none absolute aspect-square w-[70%] max-w-md rounded-full bg-accent/25 blur-3xl" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.94, x: -24 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+            className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-white/15 bg-white/5 p-3 shadow-2xl backdrop-blur-sm"
+          >
+            <div className="overflow-hidden rounded-2xl bg-secondary">
+              <CmsImage
+                src={product.image}
+                alt={product.name}
+                className="max-h-[68vh] w-full object-contain"
+              />
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Right — the write-up */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
+          className="flex flex-col justify-center px-6 pb-16 pt-4 text-center lg:px-12 lg:py-16"
+        >
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-accent">
+            {product.category} · {product.size}
+          </p>
+          <h2 className="mt-3 font-display text-3xl font-extrabold uppercase leading-tight sm:text-4xl">
+            {product.name}
+          </h2>
+
+          <p className="mx-auto mt-6 max-w-xl text-sm leading-relaxed text-white/75 sm:text-base">
+            {product.description}
+          </p>
+
+          <h3 className="mt-10 text-sm font-bold uppercase tracking-[0.18em]">Product details</h3>
+          <div className="mx-auto mt-5 grid w-full max-w-xl grid-cols-3 divide-x divide-white/20">
+            {facts.map((f) => (
+              <div key={f.label} className="px-3">
+                <p className="text-[0.65rem] font-bold uppercase tracking-[0.16em] text-white">{f.label}</p>
+                <p className="mt-1.5 text-xs text-white/70 sm:text-sm">{f.value}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+            <AppLink
+              href="/contact"
+              className="rounded-full bg-accent px-6 py-3 text-sm font-bold text-accent-foreground transition-transform hover:-translate-y-0.5"
+            >
+              Enquire about this product
+            </AppLink>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full border border-white/30 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-white/10"
+            >
+              Back to products
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>
   );
 }
 

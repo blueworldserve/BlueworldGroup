@@ -14,6 +14,7 @@ from models.media_asset import MediaAsset
 from models.site_settings import SiteSettings
 from models.submission import ContactSubmission, CareerApplication, NewsletterSignup
 from models.page import Page, PageBlock, BlockType, PageStatus
+from models.country_showcase import CountryShowcase
 
 __all__ = [
     # admin users
@@ -44,4 +45,5 @@ __all__ = [
     "PageBlock",
     "BlockType",
     "PageStatus",
+    "CountryShowcase",
 ]
