@@ -2,15 +2,12 @@ import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { isDemoSession, login, useAdminUser } from "@/hooks/use-admin-auth";
 import { fetchWithFallback, ENDPOINTS } from "@/lib/api";
 import type { MediaAsset } from "@/lib/types";
 import { authInputClass, authInputStyle, authInputFocusStyle, authInputBlurStyle, authButtonClass } from "@/components/site/auth-ui";
-
-
-
-
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/login")({
   head: () => ({
@@ -33,6 +30,7 @@ function AdminLoginPage() {
   const user = useAdminUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [shake, setShake] = useState(false);
@@ -217,7 +215,7 @@ function AdminLoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.4)" }} />
-                            <input
+              <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -232,17 +230,28 @@ function AdminLoginPage() {
 
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.4)" }} />
-                            <input
-                type="password"
+              <input
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
                 required
-                className={authInputClass}
+                // pr-10 instead of authInputClass's default pr-4 — makes room
+                // for the eye-toggle button without it overlapping the text.
+                className={cn(authInputClass, "pr-10")}
                 style={authInputStyle}
                 onFocus={(e) => Object.assign(e.currentTarget.style, authInputFocusStyle)}
                 onBlur={(e) => Object.assign(e.currentTarget.style, authInputBlurStyle)}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                tabIndex={-1}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 transition-colors hover:text-white/80"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
 
             <AnimatePresence>
@@ -258,7 +267,7 @@ function AdminLoginPage() {
               )}
             </AnimatePresence>
 
-                        <motion.button
+            <motion.button
               type="submit"
               disabled={busy}
               whileHover={{ scale: 1.02 }}

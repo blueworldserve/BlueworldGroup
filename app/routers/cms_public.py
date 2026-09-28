@@ -8,6 +8,7 @@ from models.product import Product
 from models.team_member import TeamMember
 from models.blog_post import BlogPost
 from models.job_posting import JobPosting
+from models.country_showcase import CountryShowcase
 from models.media_asset import MediaAsset
 from models.site_settings import SiteSettings
 from schemas.hero_slide import HeroSlideOut
@@ -16,6 +17,7 @@ from schemas.product import ProductOut
 from schemas.team_member import TeamMemberOut
 from schemas.blog_post import BlogPostOut
 from schemas.job_posting import JobPostingOut
+from schemas.country_showcase import CountryShowcaseOut
 from schemas.media import MediaAssetOut
 from schemas.settings import SiteSettingsOut
 
@@ -50,6 +52,11 @@ def get_blog_posts(db: Session = Depends(get_db)):
 @router.get("/jobs", response_model=list[JobPostingOut])
 def get_jobs(db: Session = Depends(get_db)):
     return db.query(JobPosting).all()
+
+
+@router.get("/country-showcases", response_model=list[CountryShowcaseOut])
+def get_country_showcases(db: Session = Depends(get_db)):
+    return db.query(CountryShowcase).order_by(CountryShowcase.order).all()
 
 
 @router.get("/media", response_model=list[MediaAssetOut])

@@ -55,6 +55,7 @@ from schemas.page import (
     PageCreate,
     PageOut,
 )
+from schemas.country_showcase import CountryShowcaseBase, CountryShowcaseCreate, CountryShowcaseOut
 
 
 __all__ = [
@@ -128,4 +129,8 @@ __all__ = [
     "PageBase",
     "PageCreate",
     "PageOut",
+    # country showcase
+    "CountryShowcaseBase",
+    "CountryShowcaseCreate",
+    "CountryShowcaseOut",
 ]

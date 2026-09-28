@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  Globe2,
   Images,
   LayoutDashboard,
   Layers,
@@ -27,6 +28,7 @@ export const ADMIN_NAV = [
   { label: "Hero Slides", to: "/admin/hero-slides", icon: Sparkles },
   { label: "Business Units", to: "/admin/business-units", icon: Layers },
   { label: "About Pages", to: "/admin/pages", icon: FileText },
+  { label: "Country Showcase", to: "/admin/country-showcase", icon: Globe2 },
   { label: "Products", to: "/admin/products", icon: Package },
   { label: "Team", to: "/admin/team", icon: Users },
   { label: "Blog Posts", to: "/admin/blog", icon: Newspaper },
@@ -35,8 +37,6 @@ export const ADMIN_NAV = [
   { label: "Access Requests", to: "/admin/access-requests", icon: UserCheck },
   { label: "Site Settings", to: "/admin/settings", icon: Settings },
 ] as const;
-
-
 
 export function AdminShell({
   title,
@@ -54,7 +54,6 @@ export function AdminShell({
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   useCmsSourceAlerts();
-
 
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
@@ -81,7 +80,7 @@ export function AdminShell({
   return (
     <div className="flex min-h-screen bg-secondary">
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card lg:flex">
-         <a       
+        <a
           href="/"
           target="_blank"
           rel="noopener noreferrer"

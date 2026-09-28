@@ -26,6 +26,7 @@ import {
 import type {
   BlogPost,
   BusinessUnit,
+  CountryShowcase,
   HeroSlide,
   JobPosting,
   MediaAsset,
@@ -41,6 +42,7 @@ export interface CmsState {
   teamMembers: TeamMember[];
   blogPosts: BlogPost[];
   jobPostings: JobPosting[];
+  countryShowcases: CountryShowcase[];
   mediaLibrary: MediaAsset[];
   settings: SiteSettings;
 }
@@ -56,6 +58,12 @@ const INITIAL: CmsState = {
   teamMembers: TEAM_MEMBERS,
   blogPosts: BLOG_POSTS,
   jobPostings: JOB_POSTINGS,
+  // No hardcoded placeholder set for this one (it didn't exist as a
+  // collection before this feature) — an empty array is fine here: the
+  // homepage already renders a perfectly normal "overview" panel with no
+  // country selected when this list is empty, so there's no broken-UI risk
+  // while waiting for the backend/seed data to load.
+  countryShowcases: [],
   mediaLibrary: MEDIA_LIBRARY,
   settings: SITE_SETTINGS,
 };
@@ -68,6 +76,7 @@ const INITIAL_SOURCES: Record<CollectionKey, DataSource> = {
   teamMembers: "placeholder",
   blogPosts: "placeholder",
   jobPostings: "placeholder",
+  countryShowcases: "placeholder",
   mediaLibrary: "placeholder",
 };
 
@@ -79,6 +88,7 @@ const RESOURCE_PATHS: Record<CollectionKey, { public: string; admin: string }> =
   teamMembers: { public: "/cms/team", admin: "/admin/team" },
   blogPosts: { public: "/cms/blog-posts", admin: "/admin/blog-posts" },
   jobPostings: { public: "/cms/jobs", admin: "/admin/jobs" },
+  countryShowcases: { public: "/cms/country-showcases", admin: "/admin/country-showcases" },
   mediaLibrary: { public: "/cms/media", admin: "/admin/media" },
 };
 
@@ -100,17 +110,27 @@ async function hydrate() {
   if (hydrated || hydrating || typeof window === "undefined") return;
   hydrating = true;
   try {
-    const [heroSlides, businessUnits, products, teamMembers, blogPosts, jobPostings, mediaLibrary, settings] =
-      await Promise.all([
-        fetchWithSource(RESOURCE_PATHS.heroSlides.public, INITIAL.heroSlides),
-        fetchWithSource(RESOURCE_PATHS.businessUnits.public, INITIAL.businessUnits),
-        fetchWithSource(RESOURCE_PATHS.products.public, INITIAL.products),
-        fetchWithSource(RESOURCE_PATHS.teamMembers.public, INITIAL.teamMembers),
-        fetchWithSource(RESOURCE_PATHS.blogPosts.public, INITIAL.blogPosts),
-        fetchWithSource(RESOURCE_PATHS.jobPostings.public, INITIAL.jobPostings),
-        fetchWithSource(RESOURCE_PATHS.mediaLibrary.public, INITIAL.mediaLibrary),
-        fetchWithFallback(SETTINGS_PATHS.public, INITIAL.settings),
-      ]);
+    const [
+      heroSlides,
+      businessUnits,
+      products,
+      teamMembers,
+      blogPosts,
+      jobPostings,
+      countryShowcases,
+      mediaLibrary,
+      settings,
+    ] = await Promise.all([
+      fetchWithSource(RESOURCE_PATHS.heroSlides.public, INITIAL.heroSlides),
+      fetchWithSource(RESOURCE_PATHS.businessUnits.public, INITIAL.businessUnits),
+      fetchWithSource(RESOURCE_PATHS.products.public, INITIAL.products),
+      fetchWithSource(RESOURCE_PATHS.teamMembers.public, INITIAL.teamMembers),
+      fetchWithSource(RESOURCE_PATHS.blogPosts.public, INITIAL.blogPosts),
+      fetchWithSource(RESOURCE_PATHS.jobPostings.public, INITIAL.jobPostings),
+      fetchWithSource(RESOURCE_PATHS.countryShowcases.public, INITIAL.countryShowcases),
+      fetchWithSource(RESOURCE_PATHS.mediaLibrary.public, INITIAL.mediaLibrary),
+      fetchWithFallback(SETTINGS_PATHS.public, INITIAL.settings),
+    ]);
     state = {
       heroSlides: heroSlides.data,
       businessUnits: businessUnits.data,
@@ -118,6 +138,7 @@ async function hydrate() {
       teamMembers: teamMembers.data,
       blogPosts: blogPosts.data,
       jobPostings: jobPostings.data,
+      countryShowcases: countryShowcases.data,
       mediaLibrary: mediaLibrary.data,
       settings,
     };
@@ -128,6 +149,7 @@ async function hydrate() {
       teamMembers: teamMembers.isLive ? "live" : "placeholder",
       blogPosts: blogPosts.isLive ? "live" : "placeholder",
       jobPostings: jobPostings.isLive ? "live" : "placeholder",
+      countryShowcases: countryShowcases.isLive ? "live" : "placeholder",
       mediaLibrary: mediaLibrary.isLive ? "live" : "placeholder",
     };
   } finally {
@@ -211,7 +233,6 @@ export async function deleteItem(key: CollectionKey, id: string) {
     throw error;
   }
 }
-
 
 /** Merges a media asset already created via the /upload endpoint into local state. */
 export function addUploadedMedia(asset: MediaAsset) {

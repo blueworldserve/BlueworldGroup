@@ -10,12 +10,20 @@ from models.product import Product
 from models.team_member import TeamMember
 from models.blog_post import BlogPost
 from models.job_posting import JobPosting
+from models.job_posting import JobPosting
+from models.country_showcase import CountryShowcase
+
+
+
 
 from schemas.hero_slide import HeroSlideOut, HeroSlideCreate
 from schemas.product import ProductOut, ProductCreate
 from schemas.team_member import TeamMemberOut, TeamMemberCreate
 from schemas.blog_post import BlogPostOut, BlogPostCreate
+
+
 from schemas.job_posting import JobPostingOut, JobPostingCreate
+from schemas.country_showcase import CountryShowcaseOut, CountryShowcaseCreate
 
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -54,7 +62,7 @@ app.include_router(make_admin_crud_router("products", Product, ProductOut, Produ
 app.include_router(make_admin_crud_router("team", TeamMember, TeamMemberOut, TeamMemberCreate))
 app.include_router(make_admin_crud_router("blog-posts", BlogPost, BlogPostOut, BlogPostCreate))
 app.include_router(make_admin_crud_router("jobs", JobPosting, JobPostingOut, JobPostingCreate))
-
+app.include_router(make_admin_crud_router("country-showcases", CountryShowcase, CountryShowcaseOut, CountryShowcaseCreate))
 
 @app.on_event("startup")
 def run_startup_tasks():
@@ -76,13 +84,21 @@ def run_startup_tasks():
         logger.exception("Migration step failed on startup")
         raise  # fail loudly — don't let the app serve traffic against an unmigrated DB
 
-    # 2. Seed superuser — no-ops if one already exists
+        # 2. Seed superuser — no-ops if one already exists
     try:
         from scripts.seed_superuser import seed_superuser
         seed_superuser(interactive=False)
     except Exception:
         logger.exception("Superuser seed step failed on startup")
         # not re-raised: a missing superuser shouldn't take the whole app down
+
+    # 3. Seed country showcase content — no-ops per-country if it already exists
+    try:
+        from scripts.seed_country_showcase import main as seed_country_showcase
+        seed_country_showcase()
+    except Exception:
+        logger.exception("Country showcase seed step failed on startup")
+        # not re-raised: same reasoning as the superuser seed above
 
 
 @app.get("/health")

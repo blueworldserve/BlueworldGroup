@@ -206,6 +206,25 @@ export interface CmsPage {
 
 
 
+export interface CountryShowcase {
+  id: string;
+  /** Must match a REACH_MARKERS `name` (case-insensitive) — that's how a
+   *  globe marker click links to this write-up. */
+  name: string;
+  place: string;
+  headline: string;
+  blurb: string;
+  detail: string;
+  statValue: string;
+  statLabel: string;
+  points: string[];
+  image: string;
+  video?: string | null;
+  tint: string;
+  order: number;
+}
+
+
 
 
 

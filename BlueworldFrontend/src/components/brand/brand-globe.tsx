@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from "react";
 import { Globe as GlobeIcon, Image as ImageIcon, X } from "lucide-react";
 import type { GlobeFocus, GlobeMarker } from "@/components/brand/globe-scene";
-import { getShowcase } from "@/lib/country-showcase";
+import { useCollection } from "@/lib/cms-store";
 
 const GlobeScene = lazy(() => import("@/components/brand/globe-scene"));
 
@@ -32,9 +32,24 @@ function defaultWordmarkColor(background: GlobeBackground | (string & {})): stri
   return background === "none" ? "var(--color-foreground)" : "#ffffff";
 }
 
+/** When a country is selected, the globe shrinks into the top-right corner
+ *  so the country photo behind it is what you actually see. */
+const CORNER_GLOBE_SIZE = 32; // % of the box the corner globe occupies
+const CORNER_GLOBE_GAP = 4; // % gap from the top and right edges
+
 interface BrandGlobeProps {
   size?: number;
   maxWidthClass?: string;
+  /**
+   * Fixed-height mode: a Tailwind height class (with responsive variants,
+   * e.g. "h-64 sm:h-72 lg:h-80"), used instead of the aspect-square box.
+   * Takes the full width of its parent — no maxWidthClass cap — since the
+   * point of this mode is "fill this card at this height", not "cap at some
+   * max width". When set, this wins over size/maxWidthClass entirely.
+   * Note: this squashes the box into a rectangle, which flattens the curved
+   * wordmark and crops the logo. Leave it unset for the normal square look.
+   */
+  boxHeightClass?: string;
   className?: string;
   background?: GlobeBackground | (string & {});
   /** Overrides the automatic contrast pick above — set this explicitly if
@@ -55,7 +70,8 @@ interface BrandGlobeProps {
   wordmarkDepth?: number;
   wordmarkGap?: number;
   /** Name of the currently-selected marker — must match a marker's `name`
-   *  and a key in COUNTRY_SHOWCASE. Pass "" or null to show the default panel. */
+   *  and a `name` in the countryShowcases CMS collection. Pass "" or null
+   *  to show the default panel. */
   activeCountry?: string | null;
   /** Fired when a marker is clicked directly on the globe. Pass the same
    *  setter you use for chips/buttons elsewhere so both stay in sync. */
@@ -91,6 +107,7 @@ function buildWordmarkArcPath({
 export function BrandGlobe({
   size,
   maxWidthClass = "max-w-xl",
+  boxHeightClass,
   className,
   background = "none",
   wordmarkColor,
@@ -119,18 +136,35 @@ export function BrandGlobe({
   const [view, setView] = useState<"animated" | "static">(interactive ? mode : "static");
   const canToggle = interactive && showToggle;
 
-  const showcase = activeCountry ? getShowcase(activeCountry) : null;
+  // Reads the live CMS collection directly — an admin edit shows up here on
+  // the next fetch, no rebuild/redeploy needed, and no separate static file
+  // to keep in sync with the database.
+  const countryShowcases = useCollection("countryShowcases");
+  const showcase = activeCountry
+    ? countryShowcases.find((s) => s.name.toLowerCase() === activeCountry.toLowerCase()) ?? null
+    : null;
+
   const focusMarker = activeCountry
     ? markers.find((m) => m.name.toLowerCase() === activeCountry.toLowerCase())
     : null;
   const focus: GlobeFocus | null = focusMarker ? { lat: focusMarker.lat, lng: focusMarker.lng } : null;
 
-  // When a country's selected, shrink the globe's own box (bigger margins)
-  // so more of the backdrop photo shows around it — this is the "globe
-  // becomes a little smaller to show the image" behavior.
-  const marginX = showcase ? globeMarginX + 16 : globeMarginX;
-  const marginTop = showcase ? globeMarginTop + 14 : globeMarginTop;
-  const marginBottom = showcase ? globeMarginBottom + 16 : globeMarginBottom;
+  // Default: the globe fills the box. With a country selected it shrinks to a
+  // small sphere pinned in the top-right corner (the CSS transition on the
+  // wrapper animates the move), so the country photo behind it shows.
+  const globeBox = showcase
+    ? {
+        left: `${100 - CORNER_GLOBE_GAP - CORNER_GLOBE_SIZE}%`,
+        right: `${CORNER_GLOBE_GAP}%`,
+        top: `${CORNER_GLOBE_GAP}%`,
+        bottom: `${100 - CORNER_GLOBE_GAP - CORNER_GLOBE_SIZE}%`,
+      }
+    : {
+        left: `${globeMarginX}%`,
+        right: `${globeMarginX}%`,
+        top: `${globeMarginTop}%`,
+        bottom: `${globeMarginBottom}%`,
+      };
 
   const backgroundCss =
     background in GLOBE_BACKGROUNDS ? GLOBE_BACKGROUNDS[background as GlobeBackground] : background;
@@ -139,11 +173,13 @@ export function BrandGlobe({
   const outerStyle = size ? { width: size, height: size } : undefined;
   const outerClassName = size
     ? "relative overflow-hidden rounded-3xl"
-    : `relative w-full overflow-hidden rounded-3xl aspect-square mx-auto ${maxWidthClass} ${className ?? ""}`;
+    : boxHeightClass
+      ? `relative w-full overflow-hidden rounded-3xl ${boxHeightClass} ${className ?? ""}`
+      : `relative w-full overflow-hidden rounded-3xl aspect-square mx-auto ${maxWidthClass} ${className ?? ""}`;
 
   const wordmarkPath = buildWordmarkArcPath({
-    globeMarginX: marginX,
-    globeMarginBottom: marginBottom,
+    globeMarginX,
+    globeMarginBottom,
     hug: wordmarkHug,
     depth: wordmarkDepth,
     gap: wordmarkGap,
@@ -153,13 +189,9 @@ export function BrandGlobe({
   return (
     <div className={outerClassName} style={{ ...outerStyle, background: backgroundCss }}>
       {/* Tint fallback layer — sits behind the photo, only matters if the
-          image 404s (per country-showcase.ts's own comment: "until a file
-          exists, the tint gradient shows instead, so nothing breaks"). */}
+          image 404s, so nothing breaks while a country's image is missing. */}
       {showcase && (
-        <div
-          className="absolute inset-0 transition-opacity duration-700"
-          style={{ background: showcase.tint }}
-        />
+        <div className="absolute inset-0 transition-opacity duration-700" style={{ background: showcase.tint }} />
       )}
 
       {/* Country backdrop photo — fades in behind the globe when a marker is selected */}
@@ -175,19 +207,14 @@ export function BrandGlobe({
         }}
       />
 
-      {view === "static" || !interactive ? (
+      {/* The static logo only shows when no country is selected. Picking a
+          country while the logo is up switches to the globe view, so the
+          photo isn't hidden behind the logo. */}
+      {(view === "static" || !interactive) && !showcase ? (
         <img src="/blueworld.png" alt="Blue World Cosmetics" className="h-full w-full object-cover" draggable={false} />
       ) : (
         <>
-          <div
-            className="absolute transition-all duration-700 ease-out"
-            style={{
-              left: `${marginX}%`,
-              right: `${marginX}%`,
-              top: `${marginTop}%`,
-              bottom: `${marginBottom}%`,
-            }}
-          >
+          <div className="absolute transition-all duration-700 ease-in-out" style={globeBox}>
             <Suspense fallback={<div className="h-full w-full animate-pulse rounded-full bg-white/10" />}>
               <GlobeScene
                 markers={markers}
@@ -245,14 +272,15 @@ export function BrandGlobe({
       )}
 
       {/* Reset button — only shown while a country is active, clears back
-          to the deep-blue default panel. */}
+          to the deep-blue default panel. Sits top-left so it never overlaps
+          the small globe in the top-right corner. */}
       {showcase && onSelectCountry && (
         <button
           type="button"
           onClick={() => onSelectCountry("")}
           aria-label="Back to overview"
           title="Back to overview"
-          className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition-colors hover:bg-black/70"
+          className="absolute left-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition-colors hover:bg-black/70"
         >
           <X size={16} />
         </button>
