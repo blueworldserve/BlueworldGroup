@@ -58,7 +58,8 @@ def update_business_unit(
 def delete_business_unit(
     unit_id: uuid.UUID,
     db: Session = Depends(get_db),
-    _=Depends(require_role(AdminRole.admin, AdminRole.editor)),
+    # Deleting a whole business unit is admin/superuser only.
+    _=Depends(require_role(AdminRole.admin)),
 ):
     unit = db.query(BusinessUnit).filter(BusinessUnit.id == unit_id).first()
     if not unit:

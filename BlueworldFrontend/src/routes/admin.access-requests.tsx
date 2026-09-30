@@ -24,6 +24,7 @@ interface AdminUserRow {
   role: "admin" | "editor" | "viewer";
   status: "pending" | "active" | "suspended";
   createdAt: string;
+  isSuperuser: boolean;
 }
 
 function AccessRequestsPage() {
@@ -56,9 +57,17 @@ function AccessRequestsPage() {
     else setLoading(false);
   }, [isAdmin]);
 
-  function guardSelf(targetId: string, action: string): boolean {
+    function guardSelf(targetId: string, action: string): boolean {
     if (session && targetId === session.id) {
       toast.error(`You can't ${action} your own account while signed in.`);
+      return true;
+    }
+    return false;
+  }
+
+  function guardSuperuser(target: AdminUserRow, action: string): boolean {
+    if (target.isSuperuser) {
+      toast.error(`The superuser account can't be ${action}.`);
       return true;
     }
     return false;
@@ -80,7 +89,9 @@ function AccessRequestsPage() {
     }
   }
 
-  async function suspend(id: string) {
+    async function suspend(id: string) {
+    const target = team.find((u) => u.id === id);
+    if (target && guardSuperuser(target, "suspended")) return;
     if (guardSelf(id, "suspend")) return;
     setBusyId(id);
     try {
@@ -107,7 +118,9 @@ function AccessRequestsPage() {
     }
   }
 
-  async function remove(id: string) {
+    async function remove(id: string) {
+    const target = team.find((u) => u.id === id);
+    if (target && guardSuperuser(target, "deleted")) return;
     if (guardSelf(id, "delete")) return;
     if (!window.confirm("Permanently delete this account? This cannot be undone.")) return;
     setBusyId(id);
@@ -152,8 +165,9 @@ function AccessRequestsPage() {
                   <div key={r.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-4">
                     <div>
                       <p className="font-semibold text-primary-deep">{r.fullName || r.email}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {r.email} — requested <span className="font-semibold">{r.role}</span>
+                                            <p className="text-xs text-muted-foreground">
+                        {r.email} — requested{" "}
+                        <span className="font-semibold">{r.isSuperuser ? "Master Key" : r.role}</span>
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -184,20 +198,25 @@ function AccessRequestsPage() {
               <p className="mt-3 text-sm text-muted-foreground">No approved accounts yet.</p>
             ) : (
               <div className="mt-4 space-y-3">
-                {team.map((u) => {
+                                {team.map((u) => {
                   const isSelf = session && u.id === session.id;
+                  const locked = isSelf || u.isSuperuser;
                   return (
                     <div
                       key={u.id}
-                      className={`flex items-center justify-between rounded-xl border border-border bg-card p-4 ${isSelf ? "opacity-60" : ""}`}
+                      className={`flex items-center justify-between rounded-xl border border-border bg-card p-4 ${locked ? "opacity-60" : ""}`}
                     >
                       <div>
                         <p className="font-semibold text-primary-deep">
                           {u.fullName || u.email}
                           {isSelf && <span className="ml-2 text-xs font-normal text-muted-foreground">(you)</span>}
+                          {u.isSuperuser && !isSelf && (
+                            <span className="ml-2 text-xs font-normal text-muted-foreground">(superuser)</span>
+                          )}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {u.email} — <span className="font-semibold">{u.role}</span> —{" "}
+                                                <p className="text-xs text-muted-foreground">
+                          {u.email} —{" "}
+                          <span className="font-semibold">{u.isSuperuser ? "Master Key" : u.role}</span> —{" "}
                           <span className={u.status === "suspended" ? "text-destructive" : "text-accent"}>
                             {u.status}
                           </span>
@@ -206,9 +225,9 @@ function AccessRequestsPage() {
                       <div className="flex gap-2">
                         {u.status === "active" ? (
                           <button
-                            disabled={busyId === u.id}
+                            disabled={busyId === u.id || locked}
                             onClick={() => void suspend(u.id)}
-                            className={`inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-xs font-bold text-primary-deep disabled:opacity-60 ${isSelf ? "cursor-not-allowed" : ""}`}
+                            className={`inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-xs font-bold text-primary-deep disabled:opacity-60 ${locked ? "cursor-not-allowed" : ""}`}
                           >
                             <UserX className="h-3.5 w-3.5" />
                             Suspend
@@ -224,9 +243,9 @@ function AccessRequestsPage() {
                           </button>
                         )}
                         <button
-                          disabled={busyId === u.id}
+                          disabled={busyId === u.id || locked}
                           onClick={() => void remove(u.id)}
-                          className={`inline-flex items-center gap-1.5 rounded-full border border-destructive/40 px-4 py-2 text-xs font-bold text-destructive disabled:opacity-60 ${isSelf ? "cursor-not-allowed" : ""}`}
+                          className={`inline-flex items-center gap-1.5 rounded-full border border-destructive/40 px-4 py-2 text-xs font-bold text-destructive disabled:opacity-60 ${locked ? "cursor-not-allowed" : ""}`}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                           Delete

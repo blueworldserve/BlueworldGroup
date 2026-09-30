@@ -100,7 +100,31 @@ export async function uploadMedia(file: File): Promise<MediaAsset> {
   return (await res.json()) as MediaAsset;
 }
 
-/** Result of a fallback-aware read — tells the caller whether `data` is real or placeholder. */
+/** Uploads a video to Cloudinary via the backend. Returns just the hosted URL (videos aren't added to the image Media Library). */
+export async function uploadVideo(file: File): Promise<{ url: string }> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  // Videos are big; the default 4s API timeout doesn't apply here (plain fetch), so no abort.
+  const res = await fetch(`${API_BASE_URL}/admin/media/upload-video`, {
+    method: "POST",
+    headers: { ...authHeader() },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    let detail: unknown = null;
+    try {
+      detail = await res.json();
+    } catch {
+      // not JSON
+    }
+    throw new ApiError(res.status, detail, `API ${res.status} on /admin/media/upload-video`);
+  }
+  return (await res.json()) as { url: string };
+}
+
+/** Result of a fallback-aware read. `isLive` is true if the result actually came from the backend, false if the fallback was used instead. */
 export interface SourcedResult<T> {
   data: T;
   /** true = came from the backend; false = local placeholder was used instead. */

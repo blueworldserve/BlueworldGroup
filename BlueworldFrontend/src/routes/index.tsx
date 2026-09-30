@@ -438,7 +438,7 @@ function HomePage() {
             "Make it properly, or do not ship it."
           </p>
           <footer className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-accent">
-            The rule since 1998
+            The rule since 2016
           </footer>
         </blockquote>
       </Section>

@@ -3,6 +3,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { ResourceManager, type ColumnConfig, type FieldConfig } from "@/components/admin/resource-manager";
 import { deleteItem, newId, upsertItem, useCollection } from "@/lib/cms-store";
 import type { BusinessUnit } from "@/lib/types";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 
 export const Route = createFileRoute("/admin/business-units")({
   head: () => ({
@@ -48,6 +49,7 @@ const fields: FieldConfig<BusinessUnit>[] = [
 
 function BusinessUnitsAdmin() {
   const units = [...useCollection("businessUnits")].sort((a, b) => a.order - b.order);
+  const isAdmin = useIsAdmin();
 
   return (
     <AdminShell
@@ -59,7 +61,7 @@ function BusinessUnitsAdmin() {
         columns={columns}
         fields={fields}
         singular="Business unit"
-        emptyItem={() =>
+        canDelete={isAdmin}        emptyItem={() =>
           ({
             id: newId("bu"),
             slug: "vivon",

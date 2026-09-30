@@ -5,6 +5,8 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { deleteAdminPage, listAdminPages } from "@/lib/pages-admin";
+import { ConfirmDeleteDialog } from "@/components/admin/confirm-delete-dialog";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 
 export const Route = createFileRoute("/admin/pages/")({
   component: AdminPagesList,
@@ -22,8 +24,10 @@ function AdminPagesList() {
     if (isError) toast.error("Could not load pages — check your connection or permissions.");
   }, [isError]);
 
-  async function handleDelete(id: string, slug: string) {
-    if (!window.confirm(`Delete the "${slug}" page? This removes all of its blocks too.`)) return;
+  const isAdmin = useIsAdmin();
+  const [pendingPage, setPendingPage] = useState<{ id: string; title: string } | null>(null);
+
+  async function deletePageNow(id: string) {
     setBusyId(id);
     try {
       await deleteAdminPage(id);
@@ -61,7 +65,8 @@ function AdminPagesList() {
       <button
         type="button"
         disabled={busyId === id}
-        onClick={() => void handleDelete(id, slug)}
+        hidden={!isAdmin}
+        onClick={() => setPendingPage({ id, title: title || slug })}
         className={`grid ${size} place-items-center rounded-lg border border-border text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50`}
         aria-label={`Delete ${title}`}
       >
@@ -158,6 +163,17 @@ function AdminPagesList() {
           </div>
         </div>
       )}
+      <ConfirmDeleteDialog
+        open={pendingPage !== null}
+        title="Delete this page?"
+        itemLabel={pendingPage?.title ?? ""}
+        onCancel={() => setPendingPage(null)}
+        onConfirm={() => {
+          const target = pendingPage;
+          setPendingPage(null);
+          if (target) void deletePageNow(target.id);
+        }}
+      />
     </AdminShell>
   );
 }

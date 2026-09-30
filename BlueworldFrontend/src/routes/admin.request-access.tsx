@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Mail, Lock, ShieldCheck } from "lucide-react";
+import { User, Mail, Lock, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { apiFetch, ENDPOINTS, ApiError, fetchWithFallback } from "@/lib/api";
 import type { MediaAsset } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { authInputClass, authInputStyle, authInputFocusStyle, authInputBlurStyle, authButtonClass } from "@/components/site/auth-ui";
 
 export const Route = createFileRoute("/admin/request-access")({
@@ -24,7 +25,8 @@ const FALLBACK_GRADIENT = "linear-gradient(135deg, hsl(var(--primary-deep)) 0%, 
 
 function RequestAccessPage() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+    const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState("");
   const [requestedRole, setRequestedRole] = useState<RequestedRole>("viewer");
   const [busy, setBusy] = useState(false);
@@ -210,18 +212,29 @@ function RequestAccessPage() {
 
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.4)" }} />
-                  <input
-                    type="password"
+                                    <input
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Password"
                     required
                     minLength={8}
-                    className={authInputClass}
+                    // pr-10 instead of authInputClass's default pr-4 — makes room
+                    // for the eye-toggle button without it overlapping the text.
+                    className={cn(authInputClass, "pr-10")}
                     style={authInputStyle}
                     onFocus={(e) => Object.assign(e.currentTarget.style, authInputFocusStyle)}
                     onBlur={(e) => Object.assign(e.currentTarget.style, authInputBlurStyle)}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    tabIndex={-1}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 transition-colors hover:text-white/80"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
 
                 <div>

@@ -22,6 +22,7 @@ import { getAdminUser, logout, useAdminUser } from "@/hooks/use-admin-auth";
 import { BrandGlobe } from "@/components/brand/brand-globe";
 import { cn } from "@/lib/utils";
 import { useCmsSourceAlerts } from "@/hooks/use-cms-source-alerts";
+import { ThemeToggle } from "@/components/admin/theme-toggle";
 
 export const ADMIN_NAV = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard },
@@ -77,6 +78,13 @@ export function AdminShell({
     );
   }
 
+  // Only admins (and the superuser) ever see the Access Requests entry.
+  // Used by BOTH the desktop sidebar and the mobile menu below.
+  const canManageAccess = session.role === "admin" || session.isSuperuser === true;
+  const navItems = ADMIN_NAV.filter(
+    (item) => item.to !== "/admin/access-requests" || canManageAccess,
+  );
+
   return (
     <div className="flex min-h-screen bg-secondary">
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card lg:flex">
@@ -94,7 +102,7 @@ export function AdminShell({
           </div>
         </a>
         <nav className="flex-1 space-y-1 p-4">
-          {ADMIN_NAV.map((item) => {
+          {navItems.map((item) => {
             const active = item.to === "/admin" ? pathname === "/admin" : pathname.startsWith(item.to);
             return (
               <Link
@@ -140,8 +148,11 @@ export function AdminShell({
             {actions}
             <div className="hidden text-right sm:block">
               <p className="text-sm font-semibold text-primary-deep">{session.fullName}</p>
-              <p className="text-xs uppercase tracking-[0.14em] text-accent">{session.role}</p>
+              <p className="text-xs uppercase tracking-[0.14em] text-accent">
+                {session.isSuperuser ? "Master Key" : session.role}
+              </p>
             </div>
+            <ThemeToggle />
             <button
               type="button"
               onClick={() => {
@@ -166,7 +177,7 @@ export function AdminShell({
               className="overflow-hidden border-b border-border bg-card lg:hidden"
             >
               <div className="space-y-1 p-4">
-                {ADMIN_NAV.map((item) => {
+                {navItems.map((item) => {
                   const active = item.to === "/admin" ? pathname === "/admin" : pathname.startsWith(item.to);
                   return (
                     <Link

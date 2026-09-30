@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Play, X } from "lucide-react";
 import { ButtonLink } from "@/components/site/primitives";
 import { resolveImage } from "@/data/images";
+import { parseVideoUrl, youtubeBackgroundUrl } from "@/lib/video";
 import type { HeroSlide } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -11,14 +13,23 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
   const ordered = useMemo(() => [...slides].sort((a, b) => a.order - b.order), [slides]);
   const count = ordered.length;
   const [index, setIndex] = useState(0);
+  const [igOpen, setIgOpen] = useState(false);
+  const reduceMotion = useReducedMotion();
 
   // A timeout keyed on `index` (not an interval) so clicking a dot restarts
   // the countdown instead of the next auto-advance firing a moment later.
   useEffect(() => {
-    if (count < 2) return;
+    if (count < 2 || igOpen) return; // hold the slide while an Instagram video is open
     const t = setTimeout(() => setIndex((i) => (i + 1) % count), SLIDE_MS);
     return () => clearTimeout(t);
-  }, [index, count]);
+  }, [index, count, igOpen]);
+
+  useEffect(() => {
+    if (!igOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setIgOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [igOpen]);
 
   // Warm the next slide's images so the crossfade never shows a blank frame.
   useEffect(() => {
@@ -36,6 +47,12 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
 
   const active = index % count;
   const slide = ordered[active]!;
+
+  // YouTube and file videos play as a muted background; Instagram can't autoplay
+  // or hide its chrome, so it gets a "Watch video" button that opens the embed.
+  const parsed = parseVideoUrl(slide.videoUrl);
+  const bgVideo = parsed && parsed.kind !== "instagram" && !reduceMotion ? parsed : null;
+  const igVideo = parsed?.kind === "instagram" ? parsed : null;
 
   return (
     <section className="relative h-[82svh] min-h-[520px] w-full overflow-hidden bg-primary-deep md:h-[92vh]">
@@ -61,6 +78,31 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
               className="absolute inset-0 h-full w-full object-cover object-[50%_22%] md:object-[50%_30%]"
             />
           </picture>
+          {bgVideo?.kind === "file" && (
+            <video
+              key={bgVideo.src}
+              src={bgVideo.src}
+              poster={resolveImage(slide.image)}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          )}
+          {bgVideo?.kind === "youtube" && (
+            <iframe
+              key={bgVideo.id}
+              src={youtubeBackgroundUrl(bgVideo.id)}
+              title=""
+              aria-hidden="true"
+              tabIndex={-1}
+              allow="autoplay; encrypted-media"
+              className="pointer-events-none absolute left-1/2 top-1/2 aspect-video w-[max(100%,177.78svh)] -translate-x-1/2 -translate-y-1/2 border-0"
+            />
+          )}
         </motion.div>
       </AnimatePresence>
 
@@ -96,6 +138,16 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
                 </ButtonLink>
               </div>
             )}
+            {igVideo && (
+              <button
+                type="button"
+                onClick={() => setIgOpen(true)}
+                className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/25"
+              >
+                <Play className="h-4 w-4 fill-current" />
+                Watch video
+              </button>
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -116,6 +168,38 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
           ))}
         </div>
       )}
+
+      <AnimatePresence>
+        {igVideo && igOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIgOpen(false)}
+            className="fixed inset-0 z-[70] grid place-items-center bg-black/80 p-4"
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="relative h-[min(85svh,720px)] w-[min(92vw,420px)]"
+            >
+              <iframe
+                src={igVideo.embedUrl}
+                title="Instagram video"
+                allowFullScreen
+                className="h-full w-full rounded-2xl border-0 bg-white"
+              />
+              <button
+                type="button"
+                onClick={() => setIgOpen(false)}
+                aria-label="Close video"
+                className="absolute -top-12 right-0 grid h-10 w-10 place-items-center rounded-full bg-white/15 text-white backdrop-blur hover:bg-white/25"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

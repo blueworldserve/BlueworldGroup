@@ -2,6 +2,7 @@ import { lazy, Suspense, useState } from "react";
 import { Globe as GlobeIcon, Image as ImageIcon, X } from "lucide-react";
 import type { GlobeFocus, GlobeMarker } from "@/components/brand/globe-scene";
 import { useCollection } from "@/lib/cms-store";
+import { resolveTint } from "@/lib/tint";
 
 const GlobeScene = lazy(() => import("@/components/brand/globe-scene"));
 
@@ -191,7 +192,7 @@ export function BrandGlobe({
       {/* Tint fallback layer — sits behind the photo, only matters if the
           image 404s, so nothing breaks while a country's image is missing. */}
       {showcase && (
-        <div className="absolute inset-0 transition-opacity duration-700" style={{ background: showcase.tint }} />
+        <div className="absolute inset-0 transition-opacity duration-700" style={{ background: resolveTint(showcase.tint) }} />
       )}
 
       {/* Country backdrop photo — fades in behind the globe when a marker is selected */}

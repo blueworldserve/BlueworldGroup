@@ -1,21 +1,35 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { CmsImage } from "@/components/site/primitives";
 import { LOCAL_IMAGES } from "@/data/images";
 import { useCollection } from "@/lib/cms-store";
+import { ApiError, uploadVideo } from "@/lib/api";
+import { parseVideoUrl } from "@/lib/video";
 import { cn } from "@/lib/utils";
+import { ConfirmDeleteDialog, labelOf } from "@/components/admin/confirm-delete-dialog";
 
-export type FieldType = "text" | "textarea" | "number" | "select" | "multiselect" | "date" | "image" | "boolean" | "list";
+
+
+
+
+export type FieldType = "text" | "textarea" | "number" | "select" | "multiselect" | "date" | "image" | "video" | "boolean" | "list";
 
 export interface FieldConfig<T> {
   name: keyof T & string;
   label: string;
   type?: FieldType;
   options?: readonly string[];
-  help?: string;
+    help?: string;
   rows?: number;
+  /**
+   * Conditionally show this field. Evaluated against the in-progress form
+   * state (not the original record), so it reacts live as other fields change.
+   */
+  showIf?: (item: T) => boolean;
+  /** Small element rendered beside a select control, e.g. a colour swatch. Receives the in-progress form state. */
+  preview?: (item: T) => ReactNode;
 }
 
 export interface ColumnConfig<T> {
@@ -36,6 +50,7 @@ export function ResourceManager<T extends Row>({
   onDelete,
   singular,
   allowCreate = true,
+  canDelete = true,
 }: {
   items: T[];
   columns: ColumnConfig<T>[];
@@ -46,8 +61,11 @@ export function ResourceManager<T extends Row>({
   singular: string;
   /** Set false for resources created only through a dedicated flow (e.g. media uploads). */
   allowCreate?: boolean;
+  /** Set false to hide the delete buttons (e.g. for roles that may not delete this resource). */
+  canDelete?: boolean;
 }) {
   const [editing, setEditing] = useState<T | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<T | null>(null);
 
   // CHANGED: split out the image column and the rest so the mobile card
   // view below can lay out a thumbnail + label:value list without the
@@ -134,10 +152,10 @@ export function ResourceManager<T extends Row>({
                         type="button"
                         aria-label={`Delete ${item.id}`}
                         onClick={() => {
-                          onDelete(item.id);
-                          toast.success(`${singular} deleted`);
+                          setPendingDelete(item);
                         }}
-                        className="grid h-9 w-9 place-items-center rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10"
+                        hidden={!canDelete}
+                        className="grid h-9 w-9place-items-center rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -193,10 +211,10 @@ export function ResourceManager<T extends Row>({
                   type="button"
                   aria-label={`Delete ${item.id}`}
                   onClick={() => {
-                    onDelete(item.id);
-                    toast.success(`${singular} deleted`);
+                    setPendingDelete(item);
                   }}
-                  className="grid h-10 w-10 place-items-center rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10"
+                  hidden={!canDelete}
+                  className="grid h-10 w-10place-items-center rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -205,6 +223,20 @@ export function ResourceManager<T extends Row>({
           </div>
         ))}
       </div>
+
+      <ConfirmDeleteDialog
+        open={pendingDelete !== null}
+        title={`Delete this ${singular.toLowerCase()}?`}
+        itemLabel={pendingDelete ? labelOf(pendingDelete) : ""}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (pendingDelete) {
+            onDelete(pendingDelete.id);
+            toast.success(`${singular} deleted`);
+          }
+          setPendingDelete(null);
+        }}
+      />
 
       {editing && (
         <RecordEditor
@@ -219,6 +251,94 @@ export function ResourceManager<T extends Row>({
           }}
         />
       )}
+    </div>
+  );
+}
+
+/** Video for a slide: paste a YouTube / Instagram / direct video link, or upload a file. */
+export function VideoField({
+  id,
+  value,
+  onChange,
+}: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const source = parseVideoUrl(value);
+
+  async function handleFile(file: File | undefined) {
+    if (!file) return;
+    if (!file.type.startsWith("video/")) {
+      toast.error("Please choose a video file (MP4 or WebM).");
+      return;
+    }
+    setUploading(true);
+    try {
+      const { url } = await uploadVideo(file);
+      onChange(url);
+      toast.success("Video uploaded.");
+    } catch (err) {
+      const detail = err instanceof ApiError ? (err.detail as { detail?: string } | null)?.detail : null;
+      toast.error(detail ?? "Video upload failed. Try a smaller file, or paste a link instead.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  const status = !value
+    ? null
+    : source?.kind === "youtube"
+      ? "YouTube link: plays muted and looping behind the slide."
+      : source?.kind === "instagram"
+        ? "Instagram link: shows a play button on the slide that opens the video."
+        : source?.kind === "file"
+          ? "Video file: plays muted and looping behind the slide."
+          : "Not recognised. Use a YouTube or Instagram link, or a direct .mp4 / .webm link.";
+
+  return (
+    <div className="mt-2 space-y-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <input
+          id={id}
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Paste a YouTube, Instagram or .mp4 link"
+          className="w-full min-w-0 rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+        />
+        <label
+          className={cn(
+            "inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border px-4 py-3 text-sm font-semibold text-primary-deep",
+            uploading && "pointer-events-none opacity-60",
+          )}
+        >
+          <Upload className="h-4 w-4" />
+          {uploading ? "Uploading…" : "Upload video"}
+          <input
+            type="file"
+            accept="video/mp4,video/webm,video/quicktime"
+            className="hidden"
+            disabled={uploading}
+            onChange={(e) => {
+              void handleFile(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+          />
+        </label>
+        {value && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            aria-label="Remove video"
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-border text-muted-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+      {status && <p className="text-xs text-muted-foreground">{status}</p>}
     </div>
   );
 }
@@ -324,7 +444,7 @@ export function RecordEditor<T extends Record<string, unknown>>({
       }}
       className="space-y-4"
     >
-      {fields.map((field) => {
+      {fields.filter((field) => !field.showIf || field.showIf(draft)).map((field) => {
         const value = draft[field.name];
         const id = `field-${String(field.name)}`;
         return (
@@ -352,21 +472,32 @@ export function RecordEditor<T extends Record<string, unknown>>({
                 className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
               />
             ) : field.type === "select" ? (
-              <select
-                id={id}
-                value={String(value ?? "")}
-                onChange={(e) => set(field.name, e.target.value)}
-                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
-              >
-                <option value="">—</option>
-                {(field.options ?? []).map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
+                            <div className="mt-2 flex items-center gap-3">
+                <select
+                  id={id}
+                  value={String(value ?? "")}
+                  onChange={(e) => set(field.name, e.target.value)}
+                  className="w-full max-w-md rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+                >
+                  <option value="">—</option>
+                  {/* A stored value that isn't one of the options (e.g. a raw
+                      value seeded before this field became a select) stays
+                      visible instead of silently showing as blank. */}
+                  {value && !(field.options ?? []).includes(String(value)) && (
+                    <option value={String(value)}>Custom (current value)</option>
+                  )}
+                  {(field.options ?? []).map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+                {field.preview?.(draft)}
+              </div>
             ) : field.type === "image" ? (
-              <ImageField id={id} value={String(value ?? "")} onChange={(v) => set(field.name, v)} />
+                            <ImageField id={id} value={String(value ?? "")} onChange={(v) => set(field.name, v)} />
+            ) : field.type === "video" ? (
+              <VideoField id={id} value={String(value ?? "")} onChange={(v) => set(field.name, v)} />
 
                         ) : field.type === "multiselect" ? (
               <div className="mt-2 flex flex-wrap gap-2">
@@ -429,7 +560,7 @@ export function RecordEditor<T extends Record<string, unknown>>({
                 onChange={(e) =>
                   set(field.name, field.type === "number" ? Number(e.target.value) : e.target.value)
                 }
-                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+                                className="mt-2 w-full max-w-md rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
               />
             )}
             {field.help && <p className="mt-1.5 text-xs text-muted-foreground">{field.help}</p>}
@@ -460,7 +591,7 @@ export function RecordEditor<T extends Record<string, unknown>>({
   if (inline) return body;
 
   return (
-    <div className="fixed inset-0 z-[60] grid place-items-center bg-primary-deep/60 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[60] grid place-items-center bg-primary-deep/60 p-4 backdrop-blur-sm dark:bg-black/70">
       {/* CHANGED: tighter padding on mobile (`p-5`), original `p-7` kept
           from `sm` up. */}
       <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-5 shadow-lift sm:p-7">

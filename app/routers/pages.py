@@ -3,7 +3,8 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from core.deps import get_db, require_editor
+from core.deps import get_db, require_editor, require_role
+from models.admin_user import AdminRole
 from models.page import Page, PageBlock, PageStatus
 from schemas.page import PageOut, PageCreate
 
@@ -88,8 +89,11 @@ def update_page(
     return page
 
 
+
+
 @admin_router.delete("/{page_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_page(page_id: uuid.UUID, db: Session = Depends(get_db), _=Depends(require_editor)):
+# Deleting a whole page is admin/superuser only (the seeded superuser has the admin role).
+def delete_page(page_id: uuid.UUID, db: Session = Depends(get_db), _=Depends(require_role(AdminRole.admin))):
     page = db.query(Page).filter(Page.id == page_id).first()
     if not page:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Page not found")

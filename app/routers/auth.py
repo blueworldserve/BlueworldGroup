@@ -126,6 +126,8 @@ def suspend_user(
     user = db.query(AdminUser).filter(AdminUser.id == user_id).first()
     if not user:
         raise HTTPException(404, "User not found")
+    if user.is_superuser:
+        raise HTTPException(403, "The superuser account cannot be suspended")
     user.status = AdminStatus.suspended
     db.commit()
     db.refresh(user)
@@ -158,5 +160,7 @@ def delete_user(
     user = db.query(AdminUser).filter(AdminUser.id == user_id).first()
     if not user:
         raise HTTPException(404, "User not found")
+    if user.is_superuser:
+        raise HTTPException(403, "The superuser account cannot be deleted")
     db.delete(user)
     db.commit()
