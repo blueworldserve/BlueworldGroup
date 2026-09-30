@@ -8,6 +8,7 @@ import { fetchWithFallback, ENDPOINTS } from "@/lib/api";
 import type { MediaAsset } from "@/lib/types";
 import { authInputClass, authInputStyle, authInputFocusStyle, authInputBlurStyle, authButtonClass } from "@/components/site/auth-ui";
 import { cn } from "@/lib/utils";
+import { PLACEHOLDER_WARNED_KEY } from "@/hooks/use-cms-source-alerts";
 
 export const Route = createFileRoute("/admin/login")({
   head: () => ({
@@ -65,7 +66,13 @@ function AdminLoginPage() {
     setError("");
     setBusy(true);
     try {
-      await login(email, password);
+            await login(email, password);
+      // Fresh sign-in gets one fresh placeholder check.
+      try {
+        window.sessionStorage.removeItem(PLACEHOLDER_WARNED_KEY);
+      } catch {
+        /* ignore */
+      }
       if (isDemoSession()) {
         toast.warning("Signed in with the offline demo session — backend is unreachable, this is not real data.");
       } else {

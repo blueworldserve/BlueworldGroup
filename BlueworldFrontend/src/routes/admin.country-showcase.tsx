@@ -6,6 +6,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { ResourceManager, type ColumnConfig, type FieldConfig } from "@/components/admin/resource-manager";
 import { deleteItem, newId, upsertItem, useCollection } from "@/lib/cms-store";
 import type { CountryShowcase } from "@/lib/types";
+import { resolveTint, TINT_COLOR_NAMES } from "@/lib/tint";
 
 export const Route = createFileRoute("/admin/country-showcase")({
   head: () => ({
@@ -45,7 +46,20 @@ const fields: FieldConfig<CountryShowcase>[] = [
   { name: "points", label: "Bullet points", type: "list", rows: 6, help: "One point per line. These fill the card top-down — add as many as you like." },
   { name: "image", label: "Backdrop photo", type: "image" },
   { name: "video", label: "Backdrop video URL (optional)" },
-  { name: "tint", label: "Fallback tint (CSS gradient)", help: "Shown behind the globe while the photo loads or if it's missing. e.g. linear-gradient(160deg, #0d3b2e 0%, #0b1a2a 100%)" },
+    {
+    name: "tint",
+    label: "Fallback tint",
+    type: "select",
+    options: TINT_COLOR_NAMES,
+    help: "Shown behind the globe while the photo loads or if it's missing. Pick the colour closest to the country's photo.",
+    preview: (item) => (
+      <span
+        aria-hidden="true"
+        className="h-11 w-16 shrink-0 rounded-lg border border-border"
+        style={{ background: resolveTint(item.tint) }}
+      />
+    ),
+  },
   { name: "order", label: "Display order", type: "number" },
 ];
 
@@ -74,7 +88,7 @@ function CountryShowcaseAdmin() {
           points: [],
           image: "",
           video: null,
-          tint: "linear-gradient(160deg, #0d3b2e 0%, #0b1a2a 100%)",
+          tint: "green",
           order: items.length,
         })}
         onSave={(item) => upsertItem("countryShowcases", item)}

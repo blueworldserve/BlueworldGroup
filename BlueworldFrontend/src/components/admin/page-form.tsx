@@ -106,14 +106,14 @@ export function PageForm({
         </div>
 
         <details className="mt-6 rounded-xl border border-border p-4">
-          <summary className="cursor-pointer text-sm font-semibold text-primary-deep">Search engine settings (optional)</summary>
+          <summary className="cursor-pointer text-sm font-semibold text-primary-deep">Advanced</summary>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
-              <label className={labelClass}>Browser tab / search result title</label>
+              <label className={labelClass}>Page title in Google search results</label>
               <input value={form.metaTitle ?? ""} onChange={(e) => set("metaTitle", e.target.value)} className={inputClass} />
             </div>
             <div>
-              <label className={labelClass}>Search result description</label>
+              <label className={labelClass}>Description shown under the title in Google search results</label>
               <input value={form.metaDescription ?? ""} onChange={(e) => set("metaDescription", e.target.value)} className={inputClass} />
             </div>
           </div>

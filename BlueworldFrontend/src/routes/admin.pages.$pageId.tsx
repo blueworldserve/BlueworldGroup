@@ -8,6 +8,8 @@ import { PageForm } from "@/components/admin/page-form";
 import { LoadingBlock, ErrorBlock } from "@/components/site/primitives";
 import { deleteAdminPage, getAdminPage, updateAdminPage } from "@/lib/pages-admin";
 import type { PageInput } from "@/lib/pages-admin";
+import { ConfirmDeleteDialog } from "@/components/admin/confirm-delete-dialog";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 
 export const Route = createFileRoute("/admin/pages/$pageId")({
   component: EditPage,
@@ -18,6 +20,8 @@ function EditPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const isAdmin = useIsAdmin();
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const { data: page, isLoading, isError } = useQuery({
     queryKey: ["admin", "page", pageId],
@@ -35,7 +39,6 @@ function EditPage() {
   }
 
   async function handleDelete() {
-    if (!window.confirm(`Delete "${page?.title}"? This removes all of its content.`)) return;
     setBusy(true);
     try {
       await deleteAdminPage(pageId);
@@ -83,15 +86,28 @@ function EditPage() {
       title={`Edit: ${page.title}`}
       description="Editing an About-section page."
       actions={
-        <button
-          type="button"
-          onClick={handleDelete}
-          disabled={busy}
-          className="inline-flex items-center gap-2 rounded-full border border-destructive/40 px-4 py-2 text-sm font-bold text-destructive hover:bg-destructive/10 disabled:opacity-60"
-        >
-          <Trash2 className="h-4 w-4" />
-          Delete page
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={() => setConfirmOpen(true)}
+            disabled={busy}
+            hidden={!isAdmin}
+            className="inline-flex items-center gap-2 rounded-full border border-destructive/40 px-4 py-2 text-sm font-bold text-destructive hover:bg-destructive/10 disabled:opacity-60"
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete page
+          </button>
+          <ConfirmDeleteDialog
+            open={confirmOpen}
+            title="Delete this page?"
+            itemLabel={page.title}
+            onCancel={() => setConfirmOpen(false)}
+            onConfirm={() => {
+              setConfirmOpen(false);
+              void handleDelete();
+            }}
+          />
+        </>
       }
     >
       <PageForm

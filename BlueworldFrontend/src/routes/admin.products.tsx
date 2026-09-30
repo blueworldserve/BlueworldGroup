@@ -49,7 +49,13 @@ const fields: FieldConfig<Product>[] = [
     type: "select",
     options: ["vivon", "bluecrystal", "blow-right", "bluefragrance", "blueworld-cosmetics"],
   },
-  { name: "subLine", label: "Vivon range", type: "select", options: ["face", "body", "children"] },
+    {
+    name: "subLine",
+    label: "Vivon range",
+    type: "select",
+    options: ["face", "body", "children"],
+    showIf: (item) => item.unit === "vivon",
+  },
   {
     name: "category",
     label: "Category",

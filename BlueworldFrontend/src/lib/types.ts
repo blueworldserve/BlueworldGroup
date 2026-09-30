@@ -137,18 +137,15 @@ export interface SiteSettings {
 /* ---------------------------------- admin --------------------------------- */
 
 export type AdminRole = "admin" | "editor" | "viewer";
-
 export interface AdminUser {
   id: string;
   email: string;
   fullName: string;
-  /** Single seeded admin for v1; the multi-role UI comes later. */
   role: AdminRole;
-  /** Reserved for the future request-to-access flow. */
   status: "active" | "pending" | "suspended";
   createdAt: string;
+  isSuperuser: boolean;
 }
-
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;

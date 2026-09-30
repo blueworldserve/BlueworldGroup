@@ -40,7 +40,13 @@ const columns: ColumnConfig<HeroSlide>[] = [
 ];
 
 const fields: FieldConfig<HeroSlide>[] = [
-  { name: "image", label: "Background image", type: "image" },
+    { name: "image", label: "Background image", type: "image", help: "Required. Also shown while a video loads and if it can't play." },
+  {
+    name: "videoUrl",
+    label: "Background video (optional)",
+    type: "video",
+    help: "Upload an MP4/WebM, or paste a YouTube or Instagram link. Leave empty for a photo-only slide.",
+  },
   { name: "mobileImage", label: "Mobile photo (optional)", type: "image", help: "Shown instead of the desktop photo on phones. Leave blank to reuse the desktop photo." },
   { name: "eyebrow", label: "Eyebrow" },
   { name: "title", label: "Title" },
@@ -68,6 +74,7 @@ function HeroSlidesAdmin() {
         emptyItem={() => ({
           id: newId("hs"),
           image: "hero.beauty",
+          videoUrl: null,
           eyebrow: "",
           title: "",
           subtitle: "",

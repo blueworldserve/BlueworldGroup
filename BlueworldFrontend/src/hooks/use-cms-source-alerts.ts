@@ -2,6 +2,31 @@ import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useCmsDataSources, type CollectionKey, type DataSource } from "@/lib/cms-store";
 
+
+
+
+/** sessionStorage flag: the placeholder warning has already fired this sign-in. Cleared on successful login. */
+export const PLACEHOLDER_WARNED_KEY = "bwc.cms.placeholderWarned";
+
+function alreadyWarned(): boolean {
+  try {
+    return window.sessionStorage.getItem(PLACEHOLDER_WARNED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markWarned() {
+  try {
+    window.sessionStorage.setItem(PLACEHOLDER_WARNED_KEY, "1");
+  } catch {
+    /* storage unavailable: worst case the toast shows again */
+  }
+}
+
+
+
+
 const COLLECTION_LABELS: Record<CollectionKey, string> = {
   heroSlides: "Hero Slides",
   businessUnits: "Business Units",
@@ -30,7 +55,8 @@ export function useCmsSourceAlerts() {
     if (prev === null) {
       // First read after hydration — flag whatever's still placeholder.
       const placeholders = keys.filter((k) => sources[k] === "placeholder");
-      if (placeholders.length > 0) {
+      if (placeholders.length > 0 && !alreadyWarned()) {
+        markWarned();
         toast.warning(
           `Showing placeholders for: ${placeholders.map((k) => COLLECTION_LABELS[k]).join(", ")}`,
           {

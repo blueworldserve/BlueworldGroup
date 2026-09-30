@@ -158,3 +158,39 @@ def register_existing_media(
     db.commit()
     db.refresh(asset)
     return asset
+
+
+
+
+MAX_VIDEO_BYTES = 90 * 1024 * 1024  # Cloudinary free plan caps video at 100 MB; lower this if your plan differs
+ALLOWED_VIDEO_TYPES = {"video/mp4", "video/webm", "video/quicktime"}
+
+
+@router.post("/upload-video", status_code=201)
+def upload_video(
+    file: UploadFile = File(...),
+    _=Depends(require_role(AdminRole.admin, AdminRole.editor)),
+):
+    if file.content_type not in ALLOWED_VIDEO_TYPES:
+        raise HTTPException(400, "Please upload an MP4, WebM or MOV video.")
+
+    file.file.seek(0, 2)
+    size = file.file.tell()
+    file.file.seek(0)
+    if size > MAX_VIDEO_BYTES:
+        raise HTTPException(
+            413,
+            f"This video is {size // (1024 * 1024)} MB; the limit is {MAX_VIDEO_BYTES // (1024 * 1024)} MB. "
+            "Compress it, or paste a YouTube link instead.",
+        )
+
+    try:
+        result = cloudinary.uploader.upload(
+            file.file,
+            resource_type="video",
+            folder=config.CLOUDINARY_UPLOAD_FOLDER,
+        )
+    except Exception:
+        raise HTTPException(502, "Video upload failed. Please try again.")
+
+    return {"url": result["secure_url"]}
