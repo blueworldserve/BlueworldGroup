@@ -17,6 +17,16 @@ export const Route = createFileRoute("/admin/team")({
   component: TeamAdmin,
 });
 
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 80);
+}
+
 const columns: ColumnConfig<TeamMember>[] = [
   { key: "photo", label: "Photo", image: true },
   { key: "name", label: "Name" },
@@ -27,10 +37,24 @@ const columns: ColumnConfig<TeamMember>[] = [
 const fields: FieldConfig<TeamMember>[] = [
   { name: "name", label: "Full name" },
   { name: "role", label: "Job title", help: "e.g. 'Chief Executive Officer', 'Head of Production'." },
-  { name: "bio", label: "Short bio", type: "textarea", rows: 4, help: "A few sentences about this person, shown on the Leadership page." },
+  {
+    name: "isFeatured",
+    label: "Feature as top leader",
+    type: "boolean",
+    help: "Spotlights this person first on the Leadership page, with their photo and a longer statement — use this for the Founder/MD/Chief Visionary. Only one person should normally be turned on at a time.",
+  },
+  {
+    name: "bio",
+    label: "Full write-up",
+    type: "textarea",
+    rows: 6,
+    help: "Shown on this person's own profile page, and as the statement if they're featured as the top leader. Leave a blank line between paragraphs.",
+  },
   { name: "photo", label: "Photo", type: "image" },
   { name: "order", label: "Display order", type: "number", help: "Lower numbers appear first. 1 shows before 2, and so on." },
 ];
+
+const DEFAULT_SLUG_PLACEHOLDER = "new-leader";
 
 function TeamAdmin() {
   const members = [...useCollection("teamMembers")].sort((a, b) => a.order - b.order);
@@ -45,12 +69,18 @@ function TeamAdmin() {
         emptyItem={() => ({
           id: newId("t"),
           name: "",
+          slug: DEFAULT_SLUG_PLACEHOLDER,
           role: "",
           bio: "",
-          photo: "team.1",
+          photo: "",
           order: members.length + 1,
+          isFeatured: false,
         })}
-        onSave={(item) => upsertItem("teamMembers", item)}
+        onSave={(item) => {
+          const needsSlug = !item.slug || item.slug === DEFAULT_SLUG_PLACEHOLDER;
+          const finalItem = needsSlug ? { ...item, slug: slugify(item.name) || newId("leader") } : item;
+          upsertItem("teamMembers", finalItem);
+        }}
         onDelete={(id) => deleteItem("teamMembers", id)}
       />
     </AdminShell>
