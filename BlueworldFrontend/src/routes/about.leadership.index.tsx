@@ -4,8 +4,9 @@ import { AppLink } from "@/components/site/app-link";
 import { CmsImage, EmptyBlock, LoadingBlock, PageHero, Section, SectionHeading } from "@/components/site/primitives";
 import { useTeamMembers } from "@/hooks/use-cms";
 import { HeroFlag } from "@/components/site/hero-context";
+import { memberSlug } from "@/lib/team-slug";
 
-export const Route = createFileRoute("/about/leadership")({
+export const Route = createFileRoute("/about/leadership/")({
   head: () => ({
     meta: [
       { title: "Leadership — Blue World Cosmetics" },
@@ -37,7 +38,7 @@ function LeadershipPage() {
         eyebrow="About us"
         title="Leadership"
         description="Our strength lies in visionary leadership that inspires growth, drives innovation, and ensures sustainability across every brand we run."
-        image={featured?.photo || members[0]?.photo}
+        
       />
 
       {/* Mission & Vision — a confident, editorial statement before the people themselves */}
@@ -97,11 +98,11 @@ function LeadershipPage() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="mt-5 font-display text-xl font-bold leading-relaxed text-primary-deep sm:text-2xl"
           >
-            -Quality Cusotmer's experience.
-            -Safe and Healthy Workplace for all employees.
-            -Honesty, Transparency & Strict adherence to Statutory standards and Practices.
-            -Proactiveness & Innovation.
-            -Teamwork and Participatory decision-making.
+            <span className="block">Quality Customer Experience</span>
+            <span className="mt-3 block">Safe and Healthy Workplace for all employees</span>
+            <span className="mt-3 block">Honesty, Transparency &amp; Strict adherence to Statutory standards and Practices</span>
+            <span className="mt-3 block">Proactiveness &amp; Innovation</span>
+            <span className="mt-3 block">Teamwork and Participatory decision-making</span>
           </motion.p>
         </div>
       </Section>
@@ -132,13 +133,11 @@ function LeadershipPage() {
               </h2>
               <p className="mt-1 text-sm font-bold uppercase tracking-[0.14em] text-accent">{featured.role}</p>
               <div className="mt-2 h-px w-16 bg-accent" />
-              {featured.bio.split("\n\n").map((para) => (
-                <p key={para.slice(0, 32)} className="mt-4 text-base leading-relaxed text-muted-foreground">
-                  {para}
-                </p>
-              ))}
+              <p className="mt-4 line-clamp-4 text-base leading-relaxed text-muted-foreground">
+                {featured.bio.split("\n\n")[0]}
+              </p>
               <AppLink
-                href={`/about/leadership/${featured.slug}`}
+                href={`/about/leadership/${memberSlug(featured)}`}
                 className="mt-6 inline-flex items-center border-2 border-primary-deep px-6 py-2.5 text-xs font-bold uppercase tracking-[0.16em] text-primary-deep transition-colors hover:bg-primary-deep hover:text-primary-foreground"
               >
                 Read full profile →
@@ -158,16 +157,16 @@ function LeadershipPage() {
           description="Each member brings their own discipline to the same standard — click through for their full story."
         />
         {!isLoading && rest.length === 0 && !featured && <EmptyBlock label="No leadership profiles published yet." />}
-        <div className="mt-14 grid grid-cols-2 gap-x-5 gap-y-12 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="mx-auto mt-10 grid max-w-5xl grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
           {rest.map((member, i) => (
             <motion.div
               key={member.id}
               initial={{ opacity: 0, y: 18 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.45, delay: (i % 4) * 0.06 }}
+              transition={{ duration: 0.45, delay: (i % 5) * 0.06 }}
             >
-              <AppLink href={`/about/leadership/${member.slug}`} className="group block text-center">
+              <AppLink href={`/about/leadership/${memberSlug(member)}`} className="group block text-center">
                 <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-secondary">
                   <CmsImage
                     src={member.photo}

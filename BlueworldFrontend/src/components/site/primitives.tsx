@@ -154,7 +154,7 @@ export function PageHero({
   children?: ReactNode;
 }) {
   return (
-    <section className="relative overflow-hidden bg-primary-deep">
+    <section className="relative flex min-h-[70vh] items-center overflow-hidden bg-primary-deep">
       <HeroFlag />
       {image && (
         <div className="absolute inset-0">
@@ -163,7 +163,7 @@ export function PageHero({
           <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
         </div>
       )}
-      <div className="relative mx-auto max-w-7xl px-5 py-24 lg:px-8 lg:py-32">
+      <div className="relative mx-auto w-full max-w-7xl px-5 pb-20 pt-32 lg:px-8 lg:pb-28 lg:pt-40">
         <motion.div
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}

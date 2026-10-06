@@ -1,9 +1,10 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { AppLink } from "@/components/site/app-link";
-import { CmsImage, EmptyBlock, LoadingBlock, Section } from "@/components/site/primitives";
+import { CmsImage, EmptyBlock, LoadingBlock, PageHero, Section } from "@/components/site/primitives";
 import { useTeamMembers } from "@/hooks/use-cms";
 import { HeroFlag } from "@/components/site/hero-context";
+import { memberSlug } from "@/lib/team-slug";
 
 export const Route = createFileRoute("/about/leadership/$slug")({
   head: ({ params }) => ({
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/about/leadership/$slug")({
 function LeaderProfilePage() {
   const { slug } = Route.useParams();
   const { data, isLoading } = useTeamMembers();
-  const member = data?.find((m) => m.slug === slug);
+  const member = data?.find((m) => memberSlug(m) === slug);
 
   if (isLoading) {
     return (
@@ -44,21 +45,7 @@ function LeaderProfilePage() {
   return (
     <>
       <HeroFlag />
-      <div className="bg-primary-deep pb-6 pt-28">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/60">
-            <AppLink href="/about/leadership" className="hover:text-accent">
-              About Us
-            </AppLink>
-            {" / "}
-            <AppLink href="/about/leadership" className="hover:text-accent">
-              Leadership
-            </AppLink>
-            {" / "}
-            <span className="text-primary-foreground/90">{member.name}</span>
-          </p>
-        </div>
-      </div>
+      <PageHero eyebrow="About us / Leadership" title={member.name} description={member.role} />
 
       <Section className="py-14 lg:py-20">
         <motion.div
