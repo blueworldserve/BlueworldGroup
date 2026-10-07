@@ -3,7 +3,6 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { AppLink } from "@/components/site/app-link";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BrandGlobe } from "@/components/brand/brand-globe";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -34,6 +33,7 @@ export const NAV_ITEMS: NavItem[] = [
       { label: "BlueWorld Cosmetics", to: "/business/blueworld-cosmetics" },
     ],
   },
+  { label: "Products", to: "/products" },
   { label: "Career", to: "/career" },
   {
     label: "Blog",
@@ -101,7 +101,12 @@ export function SiteHeader() {
     >
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-5 lg:px-8">
         <Link to="/" className="group flex items-center gap-3" onClick={() => setOpenMobile(false)}>
-          <BrandGlobe size={56} interactive={false} showMotto={false} />
+          <img
+            src="/blueworld.png"
+            alt="Blue World Cosmetics"
+            className="h-14 w-14 object-cover"
+            draggable={false}
+          />
           <span className="flex flex-col leading-none">
             <span
               className={cn(

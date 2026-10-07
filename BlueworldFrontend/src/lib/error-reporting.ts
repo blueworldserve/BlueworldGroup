@@ -33,7 +33,5 @@ export function reportError(
 
   // TODO: forward `payload` to your own logging endpoint or a service like Sentry
   // once the FastAPI backend (or a dedicated logging tool) is wired up. Until then
-  // this is console-only — no external telemetry, since Lovable's editor hooks
-  // this used to call into (window.__lovableEvents, window.__lovableReportRuntimeError)
-  // don't exist outside the Lovable editor preview.
+  // this is console-only — no external telemetry.
 }

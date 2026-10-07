@@ -1,5 +1,4 @@
 import { AppLink } from "@/components/site/app-link";
-import { BrandGlobe } from "@/components/brand/brand-globe";
 import { useSiteSettings } from "@/hooks/use-cms";
 import { SITE_SETTINGS } from "@/data/placeholder-content";
 
@@ -11,12 +10,13 @@ export function SiteFooter() {
     <footer className="surface-deep mt-24">
       <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 lg:grid-cols-[1.4fr_2fr] lg:px-8">
         <div>
-          {/* Same BrandGlobe static-logo render the header uses (size + the
-              interactive=false/showMotto=false combo forces the flat
-              wordmark image) — one component, so header and footer always
-              match instead of one being a hardcoded "BW" placeholder. */}
           <div className="flex items-center gap-3">
-            <BrandGlobe size={44} interactive={false} showMotto={false} />
+            <img
+              src="/blueworld.png"
+              alt="Blue World Cosmetics"
+              className="h-11 w-11 object-cover"
+              draggable={false}
+            />
             <span className="font-display text-lg font-extrabold tracking-tight">
               BLUE WORLD COSMETICS
             </span>

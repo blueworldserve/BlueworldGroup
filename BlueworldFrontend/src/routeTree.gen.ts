@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CareerRouteImport } from './routes/career'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as ProductsRouteImport } from './routes/products'
 import { Route as AboutIndexRouteImport } from './routes/about.index'
 import { Route as AboutVisionMissionRouteImport } from './routes/about.vision-mission'
 import { Route as AboutWhoWeAreRouteImport } from './routes/about.who-we-are'
@@ -52,6 +53,11 @@ const CareerRoute = CareerRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutIndexRoute = AboutIndexRouteImport.update({
@@ -189,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/career': typeof CareerRoute
   '/contact': typeof ContactRoute
+  '/products': typeof ProductsRoute
   '/about/vision-mission': typeof AboutVisionMissionRoute
   '/about/who-we-are': typeof AboutWhoWeAreRoute
   '/admin/access-requests': typeof AdminAccessRequestsRoute
@@ -220,6 +227,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/career': typeof CareerRoute
   '/contact': typeof ContactRoute
+  '/products': typeof ProductsRoute
   '/about/vision-mission': typeof AboutVisionMissionRoute
   '/about/who-we-are': typeof AboutWhoWeAreRoute
   '/admin/access-requests': typeof AdminAccessRequestsRoute
@@ -252,6 +260,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/career': typeof CareerRoute
   '/contact': typeof ContactRoute
+  '/products': typeof ProductsRoute
   '/about/vision-mission': typeof AboutVisionMissionRoute
   '/about/who-we-are': typeof AboutWhoWeAreRoute
   '/admin/access-requests': typeof AdminAccessRequestsRoute
@@ -285,6 +294,7 @@ export interface FileRouteTypes {
     | '/'
     | '/career'
     | '/contact'
+    | '/products'
     | '/about/vision-mission'
     | '/about/who-we-are'
     | '/admin/access-requests'
@@ -316,6 +326,7 @@ export interface FileRouteTypes {
     | '/'
     | '/career'
     | '/contact'
+    | '/products'
     | '/about/vision-mission'
     | '/about/who-we-are'
     | '/admin/access-requests'
@@ -347,6 +358,7 @@ export interface FileRouteTypes {
     | '/'
     | '/career'
     | '/contact'
+    | '/products'
     | '/about/vision-mission'
     | '/about/who-we-are'
     | '/admin/access-requests'
@@ -379,6 +391,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CareerRoute: typeof CareerRoute
   ContactRoute: typeof ContactRoute
+  ProductsRoute: typeof ProductsRoute
   AboutVisionMissionRoute: typeof AboutVisionMissionRoute
   AboutWhoWeAreRoute: typeof AboutWhoWeAreRoute
   AdminAccessRequestsRoute: typeof AdminAccessRequestsRoute
@@ -428,6 +441,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about/': {
@@ -619,6 +639,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CareerRoute: CareerRoute,
   ContactRoute: ContactRoute,
+  ProductsRoute: ProductsRoute,
   AboutVisionMissionRoute: AboutVisionMissionRoute,
   AboutWhoWeAreRoute: AboutWhoWeAreRoute,
   AdminAccessRequestsRoute: AdminAccessRequestsRoute,
