@@ -93,7 +93,7 @@ function AboutPage() {
         <SectionHeading eyebrow="Go deeper" title="Explore the company" align="center" />
         <div className="mx-auto mt-12 grid max-w-4xl gap-6 sm:grid-cols-3">
           {[
-            { label: "Who We Are", href: "/about/who-we-are", copy: "The plant, the people, the standards." },
+            { label: "Who We Are", href: "/about/who-we-are", copy: "The organization, the people, the standards." },
             { label: "Vision & Mission", href: "/about/vision-mission", copy: "What we are building and why." },
             { label: "Leadership", href: "/about/leadership", copy: "The team accountable for it." },
           ].map((c) => (

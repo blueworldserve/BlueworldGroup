@@ -38,7 +38,7 @@ export function SectionHeading({
   invert = false,
 }: {
   eyebrow?: string;
-  title: string;
+  title: ReactNode;
   description?: string;
   align?: "left" | "center";
   invert?: boolean;
@@ -60,6 +60,7 @@ export function SectionHeading({
       >
         {title}
       </h2>
+      <span className={cn("mt-5 block h-0.5 w-14 bg-accent", align === "center" && "mx-auto")} />
       {description && (
         <p
           className={cn(
@@ -104,6 +105,8 @@ export function CmsImage({
       width={width}
       height={height}
       loading={eager ? "eager" : "lazy"}
+      decoding="async"
+      {...(eager ? { fetchPriority: "high" as const } : {})}
       className={className}
       onError={(e) => {
         e.currentTarget.style.display = "none";
@@ -154,16 +157,16 @@ export function PageHero({
   children?: ReactNode;
 }) {
   return (
-    <section className="relative overflow-hidden bg-primary-deep">
+    <section className="relative flex min-h-[82svh] items-center overflow-hidden bg-primary-deep md:min-h-[92vh]">
       <HeroFlag />
-      {image && (
+      {(image || "hero.factory") && (
         <div className="absolute inset-0">
-          <CmsImage src={image} alt="" className="h-full w-full object-cover" eager />
+          <CmsImage src={image || "hero.factory"} alt="" className="h-full w-full object-cover" eager />
           <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/30 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
         </div>
       )}
-      <div className="relative mx-auto max-w-7xl px-5 py-24 lg:px-8 lg:py-32">
+      <div className="relative mx-auto w-full max-w-7xl px-5 pb-20 pt-32 lg:px-8 lg:pb-28 lg:pt-40">
         <motion.div
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
@@ -174,6 +177,7 @@ export function PageHero({
           <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] text-primary-foreground lg:text-6xl">
             {title}
           </h1>
+          <span className="mt-6 block h-0.5 w-16 bg-accent" />
           {description && (
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-primary-foreground/80">{description}</p>
           )}
@@ -205,5 +209,33 @@ export function ErrorBlock({ label = "Something went wrong." }: { label?: string
     <div className="grid place-items-center rounded-2xl border border-destructive/30 bg-destructive/5 py-16 text-sm text-destructive">
       {label}
     </div>
+  );
+}
+
+/** Emphasis word: orange italic accent face, letters lift on hover, underline draws in on scroll. */
+export function Hl({ children }: { children: string }) {
+  return (
+    <motion.span
+      className="bw-hl font-accent"
+      style={{
+        color: "var(--accent, #ee8a1e)",
+        fontStyle: "italic",
+        fontWeight: 600,
+        backgroundImage: "linear-gradient(currentColor, currentColor)",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "0 100%",
+      }}
+      initial={{ backgroundSize: "0% 2px" }}
+      whileInView={{ backgroundSize: "100% 2px" }}
+      whileHover={{ backgroundSize: "100% 3px" }}
+      viewport={{ once: true, margin: "-20%" }}
+      transition={{ duration: 0.9, ease: "easeOut", delay: 0.2 }}
+    >
+      {children.split("").map((c, i) => (
+        <span key={i} className="bw-ch" style={{ transitionDelay: `${i * 25}ms` }}>
+          {c === " " ? "\u00A0" : c}
+        </span>
+      ))}
+    </motion.span>
   );
 }

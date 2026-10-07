@@ -69,10 +69,12 @@ export interface Product {
 export interface TeamMember {
   id: string;
   name: string;
+  slug: string;
   role: string;
   bio: string;
   photo: string;
   order: number;
+  isFeatured: boolean;
 }
 
 export interface BlogPost {

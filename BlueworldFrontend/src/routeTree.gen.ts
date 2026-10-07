@@ -12,8 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CareerRouteImport } from './routes/career'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as ProductsRouteImport } from './routes/products'
 import { Route as AboutIndexRouteImport } from './routes/about.index'
-import { Route as AboutLeadershipRouteImport } from './routes/about.leadership'
 import { Route as AboutVisionMissionRouteImport } from './routes/about.vision-mission'
 import { Route as AboutWhoWeAreRouteImport } from './routes/about.who-we-are'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -32,6 +32,8 @@ import { Route as AdminTeamRouteImport } from './routes/admin.team'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as BusinessIndexRouteImport } from './routes/business.index'
+import { Route as AboutLeadershipIndexRouteImport } from './routes/about.leadership.index'
+import { Route as AboutLeadershipSlugRouteImport } from './routes/about.leadership.$slug'
 import { Route as AdminPagesIndexRouteImport } from './routes/admin.pages.index'
 import { Route as AdminPagesPageIdRouteImport } from './routes/admin.pages.$pageId'
 import { Route as AdminPagesNewRouteImport } from './routes/admin.pages.new'
@@ -53,14 +55,14 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutIndexRoute = AboutIndexRouteImport.update({
   id: '/about/',
   path: '/about/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutLeadershipRoute = AboutLeadershipRouteImport.update({
-  id: '/about/leadership',
-  path: '/about/leadership',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutVisionMissionRoute = AboutVisionMissionRouteImport.update({
@@ -153,6 +155,16 @@ const BusinessIndexRoute = BusinessIndexRouteImport.update({
   path: '/business/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AboutLeadershipIndexRoute = AboutLeadershipIndexRouteImport.update({
+  id: '/about/leadership/',
+  path: '/about/leadership/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutLeadershipSlugRoute = AboutLeadershipSlugRouteImport.update({
+  id: '/about/leadership/$slug',
+  path: '/about/leadership/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminPagesIndexRoute = AdminPagesIndexRouteImport.update({
   id: '/admin/pages/',
   path: '/admin/pages/',
@@ -183,7 +195,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/career': typeof CareerRoute
   '/contact': typeof ContactRoute
-  '/about/leadership': typeof AboutLeadershipRoute
+  '/products': typeof ProductsRoute
   '/about/vision-mission': typeof AboutVisionMissionRoute
   '/about/who-we-are': typeof AboutWhoWeAreRoute
   '/admin/access-requests': typeof AdminAccessRequestsRoute
@@ -203,9 +215,11 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/business/': typeof BusinessIndexRoute
+  '/about/leadership/$slug': typeof AboutLeadershipSlugRoute
   '/admin/pages/$pageId': typeof AdminPagesPageIdRoute
   '/admin/pages/new': typeof AdminPagesNewRoute
   '/business/$unit/$line': typeof BusinessUnitLineRoute
+  '/about/leadership/': typeof AboutLeadershipIndexRoute
   '/admin/pages/': typeof AdminPagesIndexRoute
   '/business/$unit/': typeof BusinessUnitIndexRoute
 }
@@ -213,7 +227,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/career': typeof CareerRoute
   '/contact': typeof ContactRoute
-  '/about/leadership': typeof AboutLeadershipRoute
+  '/products': typeof ProductsRoute
   '/about/vision-mission': typeof AboutVisionMissionRoute
   '/about/who-we-are': typeof AboutWhoWeAreRoute
   '/admin/access-requests': typeof AdminAccessRequestsRoute
@@ -233,9 +247,11 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
   '/business': typeof BusinessIndexRoute
+  '/about/leadership/$slug': typeof AboutLeadershipSlugRoute
   '/admin/pages/$pageId': typeof AdminPagesPageIdRoute
   '/admin/pages/new': typeof AdminPagesNewRoute
   '/business/$unit/$line': typeof BusinessUnitLineRoute
+  '/about/leadership': typeof AboutLeadershipIndexRoute
   '/admin/pages': typeof AdminPagesIndexRoute
   '/business/$unit': typeof BusinessUnitIndexRoute
 }
@@ -244,7 +260,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/career': typeof CareerRoute
   '/contact': typeof ContactRoute
-  '/about/leadership': typeof AboutLeadershipRoute
+  '/products': typeof ProductsRoute
   '/about/vision-mission': typeof AboutVisionMissionRoute
   '/about/who-we-are': typeof AboutWhoWeAreRoute
   '/admin/access-requests': typeof AdminAccessRequestsRoute
@@ -264,9 +280,11 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/business/': typeof BusinessIndexRoute
+  '/about/leadership/$slug': typeof AboutLeadershipSlugRoute
   '/admin/pages/$pageId': typeof AdminPagesPageIdRoute
   '/admin/pages/new': typeof AdminPagesNewRoute
   '/business/$unit/$line': typeof BusinessUnitLineRoute
+  '/about/leadership/': typeof AboutLeadershipIndexRoute
   '/admin/pages/': typeof AdminPagesIndexRoute
   '/business/$unit/': typeof BusinessUnitIndexRoute
 }
@@ -276,7 +294,7 @@ export interface FileRouteTypes {
     | '/'
     | '/career'
     | '/contact'
-    | '/about/leadership'
+    | '/products'
     | '/about/vision-mission'
     | '/about/who-we-are'
     | '/admin/access-requests'
@@ -296,9 +314,11 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/blog/'
     | '/business/'
+    | '/about/leadership/$slug'
     | '/admin/pages/$pageId'
     | '/admin/pages/new'
     | '/business/$unit/$line'
+    | '/about/leadership/'
     | '/admin/pages/'
     | '/business/$unit/'
   fileRoutesByTo: FileRoutesByTo
@@ -306,7 +326,7 @@ export interface FileRouteTypes {
     | '/'
     | '/career'
     | '/contact'
-    | '/about/leadership'
+    | '/products'
     | '/about/vision-mission'
     | '/about/who-we-are'
     | '/admin/access-requests'
@@ -326,9 +346,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/blog'
     | '/business'
+    | '/about/leadership/$slug'
     | '/admin/pages/$pageId'
     | '/admin/pages/new'
     | '/business/$unit/$line'
+    | '/about/leadership'
     | '/admin/pages'
     | '/business/$unit'
   id:
@@ -336,7 +358,7 @@ export interface FileRouteTypes {
     | '/'
     | '/career'
     | '/contact'
-    | '/about/leadership'
+    | '/products'
     | '/about/vision-mission'
     | '/about/who-we-are'
     | '/admin/access-requests'
@@ -356,9 +378,11 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/blog/'
     | '/business/'
+    | '/about/leadership/$slug'
     | '/admin/pages/$pageId'
     | '/admin/pages/new'
     | '/business/$unit/$line'
+    | '/about/leadership/'
     | '/admin/pages/'
     | '/business/$unit/'
   fileRoutesById: FileRoutesById
@@ -367,7 +391,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CareerRoute: typeof CareerRoute
   ContactRoute: typeof ContactRoute
-  AboutLeadershipRoute: typeof AboutLeadershipRoute
+  ProductsRoute: typeof ProductsRoute
   AboutVisionMissionRoute: typeof AboutVisionMissionRoute
   AboutWhoWeAreRoute: typeof AboutWhoWeAreRoute
   AdminAccessRequestsRoute: typeof AdminAccessRequestsRoute
@@ -387,9 +411,11 @@ export interface RootRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
   BusinessIndexRoute: typeof BusinessIndexRoute
+  AboutLeadershipSlugRoute: typeof AboutLeadershipSlugRoute
   AdminPagesPageIdRoute: typeof AdminPagesPageIdRoute
   AdminPagesNewRoute: typeof AdminPagesNewRoute
   BusinessUnitLineRoute: typeof BusinessUnitLineRoute
+  AboutLeadershipIndexRoute: typeof AboutLeadershipIndexRoute
   AdminPagesIndexRoute: typeof AdminPagesIndexRoute
   BusinessUnitIndexRoute: typeof BusinessUnitIndexRoute
 }
@@ -417,18 +443,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about/': {
       id: '/about/'
       path: '/about'
       fullPath: '/about/'
       preLoaderRoute: typeof AboutIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about/leadership': {
-      id: '/about/leadership'
-      path: '/about/leadership'
-      fullPath: '/about/leadership'
-      preLoaderRoute: typeof AboutLeadershipRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about/vision-mission': {
@@ -557,6 +583,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BusinessIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/about/leadership/': {
+      id: '/about/leadership/'
+      path: '/about/leadership'
+      fullPath: '/about/leadership/'
+      preLoaderRoute: typeof AboutLeadershipIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about/leadership/$slug': {
+      id: '/about/leadership/$slug'
+      path: '/about/leadership/$slug'
+      fullPath: '/about/leadership/$slug'
+      preLoaderRoute: typeof AboutLeadershipSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/pages/': {
       id: '/admin/pages/'
       path: '/admin/pages'
@@ -599,7 +639,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CareerRoute: CareerRoute,
   ContactRoute: ContactRoute,
-  AboutLeadershipRoute: AboutLeadershipRoute,
+  ProductsRoute: ProductsRoute,
   AboutVisionMissionRoute: AboutVisionMissionRoute,
   AboutWhoWeAreRoute: AboutWhoWeAreRoute,
   AdminAccessRequestsRoute: AdminAccessRequestsRoute,
@@ -619,9 +659,11 @@ const rootRouteChildren: RootRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
   BusinessIndexRoute: BusinessIndexRoute,
+  AboutLeadershipSlugRoute: AboutLeadershipSlugRoute,
   AdminPagesPageIdRoute: AdminPagesPageIdRoute,
   AdminPagesNewRoute: AdminPagesNewRoute,
   BusinessUnitLineRoute: BusinessUnitLineRoute,
+  AboutLeadershipIndexRoute: AboutLeadershipIndexRoute,
   AdminPagesIndexRoute: AdminPagesIndexRoute,
   BusinessUnitIndexRoute: BusinessUnitIndexRoute,
 }

@@ -14,7 +14,7 @@ export const Route = createFileRoute("/career")({
       {
         name: "description",
         content:
-          "Open roles in formulation, production, quality assurance and commercial at our Ikeja, Lagos manufacturing plant.",
+          "Open roles in formulation, production, quality assurance and commercial at our Obadore, Igando, Lagos manufacturing organization.",
       },
       { property: "og:title", content: "Careers — Blue World Cosmetics" },
       {
@@ -27,10 +27,10 @@ export const Route = createFileRoute("/career")({
 });
 
 const PERKS = [
-  { title: "Made here, owned here", body: "Every product you work on is formulated, filled and shipped from our own plant." },
+  { title: "Made here, owned here", body: "Every product you work on is formulated, filled and shipped from our own organization." },
   { title: "Real training budget", body: "Cosmetic science certifications, GMP training and conference travel are funded." },
   { title: "Health cover", body: "HMO cover for you and immediate family from day one of confirmation." },
-  { title: "Growth on merit", body: "Line leads and QA supervisors are promoted from inside the plant, not hired around it." },
+  { title: "Growth on merit", body: "Line leads and QA supervisors are promoted from inside the factory, not hired around it." },
 ];
 
 function CareerPage() {
