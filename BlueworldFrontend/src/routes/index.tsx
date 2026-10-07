@@ -6,7 +6,7 @@ import { MapPin, X } from "lucide-react";
 import { HeroSlider } from "@/components/site/hero-slider";
 import { AppLink } from "@/components/site/app-link";
 import { BrandGlobe } from "@/components/brand/brand-globe";
-import { CmsImage, EmptyBlock, LoadingBlock, Section, SectionHeading } from "@/components/site/primitives";
+import { CmsImage, EmptyBlock, Hl, LoadingBlock, Section, SectionHeading } from "@/components/site/primitives";
 import { useBlogPosts, useBusinessUnits, useHeroSlides, useProducts } from "@/hooks/use-cms";
 import { ENDPOINTS, submitWithMock } from "@/lib/api";
 import { REACH_MARKERS } from "@/data/placeholder-content";
@@ -43,36 +43,9 @@ export const Route = createFileRoute("/")({
 const PAGE_CSS = `
 .bw-page, .bw-page [class*="font-display"], .bw-page h1, .bw-page h2, .bw-page h3 { font-family: "Times New Roman", Times, serif; }
 .bw-page .bw-accent { font-family: "Cormorant Garamond", "Times New Roman", serif; font-style: italic; font-weight: 600; }
-.bw-ch { display: inline-block; transition: transform .35s cubic-bezier(.2,.8,.2,1); }
-.bw-hl:hover .bw-ch { transform: translateY(-4px); }
 .bw-ivory { background: #faf6ef; }
 .bw-rule { height: 1px; background: linear-gradient(to right, transparent, rgba(10,34,80,.25), transparent); }
 `;
-
-/** Emphasis word: accent italic, letters lift on hover, underline draws in as it scrolls into view. */
-function Hl({ children }: { children: string }) {
-  return (
-    <motion.span
-      className="bw-hl bw-accent text-accent"
-      style={{
-        backgroundImage: "linear-gradient(currentColor, currentColor)",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "0 100%",
-      }}
-      initial={{ backgroundSize: "0% 2px" }}
-      whileInView={{ backgroundSize: "100% 2px" }}
-      whileHover={{ backgroundSize: "100% 3px" }}
-      viewport={{ once: true, margin: "-20%" }}
-      transition={{ duration: 0.9, ease: "easeOut", delay: 0.2 }}
-    >
-      {children.split("").map((c, i) => (
-        <span key={i} className="bw-ch" style={{ transitionDelay: `${i * 25}ms` }}>
-          {c}
-        </span>
-      ))}
-    </motion.span>
-  );
-}
 
 const UNIT_ORDER = ["vivon", "bluefragrance", "blueworld-cosmetics", "bluecrystal", "blow-right"];
 function orderUnits<T extends { slug: string }>(units: T[]): T[] {
@@ -137,7 +110,7 @@ function HomePage() {
         <div className="mx-auto grid max-w-7xl grid-cols-3 gap-y-5 px-5 sm:grid-cols-6 lg:px-8">
           {TRUST.map((s) => (
             <div key={s.k} className="text-center">
-              <p className="bw-accent text-3xl text-accent">{s.k}</p>
+              <p className="bw-accent bw-orange text-3xl">{s.k}</p>
               <p className="mt-1 text-[0.62rem] uppercase tracking-[0.18em] text-primary-foreground/70">{s.v}</p>
             </div>
           ))}
@@ -165,7 +138,7 @@ function HomePage() {
         <SectionHeading
           align="center"
           eyebrow="Our business"
-          title="Five brands, built for different shelves"
+          title={<>Five brands, built for <Hl>different</Hl> shelves</>}
           description="Each unit runs its own formulation brief and packaging language, sharing one factory floor and one quality standard."
         />
         <div className="mx-auto mt-14 flex max-w-[1600px] flex-wrap justify-center gap-x-5 gap-y-12">
@@ -263,7 +236,7 @@ function HomePage() {
             <p className="eyebrow">Where we ship</p>
             <h3 className="mt-2 text-2xl font-bold text-primary-deep">Made in Nigeria, carried around the world</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              From our plant on Oba Akran Avenue, Blue World reaches households across four countries. Tap a marker, or a market below.
+              From our organization at Obadore, Igando, Lagos, Blue World reaches households across four countries. Tap a marker, or a market below.
             </p>
             <div className="mt-4">
               <BrandGlobe
@@ -309,7 +282,7 @@ function HomePage() {
                     <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{showcase.blurb}</p>
                     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{showcase.detail}</p>
                     <div className="mt-4 flex items-center gap-3 rounded-2xl bg-accent-soft p-4">
-                      <span className="bw-accent text-3xl text-accent">{showcase.statValue}</span>
+                      <span className="bw-accent bw-orange text-3xl">{showcase.statValue}</span>
                       <span className="text-xs font-semibold uppercase tracking-wide text-primary-deep/70">{showcase.statLabel}</span>
                     </div>
                     <div className="mt-3 flex flex-1 flex-col rounded-2xl border border-border px-4">
@@ -324,7 +297,7 @@ function HomePage() {
                 ) : (
                   <motion.div key="overview" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.3 }} className="flex flex-1 flex-col">
                     <p className="eyebrow">Every marker, explained</p>
-                    <h3 className="mt-2 text-2xl font-bold text-primary-deep">Four markets, one factory floor</h3>
+                    <h3 className="mt-2 text-2xl font-bold text-primary-deep">5 Countries, one organization</h3>
                     <div className="mt-4 flex flex-1 flex-col gap-2.5">
                       {REACH_MARKERS.map((m) => {
                         const s = countryShowcases.find((c) => c.name.toLowerCase() === m.name.toLowerCase());
@@ -367,7 +340,7 @@ function HomePage() {
       <section className="bg-white px-5 py-16 lg:py-24">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-wrap items-end justify-between gap-6">
-            <SectionHeading eyebrow="From the blog" title="News, research and factory notes" />
+            <SectionHeading eyebrow="From the blog" title={<>News, research and <Hl>factory</Hl> notes</>} />
             <AppLink href="/blog" className="border-b border-accent pb-1 text-xs font-bold uppercase tracking-[0.18em] text-primary-deep hover:text-accent">
               All posts
             </AppLink>
@@ -447,8 +420,8 @@ function ProductDetail({ product, onClose }: { product: Product; onClose: () => 
             ))}
           </div>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <AppLink href="/contact" className="rounded-full bg-accent px-6 py-3 text-sm font-bold text-accent-foreground">Enquire about this product</AppLink>
-            <button type="button" onClick={onClose} className="rounded-full border border-white/30 px-6 py-3 text-sm font-bold hover:bg-white/10">Back to products</button>
+            <AppLink href="/contact" className="bg-accent px-7 py-3.5 text-[0.72rem] font-bold uppercase tracking-[0.16em] text-accent-foreground transition-colors hover:bg-white hover:text-primary-deep">Enquire about this product</AppLink>
+            <button type="button" onClick={onClose} className="border border-white/40 px-7 py-3.5 text-[0.72rem] font-bold uppercase tracking-[0.16em] hover:bg-white/10">Back to products</button>
           </div>
         </div>
       </div>
@@ -462,7 +435,7 @@ function NewsletterBlock() {
   return (
     <Section tone="deep" className="py-16 lg:py-20">
       <div className="grid items-center gap-8 lg:grid-cols-2">
-        <SectionHeading invert eyebrow="Newsletter" title="Trade updates, new lines and factory news" description="One email a month for distributors, retail partners and anyone who cares how the products are made." />
+        <SectionHeading invert eyebrow="Newsletter" title={<>Trade updates, new lines and <Hl>factory news</Hl></>} description="One email a month for distributors, retail partners and anyone who cares how the products are made." />
         <form
           className="flex flex-col gap-3 sm:flex-row"
           onSubmit={async (e) => {
@@ -474,8 +447,8 @@ function NewsletterBlock() {
             toast.success("You're subscribed. Watch your inbox.");
           }}
         >
-          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" className="h-12 flex-1 rounded-full border border-primary-foreground/25 bg-primary-foreground/10 px-6 text-sm text-primary-foreground placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent" />
-          <button type="submit" disabled={busy} className="h-12 rounded-full bg-accent px-7 text-sm font-bold text-accent-foreground disabled:opacity-60">
+          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" className="h-12 flex-1 border border-primary-foreground/25 bg-primary-foreground/10 px-6 text-sm text-primary-foreground placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent" />
+          <button type="submit" disabled={busy} className="h-12 bg-accent px-8 text-[0.72rem] font-bold uppercase tracking-[0.16em] text-accent-foreground disabled:opacity-60">
             {busy ? "Subscribing…" : "Subscribe"}
           </button>
         </form>

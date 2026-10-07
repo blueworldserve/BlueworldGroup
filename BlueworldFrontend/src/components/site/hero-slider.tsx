@@ -72,8 +72,10 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
           <picture>
             <source media="(min-width: 768px)" srcSet={resolveImage(slide.image)} />
             <img
-              src={resolveImage(slide.mobileImage || slide.image)}
+              src={resolveImage(slide.mobileImage || slide.image, 900)}
               alt=""
+              fetchPriority="high"
+              decoding="async"
               draggable={false}
               className="absolute inset-0 h-full w-full object-cover object-[50%_22%] md:object-[50%_30%]"
             />

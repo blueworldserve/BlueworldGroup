@@ -15,7 +15,7 @@ export const Route = createFileRoute("/about/who-we-are")({
       { property: "og:title", content: "Who We Are — Blue World Cosmetics" },
       {
         property: "og:description",
-        content: "The plant, the people and the standards behind five Nigerian personal-care brands.",
+        content: "The Organization, the people and the standards behind five Nigerian personal-care brands.",
       },
     ],
   }),

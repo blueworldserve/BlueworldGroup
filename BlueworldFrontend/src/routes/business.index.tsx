@@ -30,7 +30,7 @@ function BusinessIndexPage() {
       <PageHero
         eyebrow="Business"
         title="Five brands, one factory floor"
-        description="Each division owns its own chemistry, packaging and audience — all produced, tested and filled at our Ikeja plant."
+        description="Each division owns its own chemistry, packaging and audience — all produced, tested and filled at our Obadore, Igando, Lagos manufacturing Company."
         image="hero.factory"
       />
       <Section>

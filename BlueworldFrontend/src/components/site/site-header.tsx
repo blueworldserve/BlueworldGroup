@@ -75,7 +75,20 @@ export function SiteHeader() {
     };
   }, [pathname]);
 
+  useEffect(() => {
+    if (!openMobile) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpenMobile(false);
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [openMobile]);
+
   return (
+    <>
     <header
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -118,10 +131,10 @@ export function SiteHeader() {
                   key={item.label}
                   href={item.to}
                   className={cn(
-                    "rounded-full px-4 py-2 text-sm font-bold transition-colors duration-200",
+                    "px-3 py-2 text-[0.78rem] font-semibold uppercase tracking-[0.14em] transition-colors duration-200",
                     transparent
-                      ? "text-white/90 hover:bg-white/10 hover:text-white"
-                      : "text-foreground/75 hover:bg-primary-soft hover:text-primary-deep",
+                      ? "text-white/90 hover:text-accent"
+                      : "text-foreground/80 hover:text-accent",
                     active && (transparent ? "text-white" : "text-primary-deep"),
                   )}
                 >
@@ -134,10 +147,10 @@ export function SiteHeader() {
                 <button
                   type="button"
                   className={cn(
-                    "flex items-center gap-1 rounded-full px-4 py-2 text-sm font-bold transition-colors duration-200",
+                    "flex items-center gap-1 px-3 py-2 text-[0.78rem] font-semibold uppercase tracking-[0.14em] transition-colors duration-200",
                     transparent
-                      ? "text-white/90 hover:bg-white/10 hover:text-white"
-                      : "text-foreground/75 hover:bg-primary-soft hover:text-primary-deep",
+                      ? "text-white/90 hover:text-accent"
+                      : "text-foreground/80 hover:text-accent",
                     active && (transparent ? "text-white" : "text-primary-deep"),
                   )}
                 >
@@ -145,12 +158,12 @@ export function SiteHeader() {
                   <ChevronDown className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
                 </button>
                 <div className="invisible absolute left-0 top-full w-64 translate-y-2 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                  <div className="overflow-hidden rounded-2xl border border-border bg-card p-2 shadow-lift">
+                  <div className="overflow-hidden border border-border bg-card p-2 shadow-lift">
                     {item.children.map((child) => (
                       <AppLink
                         key={child.label}
                         href={child.to}
-                        className="block rounded-xl px-4 py-2.5 text-sm font-medium text-foreground/80 transition-colors hover:bg-primary-soft hover:text-primary-deep"
+                        className="block px-4 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary-soft hover:text-primary-deep"
                       >
                         {child.label}
                       </AppLink>
@@ -166,7 +179,7 @@ export function SiteHeader() {
           <Link
             to="/contact"
             className={cn(
-              "inline-flex items-center rounded-full px-5 py-2.5 text-sm font-bold transition-all duration-200 hover:-translate-y-0.5",
+              "inline-flex items-center px-6 py-3 text-[0.72rem] font-bold uppercase tracking-[0.16em] transition-colors duration-200",
               transparent
                 ? "border border-white/70 text-white hover:bg-white hover:text-primary-deep"
                 : "bg-accent text-accent-foreground",
@@ -181,74 +194,110 @@ export function SiteHeader() {
           aria-label={openMobile ? "Close menu" : "Open menu"}
           onClick={() => setOpenMobile((v) => !v)}
           className={cn(
-            "grid h-11 w-11 place-items-center rounded-xl border lg:hidden transition-colors",
+            "grid h-11 w-11 place-items-center border lg:hidden transition-colors",
             transparent ? "border-white/50 text-white" : "border-border text-primary-deep",
           )}
         >
           {openMobile ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
+    </header>
 
-      <AnimatePresence>
-        {openMobile && (
+    {/* Drawer sits OUTSIDE <header>: the header's backdrop-blur would otherwise trap position:fixed. */}
+    <AnimatePresence>
+      {openMobile && (
+        <>
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="overflow-hidden border-t border-border bg-card lg:hidden"
+            key="scrim"
+            className="fixed inset-0 z-[60] bg-black/55 lg:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setOpenMobile(false)}
+          />
+          <motion.aside
+            key="drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Site menu"
+            className="fixed right-0 top-0 z-[70] flex h-full w-[86%] max-w-sm flex-col bg-background shadow-2xl lg:hidden"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="space-y-1 px-5 py-4">
-              {NAV_ITEMS.map((item) =>
-                item.children ? (
-                  <div key={item.label} className="rounded-xl">
-                    <button
-                      type="button"
-                      onClick={() => setOpenAccordion((c) => (c === item.label ? null : item.label))}
-                      className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-sm font-semibold text-primary-deep hover:bg-primary-soft"
+            <div className="flex h-20 shrink-0 items-center justify-between border-b border-border px-5">
+              <span className="text-xs font-bold uppercase tracking-[0.24em] text-accent">Menu</span>
+              <button
+                type="button"
+                aria-label="Close menu"
+                onClick={() => setOpenMobile(false)}
+                className="grid h-10 w-10 place-items-center border border-border text-primary-deep"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <nav className="flex-1 overflow-y-auto px-5 py-4">
+              {NAV_ITEMS.map((item) => (
+                <div key={item.label} className="border-b border-border/70">
+                  {item.children ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setOpenAccordion((c) => (c === item.label ? null : item.label))}
+                        className="flex w-full items-center justify-between py-4 text-left text-xl font-bold text-primary-deep"
+                      >
+                        {item.label}
+                        <ChevronDown className={cn("h-4 w-4 transition-transform", openAccordion === item.label && "rotate-180")} />
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {openAccordion === item.label && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.25 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="mb-3 ml-1 border-l-2 border-accent pl-4">
+                              {item.children.map((child) => (
+                                <AppLink
+                                  key={child.label}
+                                  href={child.to}
+                                  onClick={() => setOpenMobile(false)}
+                                  className="block py-2.5 text-base text-foreground/80 hover:text-accent"
+                                >
+                                  {child.label}
+                                </AppLink>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </>
+                  ) : (
+                    <AppLink
+                      href={item.to}
+                      onClick={() => setOpenMobile(false)}
+                      className="block py-4 text-xl font-bold text-primary-deep"
                     >
                       {item.label}
-                      <ChevronDown
-                        className={cn("h-4 w-4 transition-transform", openAccordion === item.label && "rotate-180")}
-                      />
-                    </button>
-                    {openAccordion === item.label && (
-                      <div className="space-y-1 pb-2 pl-3">
-                        {item.children.map((child) => (
-                          <AppLink
-                            key={child.label}
-                            href={child.to}
-                            onClick={() => setOpenMobile(false)}
-                            className="block rounded-lg px-3 py-2.5 text-sm text-foreground/75 hover:bg-primary-soft"
-                          >
-                            {child.label}
-                          </AppLink>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <AppLink
-                    key={item.label}
-                    href={item.to}
-                    onClick={() => setOpenMobile(false)}
-                    className="block rounded-xl px-3 py-3 text-sm font-semibold text-primary-deep hover:bg-primary-soft"
-                  >
-                    {item.label}
-                  </AppLink>
-                ),
-              )}
-              <Link
-                to="/contact"
-                onClick={() => setOpenMobile(false)}
-                className="mt-3 block rounded-full bg-accent px-5 py-3 text-center text-sm font-bold text-accent-foreground"
-              >
+                    </AppLink>
+                  )}
+                </div>
+              ))}
+            </nav>
+
+            <div className="shrink-0 border-t border-border p-5">
+              <Link to="/contact" onClick={() => setOpenMobile(false)} className="btn-corporate w-full">
                 Talk to sales
               </Link>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </header>
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
+    </>
   );
 }

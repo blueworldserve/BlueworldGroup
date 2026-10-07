@@ -50,7 +50,14 @@ export const LOCAL_IMAGES = {
 export type LocalImageKey = keyof typeof LOCAL_IMAGES;
 
 /** Resolves a CMS image value: a local key, or a remote URL from the backend. */
-export function resolveImage(value: string): string {
+export function resolveImage(value: string, width = 1600): string {
   if (value in LOCAL_IMAGES) return LOCAL_IMAGES[value as LocalImageKey];
-  return value;
+  return optimizeCloudinary(value, width);
+}
+
+/** Cloudinary: ask for auto format (WebP/AVIF), auto quality and a capped width. Other URLs pass through. */
+function optimizeCloudinary(url: string, width: number): string {
+  if (!url.includes("res.cloudinary.com") || !url.includes("/upload/")) return url;
+  if (/\/upload\/[^/]*(f_auto|q_auto|w_\d+)/.test(url)) return url; // already transformed
+  return url.replace("/upload/", `/upload/f_auto,q_auto,w_${width}/`);
 }
