@@ -154,11 +154,11 @@ export function PageHero({
   children?: ReactNode;
 }) {
   return (
-    <section className="relative flex min-h-[70vh] items-center overflow-hidden bg-primary-deep">
+    <section className="relative flex min-h-[82svh] items-center overflow-hidden bg-primary-deep md:min-h-[92vh]">
       <HeroFlag />
-      {image && (
+      {(image || "hero.factory") && (
         <div className="absolute inset-0">
-          <CmsImage src={image} alt="" className="h-full w-full object-cover" eager />
+          <CmsImage src={image || "hero.factory"} alt="" className="h-full w-full object-cover" eager />
           <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/30 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
         </div>

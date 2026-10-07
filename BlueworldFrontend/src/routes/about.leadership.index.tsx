@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { AppLink } from "@/components/site/app-link";
 import { CmsImage, EmptyBlock, LoadingBlock, PageHero, Section, SectionHeading } from "@/components/site/primitives";
-import { useTeamMembers } from "@/hooks/use-cms";
+import { useTeamMembers, usePage } from "@/hooks/use-cms";
 import { HeroFlag } from "@/components/site/hero-context";
 import { memberSlug } from "@/lib/team-slug";
 
@@ -27,6 +27,7 @@ export const Route = createFileRoute("/about/leadership/")({
 
 function LeadershipPage() {
   const { data, isLoading } = useTeamMembers();
+  const { data: page } = usePage("about/leadership");
   const members = [...(data ?? [])].sort((a, b) => a.order - b.order);
   const featured = members.find((m) => m.isFeatured);
   const rest = members.filter((m) => m.id !== featured?.id);
@@ -34,11 +35,14 @@ function LeadershipPage() {
   return (
     <>
       <HeroFlag />
-      <PageHero
-        eyebrow="About us"
-        title="Leadership"
-        description="Our strength lies in visionary leadership that inspires growth, drives innovation, and ensures sustainability across every brand we run."
-        
+        <PageHero
+        eyebrow={page?.eyebrow || "About us"}
+        title={page?.title || "Leadership"}
+        description={
+          page?.description ||
+          "Our strength lies in visionary leadership that inspires growth, drives innovation, and ensures sustainability across every brand we run."
+        }
+        image={page?.heroImage || undefined}
       />
 
       {/* Mission & Vision — a confident, editorial statement before the people themselves */}
@@ -58,7 +62,7 @@ function LeadershipPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mt-5 font-display text-xl font-bold leading-relaxed text-primary-deep sm:text-2xl"
+            className="mt-5 font-display text-l  leading-relaxed text-primary-deep sm:text-2xl"
           >
             To be among the globally accepted, most sought-after, user and eco-friendly, quality and affordable cosmetics products manufacturing company in Nigeria.
           </motion.p>
@@ -77,32 +81,9 @@ function LeadershipPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mt-5 font-display text-xl font-bold leading-relaxed text-primary-deep sm:text-2xl"
+            className="mt-5 font-display text-l  leading-relaxed text-primary-deep sm:text-2xl"
           >
             To Produce and Market quality, safe and affordable cosmetics products in an eco-friendly manner.
-          </motion.p>
-          <br />
-          <motion.p
-            initial={{ opacity: 0, y: 14 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6 }}
-            className="eyebrow"
-          >
-            Our Core Values
-          </motion.p>
-          <motion.p
-            initial={{ opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="mt-5 font-display text-xl font-bold leading-relaxed text-primary-deep sm:text-2xl"
-          >
-            <span className="block">Quality Customer Experience</span>
-            <span className="mt-3 block">Safe and Healthy Workplace for all employees</span>
-            <span className="mt-3 block">Honesty, Transparency &amp; Strict adherence to Statutory standards and Practices</span>
-            <span className="mt-3 block">Proactiveness &amp; Innovation</span>
-            <span className="mt-3 block">Teamwork and Participatory decision-making</span>
           </motion.p>
         </div>
       </Section>
@@ -115,25 +96,25 @@ function LeadershipPage() {
       )}
 
       {!isLoading && featured && (
-        <Section tone="muted" className="py-16 lg:py-20">
+        <Section tone="muted" className="py-20 lg:py-28">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.7, ease: "easeOut" }}
-            className="grid items-center gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16"
+            className="mx-auto grid max-w-5xl items-center gap-10 text-center lg:grid-cols-[340px_1fr] lg:gap-16 lg:text-left"
           >
-            <div className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-full border-4 border-white shadow-lift">
+            <div className="relative mx-auto aspect-square w-full max-w-[260px] overflow-hidden rounded-full border-4 border-white shadow-lift lg:max-w-[340px]">
               <CmsImage src={featured.photo} alt={featured.name} className="h-full w-full object-cover" eager />
             </div>
             <div>
               <p className="eyebrow">Meet our founder &amp; chief visionary</p>
-              <h2 className="mt-3 font-display text-2xl font-extrabold text-primary-deep sm:text-3xl">
+              <h2 className="mt-3 font-display text-3xl font-extrabold text-primary-deep sm:text-4xl">
                 {featured.name}
               </h2>
               <p className="mt-1 text-sm font-bold uppercase tracking-[0.14em] text-accent">{featured.role}</p>
-              <div className="mt-2 h-px w-16 bg-accent" />
-              <p className="mt-4 line-clamp-4 text-base leading-relaxed text-muted-foreground">
+              <div className="mx-auto mt-3 h-px w-24 bg-accent lg:mx-0" />
+              <p className="mt-5 line-clamp-6 text-base leading-relaxed text-muted-foreground lg:text-lg">
                 {featured.bio.split("\n\n")[0]}
               </p>
               <AppLink

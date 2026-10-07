@@ -52,16 +52,13 @@ function LeaderProfilePage() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14"
+          className="grid items-start gap-10 lg:grid-cols-[280px_1fr] lg:gap-14"
         >
-          <div className="overflow-hidden rounded-3xl shadow-lift">
+          <div className="mx-auto w-full max-w-[280px] overflow-hidden rounded-3xl shadow-lift">
             <CmsImage src={member.photo} alt={member.name} className="aspect-[4/5] w-full object-cover" eager />
           </div>
           <div>
-            <h1 className="font-display text-3xl font-extrabold text-primary-deep sm:text-4xl">{member.name}</h1>
-            <p className="mt-2 text-sm font-bold uppercase tracking-[0.16em] text-accent">{member.role}</p>
-            <div className="mt-4 h-px w-20 bg-primary-deep/15" />
-            <div className="mt-6 space-y-4">
+            <div className="space-y-4">
               {member.bio.split("\n\n").map((para) => (
                 <p key={para.slice(0, 32)} className="text-base leading-relaxed text-muted-foreground">
                   {para}

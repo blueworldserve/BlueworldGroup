@@ -441,3 +441,1016 @@ export function BrandGlobe({
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import { createFileRoute } from "@tanstack/react-router";
+import { AnimatePresence, motion } from "framer-motion";
+import { toast } from "sonner";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowUpRight, Globe2, MapPin, X } from "lucide-react";
+import { HeroSlider } from "@/components/site/hero-slider";
+import { AppLink } from "@/components/site/app-link";
+import { BrandGlobe } from "@/components/brand/brand-globe";
+import { CmsImage, EmptyBlock, LoadingBlock } from "@/components/site/primitives";
+import { useBlogPosts, useBusinessUnits, useHeroSlides, useProducts } from "@/hooks/use-cms";
+import { ENDPOINTS, submitWithMock } from "@/lib/api";
+import { REACH_MARKERS } from "@/data/placeholder-content";
+import { HeroFlag } from "@/components/site/hero-context";
+import { ScrollRevealText } from "@/components/site/scroll-reveal-text";
+import { useCollection } from "@/lib/cms-store";
+import type { Product } from "@/lib/types";
+
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Blue World Cosmetics — Nigerian Cosmetics Manufacturer" },
+      {
+        name: "description",
+        content:
+          "Skincare, hygiene, haircare and fragrance manufactured in Lagos. Home of Vivon, BlueCrystal, Blow Right, BlueFragrance and BlueWorld Cosmetics.",
+      },
+      { property: "og:title", content: "Blue World Cosmetics" },
+      {
+        property: "og:description",
+        content: "Five brands. One Nigerian manufacturing house. God Is Our Strength.",
+      },
+    ],
+  }),
+  component: HomePage,
+});
+
+/* ------------------------------------------------------------------ */
+/* Scoped theme. Everything lives under .bw-lux so no other page is    */
+/* affected. Palette: ivory paper, deep navy ink, antique gold accent. */
+/* ------------------------------------------------------------------ */
+
+const THEME_CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap');
+
+.bw-lux {
+  --bw-ink: #0A1A36;
+  --bw-ink-2: #132B52;
+  --bw-paper: #FAF6EF;
+  --bw-sand: #F0E8DA;
+  --bw-line: rgba(10, 26, 54, 0.12);
+  --bw-muted: #566075;
+  --bw-gold: #C29B4E;       /* fills, and text on navy */
+  --bw-gold-text: #8A6522;  /* text on ivory (passes contrast) */
+}
+
+.bw-serif { font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-weight: 600; letter-spacing: -0.01em; }
+
+.bw-text-ink { color: var(--bw-ink); }
+.bw-text-muted { color: var(--bw-muted); }
+.bw-text-gold { color: var(--bw-gold); }
+.bw-text-gold-dark { color: var(--bw-gold-text); }
+.bw-text-paper { color: var(--bw-paper); }
+.bw-text-paper-70 { color: rgba(250, 246, 239, 0.72); }
+.bw-bg-ink { background: var(--bw-ink); }
+.bw-bg-ink-2 { background: var(--bw-ink-2); }
+.bw-bg-paper { background: var(--bw-paper); }
+.bw-bg-sand { background: var(--bw-sand); }
+.bw-bg-gold { background: var(--bw-gold); }
+.bw-bg-line { background: var(--bw-line); }
+.bw-border { border-color: var(--bw-line); }
+.bw-hover-sand:hover { background: var(--bw-sand); }
+
+.bw-eyebrow { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase; color: var(--bw-gold-text); }
+.bw-eyebrow-dark { color: var(--bw-gold); }
+
+.bw-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: 9999px; padding: 0.9rem 1.7rem; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; transition: background-color .3s, color .3s, transform .3s; }
+.bw-btn:hover { transform: translateY(-2px); }
+.bw-btn-gold { background: var(--bw-gold); color: var(--bw-ink); }
+.bw-btn-gold:hover { background: #D3AE62; }
+.bw-btn-outline { border: 1px solid var(--bw-ink); color: var(--bw-ink); }
+.bw-btn-outline:hover { background: var(--bw-ink); color: var(--bw-paper); }
+
+@keyframes bw-marquee-left { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .bw-marquee-track { animation: none !important; } }
+`;
+
+const reveal = {
+  initial: { opacity: 0, y: 22 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-80px" },
+  transition: { duration: 0.7, ease: "easeOut" },
+} as const;
+
+/* ------------------------------------------------------------------ */
+/* Data                                                                */
+/* ------------------------------------------------------------------ */
+
+const BUSINESS_UNIT_DISPLAY_ORDER = [
+  "vivon",
+  "bluefragrance",
+  "blueworld-cosmetics",
+  "bluecrystal",
+  "blow-right",
+];
+
+function orderBusinessUnits<T extends { slug: string }>(units: T[]): T[] {
+  return [...units].sort((a, b) => {
+    const ai = BUSINESS_UNIT_DISPLAY_ORDER.indexOf(a.slug);
+    const bi = BUSINESS_UNIT_DISPLAY_ORDER.indexOf(b.slug);
+    const aRank = ai === -1 ? BUSINESS_UNIT_DISPLAY_ORDER.length : ai;
+    const bRank = bi === -1 ? BUSINESS_UNIT_DISPLAY_ORDER.length : bi;
+    return aRank - bRank;
+  });
+}
+
+const TRUST_MARKERS = [
+  { k: "2016", v: "Founded in Lagos" },
+  { k: "500+", v: "People employed" },
+  { k: "5", v: "Brands in the house" },
+  { k: "120+", v: "SKUs in production" },
+  { k: "9", v: "Countries reached" },
+  { k: "11", v: "QC checks per batch" },
+];
+
+const TICKER = ["Skincare", "Hygiene", "Haircare", "Fragrance", "Made in Lagos", "God Is Our Strength"];
+
+/* ------------------------------------------------------------------ */
+/* Small shared pieces                                                 */
+/* ------------------------------------------------------------------ */
+
+function Heading({
+  eyebrow,
+  title,
+  desc,
+  center,
+  dark,
+}: {
+  eyebrow: string;
+  title: string;
+  desc?: string;
+  center?: boolean;
+  dark?: boolean;
+}) {
+  return (
+    <motion.div {...reveal} className={center ? "mx-auto max-w-2xl text-center" : "max-w-2xl"}>
+      <p className={dark ? "bw-eyebrow bw-eyebrow-dark" : "bw-eyebrow"}>{eyebrow}</p>
+      <h2
+        className={`bw-serif mt-3 text-4xl leading-[1.05] sm:text-5xl ${dark ? "bw-text-paper" : "bw-text-ink"}`}
+      >
+        {title}
+      </h2>
+      {desc && (
+        <p
+          className={`mt-4 text-sm leading-relaxed sm:text-base ${dark ? "bw-text-paper-70" : "bw-text-muted"}`}
+        >
+          {desc}
+        </p>
+      )}
+    </motion.div>
+  );
+}
+
+function Ticker() {
+  const items = [...TICKER, ...TICKER, ...TICKER];
+  return (
+    <div className="bw-bg-ink overflow-hidden border-y border-white/10 py-4" aria-hidden="true">
+      <div
+        className="bw-marquee-track flex w-max"
+        style={{ animation: "bw-marquee-left 45s linear infinite" }}
+      >
+        {[0, 1].map((set) => (
+          <div key={set} className="flex shrink-0">
+            {items.map((t, i) => (
+              <span
+                key={`${set}-${i}`}
+                className="bw-text-gold flex items-center gap-12 whitespace-nowrap pl-12 text-xs font-bold uppercase tracking-[0.3em]"
+              >
+                {t}
+                <span className="bw-bg-gold h-1 w-1 rounded-full" />
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Page                                                                */
+/* ------------------------------------------------------------------ */
+
+function HomePage() {
+  const slides = useHeroSlides();
+  const units = useBusinessUnits();
+  const products = useProducts();
+  const posts = useBlogPosts();
+  const countryShowcases = useCollection("countryShowcases");
+  const [activeCountry, setActiveCountry] = useState<string | null>(null);
+  const [openProduct, setOpenProduct] = useState<Product | null>(null);
+  const [activeCat, setActiveCat] = useState("All");
+  const activeShowcase = activeCountry
+    ? countryShowcases.find((s) => s.name.toLowerCase() === activeCountry.toLowerCase()) ?? null
+    : null;
+
+  const orderedUnits = orderBusinessUnits(units.data ?? []);
+  const latest = (posts.data ?? []).slice(0, 3);
+
+  // Featured first, then the rest, so the grid is never empty just because
+  // nothing has been flagged "featured" yet.
+  const productPool = useMemo(
+    () => [...(products.data ?? [])].sort((a, b) => Number(!!b.featured) - Number(!!a.featured)),
+    [products.data],
+  );
+  const categories = useMemo(
+    () => ["All", ...Array.from(new Set(productPool.map((p) => String(p.category)).filter(Boolean)))],
+    [productPool],
+  );
+  const shownProducts = (
+    activeCat === "All" ? productPool : productPool.filter((p) => String(p.category) === activeCat)
+  ).slice(0, 8);
+
+  return (
+    <div className="bw-lux bw-bg-paper">
+      <style>{THEME_CSS}</style>
+      <HeroFlag />
+      {slides.isLoading ? (
+        <div className="bw-bg-ink h-[70vh] animate-pulse" />
+      ) : (
+        <HeroSlider slides={slides.data ?? []} />
+      )}
+
+      <Ticker />
+
+      {/* Stats — hairline grid on ivory. Numerals in serif for weight. */}
+      <section className="bw-bg-paper">
+        <div className="bw-bg-line mx-auto grid max-w-7xl grid-cols-2 gap-px sm:grid-cols-3 lg:grid-cols-6">
+          {TRUST_MARKERS.map((s) => (
+            <div key={s.k} className="bw-bg-paper px-4 py-8 text-center">
+              <p className="bw-serif bw-text-ink text-4xl sm:text-5xl">{s.k}</p>
+              <p className="bw-text-muted mt-2 text-[0.65rem] font-bold uppercase tracking-[0.18em]">
+                {s.v}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Brands */}
+      <section className="bw-bg-paper px-5 py-20 lg:px-8 lg:py-28">
+        <Heading
+          center
+          eyebrow="Our business"
+          title="Five brands, built for different shelves"
+          desc="Each unit runs its own formulation brief, packaging language and route to market — sharing six factory floors and one quality standard."
+        />
+        <div className="mx-auto mt-14 flex max-w-[1600px] flex-wrap justify-center gap-x-5 gap-y-12">
+          {units.isLoading && (
+            <div className="w-full">
+              <LoadingBlock label="Loading business units…" />
+            </div>
+          )}
+          {!units.isLoading && orderedUnits.length === 0 && (
+            <div className="w-full">
+              <EmptyBlock label="No business units published yet." />
+            </div>
+          )}
+          {orderedUnits.map((unit, i) => (
+            <motion.div
+              key={unit.id}
+              className="w-[calc(50%_-_0.625rem)] sm:w-[calc(33.333%_-_0.85rem)] lg:w-[300px]"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.5, delay: i * 0.06 }}
+            >
+              <AppLink href={`/business/${unit.slug}`} className="group block">
+                <div className="bw-bg-sand relative aspect-[3/4] overflow-hidden rounded-b-2xl rounded-t-full ring-1 ring-[var(--bw-line)] transition-shadow duration-500 group-hover:shadow-xl">
+                  <CmsImage
+                    src={unit.heroImage}
+                    alt={unit.name}
+                    className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                  />
+                  <div className="pointer-events-none absolute inset-0 -translate-x-[150%] skew-x-[-20deg] bg-gradient-to-r from-transparent via-white/35 to-transparent transition-transform duration-[1100ms] ease-out group-hover:translate-x-[150%]" />
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                </div>
+                <div className="mt-4 text-center">
+                  <h3 className="bw-serif bw-text-ink text-2xl">{unit.name}</h3>
+                  <p className="bw-eyebrow mt-1.5 !text-[0.6rem] !tracking-[0.18em]">{unit.tagline}</p>
+                  <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-500 ease-out group-hover:grid-rows-[1fr]">
+                    <div className="overflow-hidden">
+                      <p className="bw-text-muted mx-auto mt-3 max-w-xs text-xs leading-relaxed">
+                        {unit.summary}
+                      </p>
+                      <span className="bw-text-gold-dark mt-3 inline-flex items-center gap-1 border-b border-current pb-0.5 text-[0.62rem] font-bold uppercase tracking-[0.16em]">
+                        Discover <ArrowUpRight size={12} />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </AppLink>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Products — a real section: category tabs + grid + detail overlay */}
+      <section className="bw-bg-sand px-5 py-20 lg:px-8 lg:py-28" id="products">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <Heading
+              eyebrow="Products"
+              title="Made in Lagos, ready for your shelf"
+              desc="A selection from across our five brands. Tap any product for the full detail."
+            />
+            <AppLink href="/products" className="bw-btn bw-btn-outline">
+              View all products <ArrowUpRight size={14} />
+            </AppLink>
+          </div>
+
+          {categories.length > 2 && (
+            <div className="-mx-5 mt-10 overflow-x-auto px-5 lg:mx-0 lg:px-0">
+              <div className="flex w-max gap-2" role="tablist" aria-label="Product categories">
+                {categories.map((c) => {
+                  const active = c === activeCat;
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      onClick={() => setActiveCat(c)}
+                      className={`rounded-full border px-5 py-2 text-xs font-bold uppercase tracking-[0.14em] transition-colors ${
+                        active
+                          ? "bw-bg-ink bw-text-paper border-transparent"
+                          : "bw-border bw-text-ink hover:bg-white/60"
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-10">
+            {products.isLoading && <LoadingBlock label="Loading products…" />}
+            {!products.isLoading && shownProducts.length === 0 && (
+              <EmptyBlock label="No products published yet." />
+            )}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeCat}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="grid grid-cols-2 gap-x-4 gap-y-10 lg:grid-cols-4 lg:gap-x-6"
+              >
+                {shownProducts.map((p) => (
+                  <ProductCard key={p.id} product={p} onOpen={setOpenProduct} />
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+      </section>
+
+      {/* Statement — the one loud typographic moment */}
+      <section className="bw-bg-paper px-5 py-24 lg:px-8 lg:py-36">
+        <motion.blockquote {...reveal} className="mx-auto max-w-5xl text-center">
+          <p className="bw-eyebrow">The rule since 2016</p>
+          <p className="bw-serif bw-text-ink mt-6 text-5xl italic leading-[1.05] sm:text-6xl lg:text-8xl">
+            “Make it properly, or do not ship it.”
+          </p>
+          <p className="bw-text-muted mx-auto mt-8 max-w-xl text-sm leading-relaxed sm:text-base">
+            One factory floor on Oba Akran Avenue. Eleven quality checks on every batch. Five
+            Nigerian-made brands that carry the same standard.
+          </p>
+        </motion.blockquote>
+      </section>
+
+      {/* Globe / export map — same interaction, restyled on navy */}
+      <section className="bw-bg-ink px-5 py-20 lg:px-8 lg:py-28">
+        <div className="mx-auto max-w-7xl">
+          <motion.div {...reveal} className="mb-12 text-center">
+            <p className="bw-eyebrow bw-eyebrow-dark">Where we ship</p>
+            <ScrollRevealText
+              text="God Is Our Strength"
+              className="bw-serif bw-text-paper mt-4 text-4xl uppercase leading-none tracking-[0.04em] sm:text-5xl"
+            />
+          </motion.div>
+
+          <div className="grid items-stretch gap-5 lg:grid-cols-2 lg:gap-6">
+            {/* Card A — globe + chips */}
+            <motion.div
+              {...reveal}
+              className="bw-bg-paper flex flex-col rounded-3xl p-4 sm:p-5 lg:p-6"
+            >
+              <p className="bw-eyebrow">Where we ship</p>
+              <h3 className="bw-serif bw-text-ink mt-2 text-2xl sm:text-3xl">
+                Made in Nigeria, carried around the world
+              </h3>
+              <p className="bw-text-muted mt-2 text-sm leading-relaxed">
+                From our plant on Oba Akran Avenue, Blue World products reach households across four
+                countries. Tap a marker — or a market below — to see it up close.
+              </p>
+
+              <div className="mt-4">
+                <BrandGlobe
+                  markers={REACH_MARKERS}
+                  maxWidthClass="max-w-none"
+                  background="midnight"
+                  standText={null}
+                  activeCountry={activeCountry}
+                  onSelectCountry={(name) => setActiveCountry(name || null)}
+                />
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {REACH_MARKERS.map((m) => {
+                  const active = activeCountry?.toLowerCase() === m.name.toLowerCase();
+                  return (
+                    <button
+                      key={m.name}
+                      type="button"
+                      onClick={() => setActiveCountry(active ? null : m.name)}
+                      className={`rounded-full border px-3.5 py-1.5 text-xs font-bold transition-colors ${
+                        active
+                          ? "bw-bg-gold bw-text-ink border-transparent"
+                          : "bw-border bw-text-ink bw-hover-sand"
+                      }`}
+                    >
+                      {m.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+
+            {/* Card B — never taller than Card A on desktop (absolute inner area) */}
+            <motion.div
+              {...reveal}
+              transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
+              className="bw-bg-paper relative rounded-3xl"
+            >
+              <div className="flex h-full flex-col p-4 sm:p-5 lg:absolute lg:inset-0 lg:overflow-y-auto lg:p-6">
+                <AnimatePresence mode="wait">
+                  {activeShowcase ? (
+                    <motion.div
+                      key={activeCountry}
+                      initial={{ opacity: 0, x: 12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -12 }}
+                      transition={{ duration: 0.3 }}
+                      className="flex flex-1 flex-col"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="bw-eyebrow">{activeShowcase.place}</p>
+                          <h3 className="bw-serif bw-text-ink mt-2 text-2xl sm:text-3xl">
+                            {activeShowcase.headline}
+                          </h3>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setActiveCountry(null)}
+                          className="bw-border bw-text-ink bw-hover-sand shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold"
+                        >
+                          ← Overview
+                        </button>
+                      </div>
+
+                      <p className="bw-text-muted mt-3 text-sm leading-relaxed">{activeShowcase.blurb}</p>
+                      <p className="bw-text-muted mt-2 text-sm leading-relaxed">{activeShowcase.detail}</p>
+
+                      <div className="bw-bg-sand mt-4 flex items-center gap-3 rounded-2xl p-4">
+                        <span className="bw-serif bw-text-gold-dark text-4xl">
+                          {activeShowcase.statValue}
+                        </span>
+                        <span className="bw-text-muted text-xs font-bold uppercase tracking-wide">
+                          {activeShowcase.statLabel}
+                        </span>
+                      </div>
+
+                      <div className="bw-border mt-3 flex flex-1 flex-col rounded-2xl border px-4">
+                        {activeShowcase.points.map((point) => (
+                          <div
+                            key={point}
+                            className="bw-border bw-text-ink flex min-h-[2.25rem] flex-1 items-center gap-2 border-b py-2 text-sm font-semibold last:border-b-0"
+                          >
+                            <span className="bw-bg-gold h-1.5 w-1.5 shrink-0 rounded-full" />
+                            {point}
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="overview"
+                      initial={{ opacity: 0, x: 12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -12 }}
+                      transition={{ duration: 0.3 }}
+                      className="flex flex-1 flex-col"
+                    >
+                      <p className="bw-eyebrow">Every marker, explained</p>
+                      <h3 className="bw-serif bw-text-ink mt-2 text-2xl sm:text-3xl">
+                        Four markets, one factory floor
+                      </h3>
+                      <p className="bw-text-muted mt-2 text-sm leading-relaxed">
+                        Five Nigerian-made brands, trusted in homes across four countries and counting.
+                      </p>
+
+                      <div className="bw-bg-sand mt-4 flex flex-1 flex-col rounded-2xl p-4 sm:p-5">
+                        <div className="flex items-center gap-2 border-b border-[var(--bw-line)] pb-3">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bw-ink)]/10">
+                            <Globe2 size={16} className="bw-text-ink" />
+                          </span>
+                          <span className="bw-text-muted text-xs font-bold uppercase tracking-[0.14em]">
+                            Export map
+                          </span>
+                        </div>
+
+                        <div className="mt-4 flex flex-1 flex-col gap-2.5">
+                          {REACH_MARKERS.map((m) => {
+                            const s = countryShowcases.find(
+                              (c) => c.name.toLowerCase() === m.name.toLowerCase(),
+                            );
+                            return (
+                              <motion.button
+                                key={m.name}
+                                type="button"
+                                onClick={() => setActiveCountry(m.name)}
+                                whileHover={{ scale: 1.02, y: -2 }}
+                                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                className="bw-bg-paper flex min-h-[4rem] flex-1 items-center gap-3 rounded-xl px-3.5 py-2.5 text-left shadow-sm"
+                              >
+                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--bw-gold)]/20">
+                                  <MapPin size={14} className="bw-text-gold-dark" />
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                  <span className="flex items-baseline gap-2">
+                                    <span className="bw-text-ink text-sm font-bold">{m.name}</span>
+                                    {s?.place && (
+                                      <span className="bw-text-gold-dark text-[0.65rem] font-bold uppercase tracking-wide">
+                                        {s.place}
+                                      </span>
+                                    )}
+                                  </span>
+                                  <span className="bw-text-muted mt-0.5 block text-xs">{m.note}</span>
+                                </span>
+                                {s && (
+                                  <span className="shrink-0 text-right">
+                                    <span className="bw-serif bw-text-gold-dark block text-2xl leading-none">
+                                      {s.statValue}
+                                    </span>
+                                    <span className="bw-text-muted mt-1 block text-[0.6rem] font-bold uppercase tracking-wide">
+                                      {s.statLabel}
+                                    </span>
+                                  </span>
+                                )}
+                              </motion.button>
+                            );
+                          })}
+                        </div>
+
+                        <p className="bw-text-muted mt-3 border-t border-[var(--bw-line)] pt-3 text-center text-xs font-semibold">
+                          {REACH_MARKERS.length} export markets and counting
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Blog */}
+      <section className="bw-bg-paper px-5 py-20 lg:px-8 lg:py-28">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <Heading eyebrow="From the blog" title="News, research and factory notes" />
+            <AppLink href="/blog" className="bw-btn bw-btn-outline">
+              All posts <ArrowUpRight size={14} />
+            </AppLink>
+          </div>
+          <div className="mt-12 grid gap-8 md:grid-cols-3">
+            {latest.map((post, i) => (
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.6, delay: i * 0.08 }}
+              >
+                <AppLink href={`/blog/${post.slug}`} className="group block">
+                  <div className="bw-bg-sand aspect-[16/10] overflow-hidden rounded-2xl">
+                    <CmsImage
+                      src={post.coverImage}
+                      alt={post.title}
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                  </div>
+                  <p className="bw-eyebrow mt-5">{post.category}</p>
+                  <h3 className="bw-serif bw-text-ink mt-2 text-2xl leading-snug transition-colors group-hover:text-[var(--bw-gold-text)]">
+                    {post.title}
+                  </h3>
+                  <p className="bw-text-muted mt-2 line-clamp-3 text-sm leading-relaxed">{post.excerpt}</p>
+                </AppLink>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <NewsletterBlock />
+
+      <AnimatePresence>
+        {openProduct && (
+          <ProductDetail
+            key={openProduct.id}
+            product={openProduct}
+            onClose={() => setOpenProduct(null)}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Products                                                            */
+/* ------------------------------------------------------------------ */
+
+function ProductCard({
+  product,
+  onOpen,
+}: {
+  product: Product;
+  onOpen: (product: Product) => void;
+}) {
+  return (
+    <button type="button" onClick={() => onOpen(product)} className="group block text-left">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-white">
+        <CmsImage
+          src={product.image}
+          alt={product.name}
+          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+        />
+        <div className="pointer-events-none absolute inset-0 -translate-x-[150%] skew-x-[-20deg] bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-[1100ms] ease-out group-hover:translate-x-[150%]" />
+        <span className="bw-bg-paper bw-text-ink absolute bottom-3 left-3 inline-flex translate-y-2 items-center gap-1 rounded-full px-3 py-1.5 text-[0.62rem] font-bold uppercase tracking-[0.14em] opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+          View details <ArrowUpRight size={12} />
+        </span>
+      </div>
+      <p className="bw-eyebrow mt-4 !text-[0.6rem] !tracking-[0.18em]">
+        {product.category} · {product.size}
+      </p>
+      <h3 className="bw-serif bw-text-ink mt-1 text-xl leading-snug">{product.name}</h3>
+    </button>
+  );
+}
+
+function ProductDetail({ product, onClose }: { product: Product; onClose: () => void }) {
+  // Esc closes, and the page behind stops scrolling while the overlay is open.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [onClose]);
+
+  const facts = [
+    { label: "Category", value: product.category },
+    { label: "Pack size", value: product.size },
+    { label: "Made in", value: "Lagos, Nigeria" },
+  ];
+
+  return (
+    <motion.div
+      role="dialog"
+      aria-modal="true"
+      aria-label={product.name}
+      className="fixed inset-0 z-[70] overflow-y-auto text-white"
+      style={{
+        background:
+          "radial-gradient(ellipse at 18% 28%, rgba(194,155,78,0.22), transparent 55%), linear-gradient(160deg, #132B52 0%, #0A1A36 60%, #060F22 100%)",
+      }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Close product"
+        className="fixed right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20 sm:right-6 sm:top-6"
+      >
+        <X size={18} />
+      </button>
+
+      <div className="mx-auto grid min-h-full max-w-7xl lg:grid-cols-2">
+        <div className="relative flex items-center justify-center px-6 pb-6 pt-20 lg:px-12 lg:py-16">
+          <div className="pointer-events-none absolute aspect-square w-[70%] max-w-md rounded-full bg-[var(--bw-gold)]/20 blur-3xl" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.94, x: -24 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+            className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-white/15 bg-white/5 p-3 shadow-2xl backdrop-blur-sm"
+          >
+            <div className="overflow-hidden rounded-2xl bg-white">
+              <CmsImage
+                src={product.image}
+                alt={product.name}
+                className="max-h-[68vh] w-full object-contain"
+              />
+            </div>
+          </motion.div>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
+          className="flex flex-col justify-center px-6 pb-16 pt-4 text-center lg:px-12 lg:py-16"
+        >
+          <p className="bw-eyebrow bw-eyebrow-dark">
+            {product.category} · {product.size}
+          </p>
+          <h2 className="bw-serif mt-3 text-4xl leading-tight sm:text-5xl">{product.name}</h2>
+
+          <p className="mx-auto mt-6 max-w-xl text-sm leading-relaxed text-white/75 sm:text-base">
+            {product.description}
+          </p>
+
+          <h3 className="bw-eyebrow bw-eyebrow-dark mt-10">Product details</h3>
+          <div className="mx-auto mt-5 grid w-full max-w-xl grid-cols-3 divide-x divide-white/20">
+            {facts.map((f) => (
+              <div key={f.label} className="px-3">
+                <p className="text-[0.65rem] font-bold uppercase tracking-[0.16em] text-white">{f.label}</p>
+                <p className="mt-1.5 text-xs text-white/70 sm:text-sm">{f.value}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+            <AppLink href="/contact" className="bw-btn bw-btn-gold">
+              Enquire about this product
+            </AppLink>
+            <button
+              type="button"
+              onClick={onClose}
+              className="bw-btn border border-white/30 text-white hover:bg-white/10"
+            >
+              Back to products
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Newsletter                                                          */
+/* ------------------------------------------------------------------ */
+
+function NewsletterBlock() {
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  return (
+    <section className="bw-bg-ink px-5 py-20 lg:px-8 lg:py-24">
+      <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2">
+        <Heading
+          dark
+          eyebrow="Newsletter"
+          title="Trade updates, new lines and factory news"
+          desc="One email a month for distributors, retail partners and anyone who cares how the products are made."
+        />
+        <form
+          className="flex flex-col gap-3 sm:flex-row"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setBusy(true);
+            await submitWithMock(ENDPOINTS.newsletter, { email }, { ok: true });
+            setBusy(false);
+            setEmail("");
+            toast.success("You're subscribed. Watch your inbox.");
+          }}
+        >
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@company.com"
+            aria-label="Email address"
+            className="h-12 flex-1 rounded-full border border-white/25 bg-white/10 px-6 text-sm text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-[var(--bw-gold)]"
+          />
+          <button type="submit" disabled={busy} className="bw-btn bw-btn-gold h-12 disabled:opacity-60">
+            {busy ? "Subscribing…" : "Subscribe"}
+          </button>
+        </form>
+      </div>
+    </section>
+  );
+}
