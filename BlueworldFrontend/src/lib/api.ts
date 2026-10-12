@@ -17,6 +17,8 @@ export const ENDPOINTS = {
   careersApply: "/careers/apply",
   contact: "/contact",
   newsletter: "/newsletter/subscribe",
+  adminContactMessages: "/admin/submissions/contact",
+  adminNewsletter: "/admin/submissions/newsletter",
   authLogin: "/auth/login",
   authRefresh: "/auth/refresh",
   authMe: "/auth/me",
@@ -189,6 +191,44 @@ export async function submitWithMock<TBody, TResult>(
     await new Promise((r) => setTimeout(r, 600));
     return mockResult;
   }
+}
+
+const FORM_TIMEOUT_MS = 15_000;
+
+/**
+ * POST for public forms (contact, newsletter). Unlike submitWithMock this NEVER
+ * pretends it worked: if the server is unreachable, times out or rejects the
+ * request, it throws — show `formErrorMessage(err)` to the visitor.
+ */
+export async function submitForm<TBody>(path: string, body: TBody): Promise<void> {
+  await apiFetch<unknown>(path, { method: "POST", body: JSON.stringify(body) }, FORM_TIMEOUT_MS);
+}
+
+/** Turns any error thrown by submitForm into a short, human message. */
+export function formErrorMessage(err: unknown): string {
+  if (err instanceof ApiError) {
+    if (err.status === 429) return "Too many attempts. Please wait a minute and try again.";
+    if (err.status === 422) {
+      const items = (err.detail as { detail?: unknown } | null)?.detail;
+      const loc = Array.isArray(items) ? ((items[0] as { loc?: unknown[] } | undefined)?.loc ?? []) : [];
+      const field = String(loc[loc.length - 1] ?? "");
+      if (field === "message") return "Please keep your message between 5 and 800 characters.";
+      if (field === "email") return "Please enter a valid email address.";
+      if (field === "fullName") return "Please enter your full name.";
+      return "Please check your details and try again.";
+    }
+    return "Something went wrong on our side. Please try again shortly.";
+  }
+  return "We couldn't reach the server. Check your connection and try again.";
+}
+
+/** Best-effort message from a FastAPI error body ({ detail: "..." }), for the admin panel. */
+export function apiErrorDetail(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) {
+    const detail = (err.detail as { detail?: unknown } | null)?.detail;
+    if (typeof detail === "string" && detail.trim()) return detail;
+  }
+  return fallback;
 }
 
 /* --------------------------------- tokens --------------------------------- */

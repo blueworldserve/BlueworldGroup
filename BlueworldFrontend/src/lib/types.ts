@@ -116,8 +116,46 @@ export interface CareerApplication {
 export interface ContactSubmission {
   fullName: string;
   email: string;
+  phone?: string | undefined;
+  enquiryType: string;
   subject: string;
   message: string;
+  /** Honeypot — hidden field real visitors never fill in. Always send it as-is. */
+  website?: string;
+}
+
+/** A contact message as the admin inbox sees it. */
+export interface InboxMessage {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string | null;
+  enquiryType: string;
+  subject: string | null;
+  message: string;
+  status: "new" | "read" | "replied";
+  repliedAt: string | null;
+  createdAt: string;
+}
+
+export interface InboxReply {
+  id: string;
+  toEmail: string;
+  subject: string;
+  body: string;
+  sentBy: string | null;
+  sentAt: string;
+}
+
+export interface InboxMessageDetail extends InboxMessage {
+  replies: InboxReply[];
+}
+
+export interface NewsletterSubscriber {
+  id: string;
+  email: string;
+  syncedAt: string | null;
+  createdAt: string;
 }
 
 export interface NewsletterSignup {
