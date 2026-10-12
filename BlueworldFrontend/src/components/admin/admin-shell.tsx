@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   Globe2,
   Images,
+  Inbox,
   LayoutDashboard,
   Layers,
   LogOut,
@@ -26,6 +27,7 @@ import { ThemeToggle } from "@/components/admin/theme-toggle";
 
 export const ADMIN_NAV = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard },
+  { label: "Inbox", to: "/admin/inbox", icon: Inbox },
   { label: "Hero Slides", to: "/admin/hero-slides", icon: Sparkles },
   { label: "Business Units", to: "/admin/business-units", icon: Layers },
   { label: "About Pages", to: "/admin/pages", icon: FileText },

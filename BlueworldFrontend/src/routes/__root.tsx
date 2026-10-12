@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { SiteHeader } from "../components/site/site-header";
 import { SiteFooter } from "../components/site/site-footer";
+import { WhatsAppButton } from "../components/site/whatsapp-button";
 import { Toaster } from "../components/ui/sonner";
 
 import appCss from "../styles.css?url";
@@ -200,6 +201,7 @@ function AppShell({ isAdmin }: { isAdmin: boolean }) {
         <Outlet />
       </div>
       {!isAdmin && <SiteFooter />}
+      {!isAdmin && <WhatsAppButton />}
     </div>
   );
 }

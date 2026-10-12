@@ -8,7 +8,7 @@ import { AppLink } from "@/components/site/app-link";
 import { BrandGlobe } from "@/components/brand/brand-globe";
 import { CmsImage, EmptyBlock, Hl, LoadingBlock, Section, SectionHeading } from "@/components/site/primitives";
 import { useBlogPosts, useBusinessUnits, useHeroSlides, useProducts } from "@/hooks/use-cms";
-import { ENDPOINTS, submitWithMock } from "@/lib/api";
+import { ENDPOINTS, formErrorMessage, submitForm } from "@/lib/api";
 import { REACH_MARKERS } from "@/data/placeholder-content";
 import { HeroFlag } from "@/components/site/hero-context";
 import { ScrollRevealText } from "@/components/site/scroll-reveal-text";
@@ -440,13 +440,22 @@ function NewsletterBlock() {
           className="flex flex-col gap-3 sm:flex-row"
           onSubmit={async (e) => {
             e.preventDefault();
+            if (busy) return;
+            const website = String(new FormData(e.currentTarget).get("website") ?? "");
             setBusy(true);
-            await submitWithMock(ENDPOINTS.newsletter, { email }, { ok: true });
-            setBusy(false);
-            setEmail("");
-            toast.success("You're subscribed. Watch your inbox.");
+            try {
+              await submitForm(ENDPOINTS.newsletter, { email: email.trim(), website });
+              setEmail("");
+              toast.success("You're subscribed. Watch your inbox.");
+            } catch (err) {
+              toast.error("Couldn't subscribe", { description: formErrorMessage(err) });
+            } finally {
+              setBusy(false);
+            }
           }}
         >
+          {/* Honeypot: invisible to people, tempting to bots. */}
+          <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 opacity-0" />
           <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" className="h-12 flex-1 border border-primary-foreground/25 bg-primary-foreground/10 px-6 text-sm text-primary-foreground placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent" />
           <button type="submit" disabled={busy} className="h-12 bg-accent px-8 text-[0.72rem] font-bold uppercase tracking-[0.16em] text-accent-foreground disabled:opacity-60">
             {busy ? "Subscribing…" : "Subscribe"}

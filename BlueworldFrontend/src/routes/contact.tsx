@@ -5,7 +5,8 @@ import { Mail, MapPin, Phone, Clock } from "lucide-react";
 import { PageHero, Section, SectionHeading } from "@/components/site/primitives";
 import { useSiteSettings } from "@/hooks/use-cms";
 import { SITE_SETTINGS } from "@/data/placeholder-content";
-import { ENDPOINTS, submitWithMock } from "@/lib/api";
+import { ENDPOINTS, formErrorMessage, submitForm } from "@/lib/api";
+import { WHATSAPP_ENABLED, whatsappLink } from "@/components/site/whatsapp-button";
 import type { ContactSubmission } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -28,26 +29,41 @@ export const Route = createFileRoute("/contact")({
   component: ContactPage,
 });
 
+const MESSAGE_MAX = 800; // keep in sync with MESSAGE_MAX_LENGTH in app/schemas/submission.py
+const ENQUIRY_TYPES = ["Sales", "Distribution", "Private label", "Export", "General"] as const;
+
 function ContactPage() {
   const { data } = useSiteSettings();
   const settings = data ?? SITE_SETTINGS;
   const [submitting, setSubmitting] = useState(false);
+  const [messageLength, setMessageLength] = useState(0);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting) return;
     const form = event.currentTarget;
     const fd = new FormData(form);
     const payload: ContactSubmission = {
-      fullName: String(fd.get("fullName") ?? ""),
-      email: String(fd.get("email") ?? ""),
-      subject: String(fd.get("subject") ?? ""),
-      message: String(fd.get("message") ?? ""),
+      fullName: String(fd.get("fullName") ?? "").trim(),
+      email: String(fd.get("email") ?? "").trim(),
+      phone: String(fd.get("phone") ?? "").trim() || undefined,
+      enquiryType: String(fd.get("enquiryType") ?? "General"),
+      subject: String(fd.get("subject") ?? "").trim(),
+      message: String(fd.get("message") ?? "").trim(),
+      website: String(fd.get("website") ?? ""),
     };
     setSubmitting(true);
-    await submitWithMock(ENDPOINTS.contact, payload, { ok: true });
-    setSubmitting(false);
-    form.reset();
-    toast.success("Message sent", { description: "We reply to enquiries within one business day." });
+    try {
+      await submitForm(ENDPOINTS.contact, payload);
+      form.reset();
+      setMessageLength(0);
+      toast.success("Message sent", { description: "We reply to enquiries within one business day." });
+    } catch (err) {
+      // Keep what they typed so they can retry — never claim success on failure.
+      toast.error("Message not sent", { description: formErrorMessage(err) });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const blocks = [
@@ -108,7 +124,32 @@ function ContactPage() {
             <form onSubmit={handleSubmit} className="mt-8 space-y-4">
               <Field label="Full name" name="fullName" required />
               <Field label="Email address" name="email" type="email" required />
+              <Field label="Phone / WhatsApp (optional)" name="phone" type="tel" />
+              <div>
+                <label htmlFor="enquiryType" className="text-sm font-semibold text-primary-deep">
+                  I'm enquiring about
+                </label>
+                <select
+                  id="enquiryType"
+                  name="enquiryType"
+                  defaultValue="Sales"
+                  className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-primary"
+                >
+                  {ENQUIRY_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <Field label="Subject" name="subject" required />
+              {/* Honeypot: invisible to people, tempting to bots. Leave it empty. */}
+              <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+                <label>
+                  Website
+                  <input type="text" name="website" tabIndex={-1} autoComplete="off" />
+                </label>
+              </div>
               <div>
                 <label htmlFor="message" className="text-sm font-semibold text-primary-deep">
                   Message
@@ -118,8 +159,14 @@ function ContactPage() {
                   name="message"
                   rows={6}
                   required
+                  minLength={5}
+                  maxLength={MESSAGE_MAX}
+                  onChange={(e) => setMessageLength(e.target.value.length)}
                   className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-primary"
                 />
+                <p className="mt-1.5 text-right text-xs text-muted-foreground">
+                  {messageLength}/{MESSAGE_MAX}
+                </p>
               </div>
               <button
                 type="submit"
@@ -131,6 +178,19 @@ function ContactPage() {
               >
                 {submitting ? "Sending…" : "Send message"}
               </button>
+              {WHATSAPP_ENABLED && (
+                <p className="text-center text-sm text-muted-foreground">
+                  Prefer WhatsApp?{" "}
+                  <a
+                    href={whatsappLink()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-primary-deep underline-offset-2 hover:underline"
+                  >
+                    Chat with sales
+                  </a>
+                </p>
+              )}
             </form>
           </div>
         </div>

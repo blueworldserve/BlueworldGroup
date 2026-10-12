@@ -34,11 +34,13 @@ import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as BusinessIndexRouteImport } from './routes/business.index'
 import { Route as AboutLeadershipIndexRouteImport } from './routes/about.leadership.index'
 import { Route as AboutLeadershipSlugRouteImport } from './routes/about.leadership.$slug'
+import { Route as AdminInboxIndexRouteImport } from './routes/admin.inbox.index'
 import { Route as AdminPagesIndexRouteImport } from './routes/admin.pages.index'
 import { Route as AdminPagesPageIdRouteImport } from './routes/admin.pages.$pageId'
 import { Route as AdminPagesNewRouteImport } from './routes/admin.pages.new'
 import { Route as BusinessUnitIndexRouteImport } from './routes/business.$unit.index'
 import { Route as BusinessUnitLineRouteImport } from './routes/business.$unit.$line'
+import { Route as AdminInboxMessageIdReplyRouteImport } from './routes/admin.inbox.$messageId.reply'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -165,6 +167,11 @@ const AboutLeadershipSlugRoute = AboutLeadershipSlugRouteImport.update({
   path: '/about/leadership/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminInboxIndexRoute = AdminInboxIndexRouteImport.update({
+  id: '/admin/inbox/',
+  path: '/admin/inbox/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminPagesIndexRoute = AdminPagesIndexRouteImport.update({
   id: '/admin/pages/',
   path: '/admin/pages/',
@@ -190,6 +197,12 @@ const BusinessUnitLineRoute = BusinessUnitLineRouteImport.update({
   path: '/business/$unit/$line',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminInboxMessageIdReplyRoute =
+  AdminInboxMessageIdReplyRouteImport.update({
+    id: '/admin/inbox/$messageId/reply',
+    path: '/admin/inbox/$messageId/reply',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -220,8 +233,10 @@ export interface FileRoutesByFullPath {
   '/admin/pages/new': typeof AdminPagesNewRoute
   '/business/$unit/$line': typeof BusinessUnitLineRoute
   '/about/leadership/': typeof AboutLeadershipIndexRoute
+  '/admin/inbox/': typeof AdminInboxIndexRoute
   '/admin/pages/': typeof AdminPagesIndexRoute
   '/business/$unit/': typeof BusinessUnitIndexRoute
+  '/admin/inbox/$messageId/reply': typeof AdminInboxMessageIdReplyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -252,8 +267,10 @@ export interface FileRoutesByTo {
   '/admin/pages/new': typeof AdminPagesNewRoute
   '/business/$unit/$line': typeof BusinessUnitLineRoute
   '/about/leadership': typeof AboutLeadershipIndexRoute
+  '/admin/inbox': typeof AdminInboxIndexRoute
   '/admin/pages': typeof AdminPagesIndexRoute
   '/business/$unit': typeof BusinessUnitIndexRoute
+  '/admin/inbox/$messageId/reply': typeof AdminInboxMessageIdReplyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -285,8 +302,10 @@ export interface FileRoutesById {
   '/admin/pages/new': typeof AdminPagesNewRoute
   '/business/$unit/$line': typeof BusinessUnitLineRoute
   '/about/leadership/': typeof AboutLeadershipIndexRoute
+  '/admin/inbox/': typeof AdminInboxIndexRoute
   '/admin/pages/': typeof AdminPagesIndexRoute
   '/business/$unit/': typeof BusinessUnitIndexRoute
+  '/admin/inbox/$messageId/reply': typeof AdminInboxMessageIdReplyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -319,8 +338,10 @@ export interface FileRouteTypes {
     | '/admin/pages/new'
     | '/business/$unit/$line'
     | '/about/leadership/'
+    | '/admin/inbox/'
     | '/admin/pages/'
     | '/business/$unit/'
+    | '/admin/inbox/$messageId/reply'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -351,8 +372,10 @@ export interface FileRouteTypes {
     | '/admin/pages/new'
     | '/business/$unit/$line'
     | '/about/leadership'
+    | '/admin/inbox'
     | '/admin/pages'
     | '/business/$unit'
+    | '/admin/inbox/$messageId/reply'
   id:
     | '__root__'
     | '/'
@@ -383,8 +406,10 @@ export interface FileRouteTypes {
     | '/admin/pages/new'
     | '/business/$unit/$line'
     | '/about/leadership/'
+    | '/admin/inbox/'
     | '/admin/pages/'
     | '/business/$unit/'
+    | '/admin/inbox/$messageId/reply'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -416,8 +441,10 @@ export interface RootRouteChildren {
   AdminPagesNewRoute: typeof AdminPagesNewRoute
   BusinessUnitLineRoute: typeof BusinessUnitLineRoute
   AboutLeadershipIndexRoute: typeof AboutLeadershipIndexRoute
+  AdminInboxIndexRoute: typeof AdminInboxIndexRoute
   AdminPagesIndexRoute: typeof AdminPagesIndexRoute
   BusinessUnitIndexRoute: typeof BusinessUnitIndexRoute
+  AdminInboxMessageIdReplyRoute: typeof AdminInboxMessageIdReplyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -597,6 +624,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutLeadershipSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/inbox/': {
+      id: '/admin/inbox/'
+      path: '/admin/inbox'
+      fullPath: '/admin/inbox/'
+      preLoaderRoute: typeof AdminInboxIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/pages/': {
       id: '/admin/pages/'
       path: '/admin/pages'
@@ -632,6 +666,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BusinessUnitLineRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/inbox/$messageId/reply': {
+      id: '/admin/inbox/$messageId/reply'
+      path: '/admin/inbox/$messageId/reply'
+      fullPath: '/admin/inbox/$messageId/reply'
+      preLoaderRoute: typeof AdminInboxMessageIdReplyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -664,8 +705,10 @@ const rootRouteChildren: RootRouteChildren = {
   AdminPagesNewRoute: AdminPagesNewRoute,
   BusinessUnitLineRoute: BusinessUnitLineRoute,
   AboutLeadershipIndexRoute: AboutLeadershipIndexRoute,
+  AdminInboxIndexRoute: AdminInboxIndexRoute,
   AdminPagesIndexRoute: AdminPagesIndexRoute,
   BusinessUnitIndexRoute: BusinessUnitIndexRoute,
+  AdminInboxMessageIdReplyRoute: AdminInboxMessageIdReplyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
