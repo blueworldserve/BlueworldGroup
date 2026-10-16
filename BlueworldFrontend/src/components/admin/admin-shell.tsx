@@ -18,8 +18,10 @@ import {
   UserCheck,
   X,
   FileText,
+  ScrollText,
 } from "lucide-react";
 import { getAdminUser, logout, useAdminUser } from "@/hooks/use-admin-auth";
+import { apiFetch } from "@/lib/api";
 import { BrandGlobe } from "@/components/brand/brand-globe";
 import { cn } from "@/lib/utils";
 import { useCmsSourceAlerts } from "@/hooks/use-cms-source-alerts";
@@ -38,6 +40,7 @@ export const ADMIN_NAV = [
   { label: "Jobs", to: "/admin/jobs", icon: Briefcase },
   { label: "Media", to: "/admin/media", icon: Images },
   { label: "Access Requests", to: "/admin/access-requests", icon: UserCheck },
+  { label: "Audit Log", to: "/admin/audit", icon: ScrollText },
   { label: "Site Settings", to: "/admin/settings", icon: Settings },
 ] as const;
 
@@ -80,11 +83,11 @@ export function AdminShell({
     );
   }
 
-  // Only admins (and the superuser) ever see the Access Requests entry.
+  // Only admins (and the superuser) ever see Access Requests and the Audit Log.
   // Used by BOTH the desktop sidebar and the mobile menu below.
   const canManageAccess = session.role === "admin" || session.isSuperuser === true;
   const navItems = ADMIN_NAV.filter(
-    (item) => item.to !== "/admin/access-requests" || canManageAccess,
+    (item) => !["/admin/access-requests", "/admin/audit"].includes(item.to) || canManageAccess,
   );
 
   return (
@@ -158,7 +161,9 @@ export function AdminShell({
             <button
               type="button"
               onClick={() => {
-                logout();
+                void apiFetch("/auth/logout", { method: "POST" })
+                  .catch(() => {})
+                  .finally(() => logout());
                 void navigate({ to: "/admin/login" });
               }}
               className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-foreground/75 transition-colors hover:bg-primary-soft"

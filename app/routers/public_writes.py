@@ -36,7 +36,8 @@ def submit_contact(
 
 
 @router.post("/careers/apply")
-def submit_application(payload: CareerApplicationIn, db: Session = Depends(get_db)):
+@limiter.limit("5/minute;30/hour")
+def submit_application(request: Request, payload: CareerApplicationIn, db: Session = Depends(get_db)):
     db.add(CareerApplication(**payload.model_dump()))
     db.commit()
     return {"ok": True}

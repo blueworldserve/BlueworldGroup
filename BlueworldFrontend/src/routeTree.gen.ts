@@ -18,6 +18,7 @@ import { Route as AboutVisionMissionRouteImport } from './routes/about.vision-mi
 import { Route as AboutWhoWeAreRouteImport } from './routes/about.who-we-are'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAccessRequestsRouteImport } from './routes/admin.access-requests'
+import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminBlogRouteImport } from './routes/admin.blog'
 import { Route as AdminBusinessUnitsRouteImport } from './routes/admin.business-units'
 import { Route as AdminCountryShowcaseRouteImport } from './routes/admin.country-showcase'
@@ -85,6 +86,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminAccessRequestsRoute = AdminAccessRequestsRouteImport.update({
   id: '/admin/access-requests',
   path: '/admin/access-requests',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/admin/audit',
+  path: '/admin/audit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminBlogRoute = AdminBlogRouteImport.update({
@@ -212,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/about/vision-mission': typeof AboutVisionMissionRoute
   '/about/who-we-are': typeof AboutWhoWeAreRoute
   '/admin/access-requests': typeof AdminAccessRequestsRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/business-units': typeof AdminBusinessUnitsRoute
   '/admin/country-showcase': typeof AdminCountryShowcaseRoute
@@ -246,6 +253,7 @@ export interface FileRoutesByTo {
   '/about/vision-mission': typeof AboutVisionMissionRoute
   '/about/who-we-are': typeof AboutWhoWeAreRoute
   '/admin/access-requests': typeof AdminAccessRequestsRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/business-units': typeof AdminBusinessUnitsRoute
   '/admin/country-showcase': typeof AdminCountryShowcaseRoute
@@ -281,6 +289,7 @@ export interface FileRoutesById {
   '/about/vision-mission': typeof AboutVisionMissionRoute
   '/about/who-we-are': typeof AboutWhoWeAreRoute
   '/admin/access-requests': typeof AdminAccessRequestsRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/business-units': typeof AdminBusinessUnitsRoute
   '/admin/country-showcase': typeof AdminCountryShowcaseRoute
@@ -317,6 +326,7 @@ export interface FileRouteTypes {
     | '/about/vision-mission'
     | '/about/who-we-are'
     | '/admin/access-requests'
+    | '/admin/audit'
     | '/admin/blog'
     | '/admin/business-units'
     | '/admin/country-showcase'
@@ -351,6 +361,7 @@ export interface FileRouteTypes {
     | '/about/vision-mission'
     | '/about/who-we-are'
     | '/admin/access-requests'
+    | '/admin/audit'
     | '/admin/blog'
     | '/admin/business-units'
     | '/admin/country-showcase'
@@ -385,6 +396,7 @@ export interface FileRouteTypes {
     | '/about/vision-mission'
     | '/about/who-we-are'
     | '/admin/access-requests'
+    | '/admin/audit'
     | '/admin/blog'
     | '/admin/business-units'
     | '/admin/country-showcase'
@@ -420,6 +432,7 @@ export interface RootRouteChildren {
   AboutVisionMissionRoute: typeof AboutVisionMissionRoute
   AboutWhoWeAreRoute: typeof AboutWhoWeAreRoute
   AdminAccessRequestsRoute: typeof AdminAccessRequestsRoute
+  AdminAuditRoute: typeof AdminAuditRoute
   AdminBlogRoute: typeof AdminBlogRoute
   AdminBusinessUnitsRoute: typeof AdminBusinessUnitsRoute
   AdminCountryShowcaseRoute: typeof AdminCountryShowcaseRoute
@@ -510,6 +523,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/access-requests'
       fullPath: '/admin/access-requests'
       preLoaderRoute: typeof AdminAccessRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/audit': {
+      id: '/admin/audit'
+      path: '/admin/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/blog': {
@@ -684,6 +704,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutVisionMissionRoute: AboutVisionMissionRoute,
   AboutWhoWeAreRoute: AboutWhoWeAreRoute,
   AdminAccessRequestsRoute: AdminAccessRequestsRoute,
+  AdminAuditRoute: AdminAuditRoute,
   AdminBlogRoute: AdminBlogRoute,
   AdminBusinessUnitsRoute: AdminBusinessUnitsRoute,
   AdminCountryShowcaseRoute: AdminCountryShowcaseRoute,

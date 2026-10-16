@@ -1,25 +1,45 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Play, X } from "lucide-react";
 import { ButtonLink } from "@/components/site/primitives";
 import { resolveImage } from "@/data/images";
 import { parseVideoUrl, youtubeBackgroundUrl } from "@/lib/video";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { HeroSlide } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const SLIDE_MS = 7000;
+const DEFAULT_RATIO = 16 / 9;
+
+// One slide at a time: fade out fully, then fade in. Never two pictures together.
+const fade = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.6, ease: "easeOut" as const } },
+  exit: { opacity: 0, transition: { duration: 0.35, ease: "easeIn" as const } },
+};
 
 export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
   const ordered = useMemo(() => [...slides].sort((a, b) => a.order - b.order), [slides]);
   const count = ordered.length;
   const [index, setIndex] = useState(0);
   const [igOpen, setIgOpen] = useState(false);
+  const [ratios, setRatios] = useState<Record<string, number>>({});
+  const [shownId, setShownId] = useState<string | null>(null);
+  const latestId = useRef<string>("");
   const reduceMotion = useReducedMotion();
+  const isMobile = useIsMobile();
 
-  // A timeout keyed on `index` (not an interval) so clicking a dot restarts
-  // the countdown instead of the next auto-advance firing a moment later.
+  // phones and desktop can use different photos, so ratios are stored per device type
+  const rk = useCallback((s: HeroSlide) => `${s.id}-${isMobile ? "m" : "d"}`, [isMobile]);
+
+  const setRatio = useCallback((key: string, w: number, h: number) => {
+    if (!w || !h) return;
+    const r = w / h;
+    setRatios((p) => (Math.abs((p[key] ?? 0) - r) < 0.001 ? p : { ...p, [key]: r }));
+  }, []);
+
   useEffect(() => {
-    if (count < 2 || igOpen) return; // hold the slide while an Instagram video is open
+    if (count < 2 || igOpen) return;
     const t = setTimeout(() => setIndex((i) => (i + 1) % count), SLIDE_MS);
     return () => clearTimeout(t);
   }, [index, count, igOpen]);
@@ -31,102 +51,112 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [igOpen]);
 
-  // Warm the next slide's images so the crossfade never shows a blank frame.
+  // Load the current and next photos ahead of time AND measure them, so the
+  // hero already has the right shape when the slide appears.
   useEffect(() => {
-    if (count < 2) return;
-    const next = ordered[(index + 1) % count];
-    if (!next) return;
-    [next.image, next.mobileImage].forEach((src) => {
+    const targets = [ordered[index % (count || 1)], ordered[(index + 1) % (count || 1)]];
+    targets.forEach((s) => {
+      if (!s || parseVideoUrl(s.videoUrl)) return;
+      const src = isMobile ? s.mobileImage || s.image : s.image;
       if (!src) return;
       const img = new Image();
-      img.src = resolveImage(src);
+      img.onload = () => setRatio(rk(s), img.naturalWidth, img.naturalHeight);
+      img.src = resolveImage(src, isMobile ? 1200 : 1600);
     });
-  }, [index, count, ordered]);
+  }, [index, count, ordered, isMobile, rk, setRatio]);
 
   if (count === 0) return null;
 
   const active = index % count;
   const slide = ordered[active]!;
+  latestId.current = slide.id;
 
-  // YouTube and file videos play as a muted background; Instagram can't autoplay
-  // or hide its chrome, so it gets a "Watch video" button that opens the embed.
+  // The box keeps the OLD slide's shape until the old slide has faded out.
+  const shownSlide = ordered.find((s) => s.id === shownId) ?? slide;
+  const ratio = ratios[rk(shownSlide)] ?? DEFAULT_RATIO;
+
   const parsed = parseVideoUrl(slide.videoUrl);
   const bgVideo = parsed && parsed.kind !== "instagram" && !reduceMotion ? parsed : null;
   const igVideo = parsed?.kind === "instagram" ? parsed : null;
 
   return (
-    <section className="relative h-[82svh] min-h-[520px] w-full overflow-hidden bg-primary-deep md:h-[92vh]">
-      {/* One photo at a time. <picture> lets the browser pick the right file
-          for the screen and only download that one: the slide's main photo
-          from 768px up, its mobile photo below that (falling back to the main
-          photo if no mobile one was uploaded). */}
-      <AnimatePresence mode="sync">
-        <motion.div
-          key={slide.id}
-          initial={{ opacity: 0, scale: 1.04 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.2, ease: "easeInOut" }}
-          className="absolute inset-0"
-        >
-          <picture>
-            <source media="(min-width: 768px)" srcSet={resolveImage(slide.image)} />
-            <img
-              src={resolveImage(slide.mobileImage || slide.image, 900)}
-              alt=""
-              fetchPriority="high"
-              decoding="async"
-              draggable={false}
-              className="absolute inset-0 h-full w-full object-cover object-[50%_22%] md:object-[50%_30%]"
-            />
-          </picture>
-          {bgVideo?.kind === "file" && (
-            <video
-              key={bgVideo.src}
-              src={bgVideo.src}
-              poster={resolveImage(slide.image)}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              aria-hidden="true"
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          )}
-          {bgVideo?.kind === "youtube" && (
-            <iframe
-              key={bgVideo.id}
-              src={youtubeBackgroundUrl(bgVideo.id)}
-              title=""
-              aria-hidden="true"
-              tabIndex={-1}
-              allow="autoplay; encrypted-media"
-              className="pointer-events-none absolute left-1/2 top-1/2 aspect-video w-[max(100%,177.78svh)] -translate-x-1/2 -translate-y-1/2 border-0"
-            />
-          )}
-        </motion.div>
-      </AnimatePresence>
+    <section
+      className="relative w-full overflow-hidden bg-primary-deep pt-20 md:pt-0"
+      style={isMobile ? undefined : { height: `min(85svh, ${100 / ratio}vw)` }}
+    >
+      {/* MEDIA */}
+      <div
+        className="relative w-full overflow-hidden transition-[aspect-ratio] duration-500 ease-out [container-type:size] md:absolute md:inset-0 md:h-full"
+        style={isMobile ? { aspectRatio: ratio } : undefined}
+      >
+        <AnimatePresence mode="wait" onExitComplete={() => setShownId(latestId.current)}>
+          <motion.div
+            key={slide.id}
+            variants={fade}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="absolute inset-0"
+          >
+            {bgVideo?.kind === "file" ? (
+              <video
+                key={bgVideo.src}
+                src={bgVideo.src}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="auto"
+                aria-hidden="true"
+                onLoadedMetadata={(e) =>
+                  setRatio(rk(slide), e.currentTarget.videoWidth, e.currentTarget.videoHeight)
+                }
+                className="absolute inset-0 h-full w-full object-contain md:object-cover"
+              />
+            ) : bgVideo?.kind === "youtube" ? (
+              <iframe
+                key={bgVideo.id}
+                src={youtubeBackgroundUrl(bgVideo.id)}
+                title=""
+                aria-hidden="true"
+                tabIndex={-1}
+                allow="autoplay; encrypted-media"
+                className="pointer-events-none absolute left-1/2 top-1/2 aspect-video w-[max(100cqw,177.78cqh)] -translate-x-1/2 -translate-y-1/2 border-0"
+              />
+            ) : (
+              <picture className="absolute inset-0 block h-full w-full">
+                <source media="(min-width: 768px)" srcSet={resolveImage(slide.image)} />
+                <img
+                  src={resolveImage(slide.mobileImage || slide.image, 1200)}
+                  alt=""
+                  fetchPriority="high"
+                  decoding="async"
+                  draggable={false}
+                  onLoad={(e) =>
+                    setRatio(rk(slide), e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)
+                  }
+                  className="h-full w-full object-contain object-center md:object-cover"
+                />
+              </picture>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
-      {/* Legibility scrims. The mobile one is heavier at the bottom because
-          the text sits there on phones. */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/25 via-black/5 to-black/35" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent md:hidden" />
-
-      {/* Phones: text is anchored to the bottom so the model's face stays
-          clear, with room left for the dots. md and up: centered as before. */}
-      <div className="relative flex h-full items-end justify-center px-6 pb-20 text-center md:items-center md:pb-0">
+      {/* TEXT: below the picture on phones (designed panel), centred over it on desktop */}
+      <div className="relative flex justify-center overflow-hidden border-t-2 border-accent bg-gradient-to-b from-primary-deep to-primary px-6 pb-12 pt-8 text-center md:absolute md:inset-0 md:items-center md:overflow-visible md:border-0 md:bg-none md:p-0">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[radial-gradient(ellipse_at_top,color-mix(in_oklab,var(--accent)_25%,transparent),transparent_70%)] md:hidden" />
         <AnimatePresence mode="wait">
           <motion.div
             key={`copy-${slide.id}`}
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.6 }}
-            className="w-full max-w-xl"
+            variants={fade}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="relative w-full max-w-xl md:drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]"
           >
             {slide.eyebrow && (
-              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-white/85 sm:text-xs sm:tracking-[0.35em]">
+              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-accent sm:text-xs sm:tracking-[0.35em] md:text-white">
                 {slide.eyebrow}
               </p>
             )}
@@ -155,7 +185,7 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
       </div>
 
       {count > 1 && (
-        <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 gap-2">
+        <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-2 md:bottom-6">
           {ordered.map((s, i) => (
             <button
               key={s.id}
@@ -164,7 +194,7 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
               onClick={() => setIndex(i)}
               className={cn(
                 "h-1.5 rounded-full transition-all",
-                i === active ? "w-8 bg-white" : "w-4 bg-white/40 hover:bg-white/70",
+                i === active ? "w-8 bg-white" : "w-4 bg-white/50 hover:bg-white/80",
               )}
             />
           ))}

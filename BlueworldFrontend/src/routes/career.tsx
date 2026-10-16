@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { EmptyBlock, LoadingBlock, PageHero, Section, SectionHeading } from "@/components/site/primitives";
 import { useJobPostings } from "@/hooks/use-cms";
-import { ENDPOINTS, submitWithMock } from "@/lib/api";
+import { ENDPOINTS, formErrorMessage, submitForm } from "@/lib/api";
 import type { CareerApplication, JobPosting } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -153,12 +153,19 @@ function ApplyForm({ job, onClose }: { job: JobPosting; onClose: () => void }) {
       coverMessage: String(form.get("coverMessage") ?? ""),
     };
     setSubmitting(true);
-    await submitWithMock(ENDPOINTS.careersApply, payload, { ok: true });
-    setSubmitting(false);
-    toast.success("Application received", {
-      description: `Thanks ${payload.fullName.split(" ")[0]} — our people team will reach out by email.`,
-    });
-    onClose();
+    try {
+      await submitForm(ENDPOINTS.careersApply, payload);
+      toast.success("Application received", {
+        description: `Thanks ${payload.fullName.split(" ")[0]} — our people team will reach out by email.`,
+      });
+      onClose();
+    } catch (err) {
+      // Never claim success unless the server really saved it. The form stays open
+      // with everything they typed, so they can simply press Submit again.
+      toast.error("We couldn't send your application", { description: formErrorMessage(err) });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -178,9 +185,9 @@ function ApplyForm({ job, onClose }: { job: JobPosting; onClose: () => void }) {
           </button>
         </div>
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <Field label="Full name" name="fullName" required />
-          <Field label="Email address" name="email" type="email" required />
-          <Field label="Phone number" name="phone" required />
+          <Field label="Full name" name="fullName" required maxLength={120} />
+          <Field label="Email address" name="email" type="email" required maxLength={254} />
+          <Field label="Phone number" name="phone" required maxLength={40} />
           <div>
             <label htmlFor="coverMessage" className="text-sm font-semibold text-primary-deep">
               Why this role?
@@ -190,6 +197,7 @@ function ApplyForm({ job, onClose }: { job: JobPosting; onClose: () => void }) {
               name="coverMessage"
               rows={4}
               required
+              maxLength={3000}
               className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-primary"
             />
           </div>
@@ -214,11 +222,13 @@ function Field({
   name,
   type = "text",
   required,
+  maxLength,
 }: {
   label: string;
   name: string;
   type?: string;
   required?: boolean;
+  maxLength?: number;
 }) {
   return (
     <div>
@@ -230,6 +240,7 @@ function Field({
         name={name}
         type={type}
         required={required}
+        maxLength={maxLength}
         className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-primary"
       />
     </div>

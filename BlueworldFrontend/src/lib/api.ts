@@ -49,6 +49,19 @@ export async function apiFetch<T>(
   init: RequestInit = {},
   timeoutMs = DEFAULT_TIMEOUT_MS,
 ): Promise<T> {
+  try {
+    return await request<T>(path, init, timeoutMs);
+  } catch (err) {
+    // Signed-in session whose short-lived access token has expired: quietly swap it
+    // for a fresh one using the refresh token, then try the same request once more.
+    if (err instanceof ApiError && err.status === 401 && canRefresh(path)) {
+      if (await refreshAccessToken()) return request<T>(path, init, timeoutMs);
+    }
+    throw err;
+  }
+}
+
+async function request<T>(path: string, init: RequestInit, timeoutMs: number): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -61,7 +74,7 @@ export async function apiFetch<T>(
         ...authHeader(),
       },
     });
-        if (!res.ok) {
+    if (!res.ok) {
       let detail: unknown = null;
       try {
         detail = await res.json();
@@ -77,16 +90,12 @@ export async function apiFetch<T>(
   }
 }
 
-
-
-
 export async function uploadMedia(file: File): Promise<MediaAsset> {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${API_BASE_URL}/admin/media/upload`, {
-    method: "POST",
-    headers: { ...authHeader() }, // deliberately no content-type here
+  const res = await authedFetch(`${API_BASE_URL}/admin/media/upload`, {
+    method: "POST", // deliberately no content-type header: the browser sets the multipart boundary
     body: formData,
   });
 
@@ -108,9 +117,8 @@ export async function uploadVideo(file: File): Promise<{ url: string }> {
   formData.append("file", file);
 
   // Videos are big; the default 4s API timeout doesn't apply here (plain fetch), so no abort.
-  const res = await fetch(`${API_BASE_URL}/admin/media/upload-video`, {
+  const res = await authedFetch(`${API_BASE_URL}/admin/media/upload-video`, {
     method: "POST",
-    headers: { ...authHeader() },
     body: formData,
   });
 
@@ -168,36 +176,10 @@ export async function fetchWithFallback<T>(path: string, fallback: T): Promise<T
   return data;
 }
 
-/**
- * Write helper for public-facing forms (contact, newsletter, careers) where a
- * missing backend shouldn't block the UI demo. Falls back to a mock success
- * ONLY on network failure (backend unreachable/timeout) — a real validation
- * or server error from a reachable backend is re-thrown so the form can show
- * the actual problem instead of lying about success.
- */
-export async function submitWithMock<TBody, TResult>(
-  path: string,
-  body: TBody,
-  mockResult: TResult,
-): Promise<TResult> {
-  try {
-    return await apiFetch<TResult>(path, { method: "POST", body: JSON.stringify(body) });
-  } catch (err) {
-    if (err instanceof ApiError) {
-      // Backend is up and responded — this is a real error, don't mask it.
-      throw err;
-    }
-    console.warn(`[api] POST ${path} unreachable, using mock result:`, err);
-    await new Promise((r) => setTimeout(r, 600));
-    return mockResult;
-  }
-}
-
 const FORM_TIMEOUT_MS = 15_000;
 
 /**
- * POST for public forms (contact, newsletter). Unlike submitWithMock this NEVER
- * pretends it worked: if the server is unreachable, times out or rejects the
+ * POST for public forms (contact, newsletter, careers). It NEVER pretends it worked: if the server is unreachable, times out or rejects the
  * request, it throws — show `formErrorMessage(err)` to the visitor.
  */
 export async function submitForm<TBody>(path: string, body: TBody): Promise<void> {
@@ -215,6 +197,8 @@ export function formErrorMessage(err: unknown): string {
       if (field === "message") return "Please keep your message between 5 and 800 characters.";
       if (field === "email") return "Please enter a valid email address.";
       if (field === "fullName") return "Please enter your full name.";
+      if (field === "coverMessage") return "Please keep your message under 3,000 characters.";
+      if (field === "phone") return "Please check your phone number.";
       return "Please check your details and try again.";
     }
     return "Something went wrong on our side. Please try again shortly.";
@@ -259,4 +243,75 @@ export function writeTokens(tokens: StoredTokens | null) {
 function authHeader(): Record<string, string> {
   const tokens = readTokens();
   return tokens ? { authorization: `Bearer ${tokens.accessToken}` } : {};
+}
+
+/* ---------------------------- silent token refresh ---------------------------- */
+
+/** Fired when the refresh token itself is no longer valid — the admin must sign in again. */
+export const SESSION_EXPIRED_EVENT = "bwc:session-expired";
+
+let refreshing: Promise<boolean> | null = null;
+
+function canRefresh(path: string): boolean {
+  return path !== ENDPOINTS.authLogin && path !== ENDPOINTS.authRefresh && !!readTokens()?.refreshToken;
+}
+
+/** Swaps the refresh token for new tokens. One call at a time; everyone waits for the same result. */
+function refreshAccessToken(): Promise<boolean> {
+  if (refreshing) return refreshing;
+  refreshing = (async () => {
+    const tokens = readTokens();
+    if (!tokens?.refreshToken) return false;
+    try {
+      const res = await fetch(`${API_BASE_URL}${ENDPOINTS.authRefresh}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ refreshToken: tokens.refreshToken }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { accessToken: string; refreshToken: string };
+        writeTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+        return true;
+      }
+      if (res.status === 401 || res.status === 403 || res.status === 422) {
+        // The refresh token is dead too: end the session cleanly instead of failing every save.
+        writeTokens(null);
+        if (typeof window !== "undefined") window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+      }
+      return false;
+    } catch {
+      return false; // network trouble — keep the session, let the caller report the error
+    }
+  })().finally(() => {
+    refreshing = null;
+  });
+  return refreshing;
+}
+
+/** Seconds until the access token expires, read from the token itself (no network). */
+function secondsLeft(token: string): number | null {
+  try {
+    const part = token.split(".")[1];
+    if (!part) return null;
+    const payload = JSON.parse(atob(part.replace(/-/g, "+").replace(/_/g, "/"))) as { exp?: number };
+    return typeof payload.exp === "number" ? payload.exp - Date.now() / 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * fetch() for file uploads. Refreshes an expiring token BEFORE sending, so a large
+ * video isn't uploaded in full only to be rejected, and retries once on a 401.
+ */
+async function authedFetch(url: string, init: RequestInit): Promise<Response> {
+  const tokens = readTokens();
+  if (tokens) {
+    const left = secondsLeft(tokens.accessToken);
+    if (left !== null && left < 60) await refreshAccessToken();
+  }
+  const send = () => fetch(url, { ...init, headers: { ...(init.headers ?? {}), ...authHeader() } });
+  let res = await send();
+  if (res.status === 401 && readTokens()?.refreshToken && (await refreshAccessToken())) res = await send();
+  return res;
 }

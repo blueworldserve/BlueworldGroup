@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { UploadCloud, Loader2 } from "lucide-react";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { WriteGate } from "@/components/admin/write-gate";
 import { ResourceManager, type ColumnConfig, type FieldConfig } from "@/components/admin/resource-manager";
 import { addUploadedMedia, deleteItem, newId, upsertItem, useCollection } from "@/lib/cms-store";
 import { uploadMedia } from "@/lib/api";
@@ -123,24 +124,28 @@ function MediaAdmin() {
       title="Media Library"
       description="Upload images directly — they're stored on Cloudinary and available across every resource."
     >
-      <UploadPanel />
-      <ResourceManager<MediaAsset>
-        items={assets}
-        columns={columns}
-        fields={fields}
-        singular="Asset"
-        emptyItem={() => ({
-          id: newId("m"),
-          filename: "",
-          url: "",
-          localPath: "",
-          width: 0,
-          height: 0,
-          usedOn: "",
-        })}
-        onSave={(item) => upsertItem("mediaLibrary", item)}
-        onDelete={(id) => deleteItem("mediaLibrary", id)}
-      />
+      <WriteGate resource="media-upload" notice={false}>
+        <UploadPanel />
+      </WriteGate>
+      <WriteGate resource="media">
+        <ResourceManager<MediaAsset>
+          items={assets}
+          columns={columns}
+          fields={fields}
+          singular="Asset"
+          emptyItem={() => ({
+            id: newId("m"),
+            filename: "",
+            url: "",
+            localPath: "",
+            width: 0,
+            height: 0,
+            usedOn: "",
+          })}
+          onSave={(item) => upsertItem("mediaLibrary", item)}
+          onDelete={(id) => deleteItem("mediaLibrary", id)}
+        />
+      </WriteGate>
     </AdminShell>
   );
 }

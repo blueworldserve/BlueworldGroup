@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { WriteGate } from "@/components/admin/write-gate";
 import { ResourceManager, type ColumnConfig, type FieldConfig } from "@/components/admin/resource-manager";
 import { deleteItem, newId, upsertItem, useCollection } from "@/lib/cms-store";
 import type { HeroSlide } from "@/lib/types";
@@ -40,7 +41,7 @@ const columns: ColumnConfig<HeroSlide>[] = [
 ];
 
 const fields: FieldConfig<HeroSlide>[] = [
-    { name: "image", label: "Background image", type: "image", help: "Required. Also shown while a video loads and if it can't play." },
+  { name: "image", label: "Background image", type: "image", help: "Required. Also shown while a video loads and if it can't play." },
   {
     name: "videoUrl",
     label: "Background video (optional)",
@@ -66,25 +67,27 @@ function HeroSlidesAdmin() {
 
   return (
     <AdminShell title="Hero Slides" description="The rotating banner at the top of the homepage.">
-      <ResourceManager<HeroSlide>
-        items={slides}
-        columns={columns}
-        fields={fields}
-        singular="Slide"
-        emptyItem={() => ({
-          id: newId("hs"),
-          image: "hero.beauty",
-          videoUrl: null,
-          eyebrow: "",
-          title: "",
-          subtitle: "",
-          ctaLabel: "Learn more",
-          ctaHref: "/business",
-          order: slides.length + 1,
-        })}
-        onSave={(item) => upsertItem("heroSlides", item)}
-        onDelete={(id) => deleteItem("heroSlides", id)}
-      />
+      <WriteGate resource="hero-slides">
+        <ResourceManager<HeroSlide>
+          items={slides}
+          columns={columns}
+          fields={fields}
+          singular="Slide"
+          emptyItem={() => ({
+            id: newId("hs"),
+            image: "hero.beauty",
+            videoUrl: null,
+            eyebrow: "",
+            title: "",
+            subtitle: "",
+            ctaLabel: "Learn more",
+            ctaHref: "/business",
+            order: slides.length + 1,
+          })}
+          onSave={(item) => upsertItem("heroSlides", item)}
+          onDelete={(id) => deleteItem("heroSlides", id)}
+        />
+      </WriteGate>
     </AdminShell>
   );
 }

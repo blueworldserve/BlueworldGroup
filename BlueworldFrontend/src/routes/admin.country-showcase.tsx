@@ -1,8 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
-
-
+import { createFileRoute } from "@tanstack/react-router";
 
 import { AdminShell } from "@/components/admin/admin-shell";
+import { WriteGate } from "@/components/admin/write-gate";
 import { ResourceManager, type ColumnConfig, type FieldConfig } from "@/components/admin/resource-manager";
 import { deleteItem, newId, upsertItem, useCollection } from "@/lib/cms-store";
 import type { CountryShowcase } from "@/lib/types";
@@ -18,10 +17,6 @@ export const Route = createFileRoute("/admin/country-showcase")({
   }),
   component: CountryShowcaseAdmin,
 });
-
-
-
-
 
 const columns: ColumnConfig<CountryShowcase>[] = [
   { key: "image", label: "Image", image: true },
@@ -46,7 +41,7 @@ const fields: FieldConfig<CountryShowcase>[] = [
   { name: "points", label: "Bullet points", type: "list", rows: 6, help: "One point per line. These fill the card top-down — add as many as you like." },
   { name: "image", label: "Backdrop photo", type: "image" },
   { name: "video", label: "Backdrop video URL (optional)" },
-    {
+  {
     name: "tint",
     label: "Fallback tint",
     type: "select",
@@ -71,29 +66,31 @@ function CountryShowcaseAdmin() {
       title="Country Showcase"
       description="What appears when someone taps a market on the homepage globe — one entry per country marker."
     >
-      <ResourceManager<CountryShowcase>
-        items={items}
-        columns={columns}
-        fields={fields}
-        singular="Country"
-        emptyItem={() => ({
-          id: newId("cs"),
-          name: "",
-          place: "",
-          headline: "",
-          blurb: "",
-          detail: "",
-          statValue: "",
-          statLabel: "",
-          points: [],
-          image: "",
-          video: null,
-          tint: "green",
-          order: items.length,
-        })}
-        onSave={(item) => upsertItem("countryShowcases", item)}
-        onDelete={(id) => deleteItem("countryShowcases", id)}
-      />
+      <WriteGate resource="country-showcases">
+        <ResourceManager<CountryShowcase>
+          items={items}
+          columns={columns}
+          fields={fields}
+          singular="Country"
+          emptyItem={() => ({
+            id: newId("cs"),
+            name: "",
+            place: "",
+            headline: "",
+            blurb: "",
+            detail: "",
+            statValue: "",
+            statLabel: "",
+            points: [],
+            image: "",
+            video: null,
+            tint: "green",
+            order: items.length,
+          })}
+          onSave={(item) => upsertItem("countryShowcases", item)}
+          onDelete={(id) => deleteItem("countryShowcases", id)}
+        />
+      </WriteGate>
     </AdminShell>
   );
 }

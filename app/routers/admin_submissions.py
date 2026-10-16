@@ -1,10 +1,12 @@
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
-from core.deps import get_db, require_role
+from core.audit import ACTIVITY, record
+from core.deps import get_db
+from core.permissions import require_read, require_write
 from core.notify import NotConfigured, NotifyError, build_reply_email, send_email, sync_pending_signups
 from models.admin_user import AdminRole, AdminUser
 from models.submission import ContactReply, ContactSubmission, CareerApplication, NewsletterSignup
@@ -19,9 +21,9 @@ from schemas.submission import (
 
 router = APIRouter(prefix="/admin/submissions", tags=["admin-submissions"])
 
-# Everyone with CMS access can READ the inbox; only admins/editors can change it or reply.
-_can_view = require_role(AdminRole.admin, AdminRole.editor, AdminRole.viewer)
-_can_manage = require_role(AdminRole.admin, AdminRole.editor)
+# Everyone with CMS access can READ the inbox; only admins/editors/sales can change it or reply.
+_can_view = require_read
+_can_manage = require_write("inbox")
 
 
 def _get_or_404(db: Session, message_id: uuid.UUID) -> ContactSubmission:
@@ -67,6 +69,7 @@ def mark_contact_read(message_id: uuid.UUID, db: Session = Depends(get_db), _=De
 
 @router.post("/contact/{message_id}/reply", response_model=ContactSubmissionDetailOut)
 def reply_to_contact(
+    request: Request,
     message_id: uuid.UUID,
     payload: ContactReplyIn,
     db: Session = Depends(get_db),
@@ -104,6 +107,9 @@ def reply_to_contact(
     )
     row.status = "replied"
     row.replied_at = datetime.now(timezone.utc)
+    record(db, request, user, category=ACTIVITY, action="reply", resource="inbox", resource_id=row.id,
+           summary=f"{user.email} replied to {row.full_name} <{row.email}>",
+           details={"subject": payload.subject})
     db.commit()
     db.refresh(row)
     return _detail(db, row)
@@ -116,8 +122,10 @@ def _reply_to_address() -> str | None:
 
 
 @router.delete("/contact/{message_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_contact_submission(message_id: uuid.UUID, db: Session = Depends(get_db), _=Depends(_can_manage)):
+def delete_contact_submission(request: Request, message_id: uuid.UUID, db: Session = Depends(get_db), user: AdminUser = Depends(_can_manage)):
     row = _get_or_404(db, message_id)
+    record(db, request, user, category=ACTIVITY, action="delete", resource="inbox", resource_id=row.id,
+           summary=f"{user.email} deleted the message from {row.full_name} <{row.email}>")
     db.query(ContactReply).filter(ContactReply.submission_id == row.id).delete()
     db.delete(row)
     db.commit()
@@ -136,9 +144,11 @@ def list_newsletter_signups(db: Session = Depends(get_db), _=Depends(_can_view))
 
 
 @router.post("/newsletter/sync")
-def sync_newsletter(db: Session = Depends(get_db), _=Depends(_can_manage)):
+def sync_newsletter(request: Request, db: Session = Depends(get_db), user: AdminUser = Depends(_can_manage)):
     """Pushes subscribers that haven't reached Resend yet (e.g. everyone who signed up before the keys existed)."""
     try:
+        record(db, request, user, category=ACTIVITY, action="sync", resource="inbox", summary=f"{user.email} synced newsletter subscribers")
+        db.commit()
         return sync_pending_signups(db)
     except NotConfigured as e:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(e))

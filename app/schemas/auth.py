@@ -1,10 +1,11 @@
 import uuid
 from datetime import datetime
 
-from pydantic import EmailStr
+from pydantic import EmailStr, Field, computed_field
 
 from models.admin_user import AdminRole, AdminStatus
 from schemas.base import CamelModel
+from core.permissions import writable_resources
 
 
 class LoginRequest(CamelModel):
@@ -20,6 +21,11 @@ class AdminUserOut(CamelModel):
     status: AdminStatus
     is_superuser: bool
     created_at: datetime
+
+    @computed_field
+    @property
+    def writable(self) -> list[str]:
+        return writable_resources(self.role, self.is_superuser)
 
 
 class LoginResponse(CamelModel):
@@ -43,9 +49,13 @@ class RefreshRequest(CamelModel):
 
 class RequestAccessRequest(CamelModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8, max_length=128)
     full_name: str | None = None
     requested_role: AdminRole
+
+
+class RoleChange(CamelModel):
+    role: AdminRole
 
 
 class AccessDecision(CamelModel):

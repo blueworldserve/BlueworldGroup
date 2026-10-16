@@ -1,6 +1,7 @@
 // products.tsx
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { WriteGate } from "@/components/admin/write-gate";
 import { ResourceManager, type ColumnConfig, type FieldConfig } from "@/components/admin/resource-manager";
 import { deleteItem, newId, upsertItem, useCollection } from "@/lib/cms-store";
 import type { Product } from "@/lib/types";
@@ -49,7 +50,7 @@ const fields: FieldConfig<Product>[] = [
     type: "select",
     options: ["vivon", "bluecrystal", "blow-right", "bluefragrance", "blueworld-cosmetics"],
   },
-    {
+  {
     name: "subLine",
     label: "Vivon range",
     type: "select",
@@ -73,26 +74,28 @@ function ProductsAdmin() {
 
   return (
     <AdminShell title="Products" description="Catalogue entries shown on each brand page.">
-      <ResourceManager<Product>
-        items={products}
-        columns={columns}
-        fields={fields}
-        singular="Product"
-        emptyItem={() =>
-          ({
-            id: newId("p"),
-            name: "",
-            unit: "vivon",
-            category: "",
-            description: "",
-            size: "",
-            image: "hero.products",
-            featured: false,
-          }) as Product
-        }
-        onSave={(item) => upsertItem("products", item)}
-        onDelete={(id) => deleteItem("products", id)}
-      />
+      <WriteGate resource="products">
+        <ResourceManager<Product>
+          items={products}
+          columns={columns}
+          fields={fields}
+          singular="Product"
+          emptyItem={() =>
+            ({
+              id: newId("p"),
+              name: "",
+              unit: "vivon",
+              category: "",
+              description: "",
+              size: "",
+              image: "hero.products",
+              featured: false,
+            }) as Product
+          }
+          onSave={(item) => upsertItem("products", item)}
+          onDelete={(id) => deleteItem("products", id)}
+        />
+      </WriteGate>
     </AdminShell>
   );
 }
