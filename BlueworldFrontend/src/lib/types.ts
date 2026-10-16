@@ -176,7 +176,7 @@ export interface SiteSettings {
 
 /* ---------------------------------- admin --------------------------------- */
 
-export type AdminRole = "admin" | "editor" | "viewer";
+export type AdminRole = "admin" | "sales" | "hr" | "editor" | "viewer";
 export interface AdminUser {
   id: string;
   email: string;

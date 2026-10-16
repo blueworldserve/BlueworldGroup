@@ -23,6 +23,7 @@ from models import (  # noqa: F401
     media_asset,
     site_settings,
     submission,
+    audit_log,
 )
 
 config = context.config

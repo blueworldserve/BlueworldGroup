@@ -1,6 +1,7 @@
 // blog.tsx
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { WriteGate } from "@/components/admin/write-gate";
 import { ResourceManager, type ColumnConfig, type FieldConfig } from "@/components/admin/resource-manager";
 import { deleteItem, newId, upsertItem, useCollection } from "@/lib/cms-store";
 import { BLOG_CATEGORIES } from "@/data/placeholder-content";
@@ -62,33 +63,35 @@ function BlogAdmin() {
 
   return (
     <AdminShell title="Blog Posts" description="Articles published under /blog.">
-      <ResourceManager<BlogPost>
-        items={posts}
-        columns={columns}
-        fields={fields}
-        singular="Post"
-        emptyItem={() => ({
-          id: newId("b"),
-          slug: DEFAULT_SLUG_PLACEHOLDER,
-          title: "",
-          excerpt: "",
-          body: "",
-          category: "Company News",
-          author: "",
-          publishedAt: new Date().toISOString().slice(0, 10),
-          coverImage: "",
-          readingMinutes: 4,
-        })}
-        onSave={(item) => {
-          // The web-address slug is generated automatically from the title —
-          // only regenerate it for a brand-new post, so editing an existing
-          // post's title never breaks a link someone already shared.
-          const needsSlug = !item.slug || item.slug === DEFAULT_SLUG_PLACEHOLDER;
-          const finalItem = needsSlug ? { ...item, slug: slugify(item.title) || newId("post") } : item;
-          upsertItem("blogPosts", finalItem);
-        }}
-        onDelete={(id) => deleteItem("blogPosts", id)}
-      />
+      <WriteGate resource="blog-posts">
+        <ResourceManager<BlogPost>
+          items={posts}
+          columns={columns}
+          fields={fields}
+          singular="Post"
+          emptyItem={() => ({
+            id: newId("b"),
+            slug: DEFAULT_SLUG_PLACEHOLDER,
+            title: "",
+            excerpt: "",
+            body: "",
+            category: "Company News",
+            author: "",
+            publishedAt: new Date().toISOString().slice(0, 10),
+            coverImage: "",
+            readingMinutes: 4,
+          })}
+          onSave={(item) => {
+            // The web-address slug is generated automatically from the title —
+            // only regenerate it for a brand-new post, so editing an existing
+            // post's title never breaks a link someone already shared.
+            const needsSlug = !item.slug || item.slug === DEFAULT_SLUG_PLACEHOLDER;
+            const finalItem = needsSlug ? { ...item, slug: slugify(item.title) || newId("post") } : item;
+            upsertItem("blogPosts", finalItem);
+          }}
+          onDelete={(id) => deleteItem("blogPosts", id)}
+        />
+      </WriteGate>
     </AdminShell>
   );
 }

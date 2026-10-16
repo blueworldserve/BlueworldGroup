@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { UserCheck, UserX, Trash2, ShieldAlert } from "lucide-react";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { RoleSelect } from "@/components/admin/role-select";
 import { getAdminUser } from "@/hooks/use-admin-auth";
 import { apiFetch, ENDPOINTS } from "@/lib/api";
 
@@ -21,7 +22,7 @@ interface AdminUserRow {
   id: string;
   email: string;
   fullName: string | null;
-  role: "admin" | "editor" | "viewer";
+  role: "admin" | "editor" | "sales" | "hr" | "viewer";
   status: "pending" | "active" | "suspended";
   createdAt: string;
   isSuperuser: boolean;
@@ -57,7 +58,7 @@ function AccessRequestsPage() {
     else setLoading(false);
   }, [isAdmin]);
 
-    function guardSelf(targetId: string, action: string): boolean {
+  function guardSelf(targetId: string, action: string): boolean {
     if (session && targetId === session.id) {
       toast.error(`You can't ${action} your own account while signed in.`);
       return true;
@@ -89,7 +90,7 @@ function AccessRequestsPage() {
     }
   }
 
-    async function suspend(id: string) {
+  async function suspend(id: string) {
     const target = team.find((u) => u.id === id);
     if (target && guardSuperuser(target, "suspended")) return;
     if (guardSelf(id, "suspend")) return;
@@ -118,7 +119,7 @@ function AccessRequestsPage() {
     }
   }
 
-    async function remove(id: string) {
+  async function remove(id: string) {
     const target = team.find((u) => u.id === id);
     if (target && guardSuperuser(target, "deleted")) return;
     if (guardSelf(id, "delete")) return;
@@ -165,7 +166,7 @@ function AccessRequestsPage() {
                   <div key={r.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-4">
                     <div>
                       <p className="font-semibold text-primary-deep">{r.fullName || r.email}</p>
-                                            <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {r.email} — requested{" "}
                         <span className="font-semibold">{r.isSuperuser ? "Master Key" : r.role}</span>
                       </p>
@@ -198,7 +199,7 @@ function AccessRequestsPage() {
               <p className="mt-3 text-sm text-muted-foreground">No approved accounts yet.</p>
             ) : (
               <div className="mt-4 space-y-3">
-                                {team.map((u) => {
+                {team.map((u) => {
                   const isSelf = session && u.id === session.id;
                   const locked = isSelf || u.isSuperuser;
                   return (
@@ -214,9 +215,14 @@ function AccessRequestsPage() {
                             <span className="ml-2 text-xs font-normal text-muted-foreground">(superuser)</span>
                           )}
                         </p>
-                                                <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {u.email} —{" "}
-                          <span className="font-semibold">{u.isSuperuser ? "Master Key" : u.role}</span> —{" "}
+                          {u.isSuperuser || isSelf ? (
+                            <span className="font-semibold">{u.isSuperuser ? "Master Key" : u.role}</span>
+                          ) : (
+                            <RoleSelect user={u} onChanged={load} />
+                          )}{" "}
+                          —{" "}
                           <span className={u.status === "suspended" ? "text-destructive" : "text-accent"}>
                             {u.status}
                           </span>

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { WriteGate } from "@/components/admin/write-gate";
 import { ResourceManager, type ColumnConfig, type FieldConfig } from "@/components/admin/resource-manager";
 import { deleteItem, newId, upsertItem, useCollection } from "@/lib/cms-store";
 import type { TeamMember } from "@/lib/types";
@@ -61,28 +62,30 @@ function TeamAdmin() {
 
   return (
     <AdminShell title="Team" description="Executives listed on About Us → Leadership.">
-      <ResourceManager<TeamMember>
-        items={members}
-        columns={columns}
-        fields={fields}
-        singular="Team member"
-        emptyItem={() => ({
-          id: newId("t"),
-          name: "",
-          slug: DEFAULT_SLUG_PLACEHOLDER,
-          role: "",
-          bio: "",
-          photo: "",
-          order: members.length + 1,
-          isFeatured: false,
-        })}
-        onSave={(item) => {
-          const needsSlug = !item.slug || item.slug === DEFAULT_SLUG_PLACEHOLDER;
-          const finalItem = needsSlug ? { ...item, slug: slugify(item.name) || newId("leader") } : item;
-          upsertItem("teamMembers", finalItem);
-        }}
-        onDelete={(id) => deleteItem("teamMembers", id)}
-      />
+      <WriteGate resource="team">
+        <ResourceManager<TeamMember>
+          items={members}
+          columns={columns}
+          fields={fields}
+          singular="Team member"
+          emptyItem={() => ({
+            id: newId("t"),
+            name: "",
+            slug: DEFAULT_SLUG_PLACEHOLDER,
+            role: "",
+            bio: "",
+            photo: "",
+            order: members.length + 1,
+            isFeatured: false,
+          })}
+          onSave={(item) => {
+            const needsSlug = !item.slug || item.slug === DEFAULT_SLUG_PLACEHOLDER;
+            const finalItem = needsSlug ? { ...item, slug: slugify(item.name) || newId("leader") } : item;
+            upsertItem("teamMembers", finalItem);
+          }}
+          onDelete={(id) => deleteItem("teamMembers", id)}
+        />
+      </WriteGate>
     </AdminShell>
   );
 }

@@ -59,16 +59,21 @@ class ContactReplyIn(CamelModel):
 
 
 class CareerApplicationIn(CamelModel):
+    job_slug: _text(1, 120)
+    full_name: _text(2, 120)
+    email: _text(3, 254)
+    phone: Annotated[str, StringConstraints(strip_whitespace=True, max_length=40)] | None = None
+    cover_message: Annotated[str, StringConstraints(max_length=3000)] | None = None
+
+
+class CareerApplicationOut(CamelModel):
+    id: uuid.UUID
+    created_at: datetime
     job_slug: str
     full_name: str
     email: str
     phone: str | None = None
     cover_message: str | None = None
-
-
-class CareerApplicationOut(CareerApplicationIn):
-    id: uuid.UUID
-    created_at: datetime
 
 
 class NewsletterSignupIn(CamelModel):

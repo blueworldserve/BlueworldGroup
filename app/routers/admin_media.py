@@ -3,13 +3,15 @@ import uuid
 
 import cloudinary
 import cloudinary.uploader
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
 from PIL import Image
 from sqlalchemy.orm import Session
 
-from core.deps import get_db, require_role
 from core import config
-from models.admin_user import AdminRole
+from core.audit import ACTIVITY, label, record
+from core.deps import get_db
+from core.permissions import require_read, require_write
+from models.admin_user import AdminUser
 from models.media_asset import MediaAsset
 from schemas.media import MediaAssetOut, MediaAssetUpdate, MediaAssetCreate
 
@@ -63,16 +65,17 @@ def compress_image(raw: bytes) -> tuple[bytes, str]:
 @router.get("", response_model=list[MediaAssetOut])
 def list_media(
     db: Session = Depends(get_db),
-    _=Depends(require_role(AdminRole.admin, AdminRole.editor, AdminRole.viewer)),
+    _=Depends(require_read),
 ):
     return db.query(MediaAsset).all()
 
 
 @router.post("/upload", response_model=MediaAssetOut, status_code=201)
 def upload_media(
+    request: Request,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    _=Depends(require_role(AdminRole.admin, AdminRole.editor)),
+    user: AdminUser = Depends(require_write("media-upload")),
 ):
     raw = file.file.read()
     try:
@@ -98,6 +101,9 @@ def upload_media(
         used_on="",
     )
     db.add(asset)
+    db.flush()
+    record(db, request, user, category=ACTIVITY, action="upload", resource="media", resource_id=asset.id,
+           summary=f"{user.email} uploaded image “{asset.filename}”")
     db.commit()
     db.refresh(asset)
     return asset
@@ -105,10 +111,11 @@ def upload_media(
 
 @router.put("/{asset_id}", response_model=MediaAssetOut)
 def update_media(
+    request: Request,
     asset_id: uuid.UUID,
     payload: MediaAssetUpdate,
     db: Session = Depends(get_db),
-    _=Depends(require_role(AdminRole.admin, AdminRole.editor)),
+    user: AdminUser = Depends(require_write("media")),
 ):
     asset = db.query(MediaAsset).filter(MediaAsset.id == asset_id).first()
     if not asset:
@@ -117,19 +124,24 @@ def update_media(
         asset.filename = payload.filename
     if payload.used_on is not None:
         asset.used_on = payload.used_on
+    record(db, request, user, category=ACTIVITY, action="update", resource="media", resource_id=asset.id,
+           summary=f"{user.email} edited media “{label(asset)}”")
     db.commit()
     db.refresh(asset)
     return asset
 
 @router.delete("/{asset_id}", status_code=204)
 def delete_media(
+    request: Request,
     asset_id: uuid.UUID,
     db: Session = Depends(get_db),
-    _=Depends(require_role(AdminRole.admin, AdminRole.editor)),
+    user: AdminUser = Depends(require_write("media")),
 ):
     asset = db.query(MediaAsset).filter(MediaAsset.id == asset_id).first()
     if not asset:
         raise HTTPException(404, "Media asset not found")
+    record(db, request, user, category=ACTIVITY, action="delete", resource="media", resource_id=asset.id,
+           summary=f"{user.email} deleted media “{label(asset)}”")
     db.delete(asset)
     db.commit()
 
@@ -138,9 +150,10 @@ def delete_media(
 
 @router.post("", response_model=MediaAssetOut, status_code=201)
 def register_existing_media(
+    request: Request,
     payload: MediaAssetCreate,
     db: Session = Depends(get_db),
-    _=Depends(require_role(AdminRole.admin, AdminRole.editor)),
+    user: AdminUser = Depends(require_write("media-upload")),
 ):
     """
     Registers an image that already exists at a URL (e.g. still on Cloudinary
@@ -155,6 +168,9 @@ def register_existing_media(
         used_on=payload.used_on or "",
     )
     db.add(asset)
+    db.flush()
+    record(db, request, user, category=ACTIVITY, action="create", resource="media", resource_id=asset.id,
+           summary=f"{user.email} registered existing image “{asset.filename}”")
     db.commit()
     db.refresh(asset)
     return asset
@@ -164,14 +180,22 @@ def register_existing_media(
 
 MAX_VIDEO_BYTES = 90 * 1024 * 1024  # Cloudinary free plan caps video at 100 MB; lower this if your plan differs
 ALLOWED_VIDEO_TYPES = {"video/mp4", "video/webm", "video/quicktime"}
+ALLOWED_VIDEO_EXTENSIONS = (".mp4", ".webm", ".mov", ".m4v")
 
 
 @router.post("/upload-video", status_code=201)
 def upload_video(
+    request: Request,
     file: UploadFile = File(...),
-    _=Depends(require_role(AdminRole.admin, AdminRole.editor)),
+    db: Session = Depends(get_db),
+    user: AdminUser = Depends(require_write("hero-slides")),
 ):
-    if file.content_type not in ALLOWED_VIDEO_TYPES:
+    # Some browsers/OSes send an empty or generic content-type for .mov/.mp4, so also accept by extension.
+    name = (file.filename or "").lower()
+    type_ok = file.content_type in ALLOWED_VIDEO_TYPES or (
+        name.endswith(ALLOWED_VIDEO_EXTENSIONS) and (file.content_type or "") in ("", "application/octet-stream", "video/x-m4v")
+    )
+    if not type_ok:
         raise HTTPException(400, "Please upload an MP4, WebM or MOV video.")
 
     file.file.seek(0, 2)
@@ -193,4 +217,6 @@ def upload_video(
     except Exception:
         raise HTTPException(502, "Video upload failed. Please try again.")
 
+    record(db, request, user, category=ACTIVITY, action="upload", resource="media", summary=f"{user.email} uploaded video “{file.filename}”")
+    db.commit()
     return {"url": result["secure_url"]}

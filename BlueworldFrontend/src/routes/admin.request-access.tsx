@@ -19,7 +19,7 @@ export const Route = createFileRoute("/admin/request-access")({
   component: RequestAccessPage,
 });
 
-type RequestedRole = "editor" | "viewer";
+type RequestedRole = "editor" | "sales" | "hr" | "viewer";
 const SLIDE_DURATION = 5000;
 const FALLBACK_GRADIENT = "linear-gradient(135deg, hsl(var(--primary-deep)) 0%, hsl(var(--primary)) 100%)";
 
@@ -177,7 +177,7 @@ function RequestAccessPage() {
               <div className="mb-8 text-center">
                 <h1 className="mb-1 text-2xl font-bold text-white">Request CMS Access</h1>
                 <p className="text-sm text-white/60">
-                  Ask for editor or viewer access — an admin must approve it before you can sign in.
+                  Choose the access you need — an admin must approve it before you can sign in.
                 </p>
               </div>
 
@@ -249,6 +249,8 @@ function RequestAccessPage() {
                     style={{ background: "rgba(255,255,255,0.08)", borderColor: "rgba(255,255,255,0.3)" }}
                   >
                     <option value="viewer" className="text-primary-deep">Viewer — read-only access</option>
+                    <option value="sales" className="text-primary-deep">Sales — inbox, blog posts and products</option>
+                    <option value="hr" className="text-primary-deep">HR — jobs (create and edit)</option>
                     <option value="editor" className="text-primary-deep">Editor — can create and edit content</option>
                   </select>
                 </div>

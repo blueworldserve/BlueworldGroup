@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from core import config
-from routers import auth, cms_public, public_writes, admin_business_units, admin_media, admin_settings, admin_submissions, pages
+from routers import auth, cms_public, public_writes, admin_audit, admin_business_units, admin_media, admin_settings, admin_submissions, admin_system, pages
 from routers.admin_generic import make_admin_crud_router
 
 from models.hero_slide import HeroSlide
@@ -34,7 +34,25 @@ import logging
 
 logger = logging.getLogger("startup")
 
-app = FastAPI(title="BlueWorld Cosmetics API")
+# Interactive API docs list every admin endpoint, so they're OFF unless you set ENABLE_DOCS=true.
+_docs_on = os.getenv("ENABLE_DOCS", "").lower() == "true"
+app = FastAPI(
+    title="BlueWorld Cosmetics API",
+    docs_url="/docs" if _docs_on else None,
+    redoc_url="/redoc" if _docs_on else None,
+    openapi_url="/openapi.json" if _docs_on else None,
+)
+
+
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("Strict-Transport-Security", "max-age=15552000")
+    return response
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -54,6 +72,8 @@ app.include_router(admin_business_units.router)
 app.include_router(admin_media.router)
 app.include_router(admin_settings.router)
 app.include_router(admin_submissions.router)
+app.include_router(admin_audit.router)
+app.include_router(admin_system.router)
 app.include_router(pages.public_router)
 app.include_router(pages.admin_router)
 

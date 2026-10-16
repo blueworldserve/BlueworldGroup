@@ -13,6 +13,8 @@ class AdminRole(str, enum.Enum):
     admin = "admin"
     editor = "editor"
     viewer = "viewer"
+    sales = "sales"
+    hr = "hr"
 
 
 class AdminStatus(str, enum.Enum):

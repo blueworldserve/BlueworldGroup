@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { WriteGate } from "@/components/admin/write-gate";
 import { ResourceManager, type ColumnConfig, type FieldConfig } from "@/components/admin/resource-manager";
 import { deleteItem, newId, upsertItem, useCollection } from "@/lib/cms-store";
 import type { JobPosting } from "@/lib/types";
@@ -59,31 +60,33 @@ function JobsAdmin() {
 
   return (
     <AdminShell title="Job Postings" description="Roles listed on the Career page.">
-      <ResourceManager<JobPosting>
-        items={jobs}
-        columns={columns}
-        fields={fields}
-        singular="Job"
-        emptyItem={() => ({
-          id: newId("j"),
-          slug: DEFAULT_SLUG_PLACEHOLDER,
-          title: "",
-          department: "",
-          location: "Ikeja, Lagos",
-          employmentType: "Full-time",
-          summary: "",
-          responsibilities: [],
-          requirements: [],
-          postedAt: new Date().toISOString().slice(0, 10),
-          closesAt: null,
-        })}
-        onSave={(item) => {
-          const needsSlug = !item.slug || item.slug === DEFAULT_SLUG_PLACEHOLDER;
-          const finalItem = needsSlug ? { ...item, slug: slugify(item.title) || newId("role") } : item;
-          upsertItem("jobPostings", finalItem);
-        }}
-        onDelete={(id) => deleteItem("jobPostings", id)}
-      />
+      <WriteGate resource="jobs">
+        <ResourceManager<JobPosting>
+          items={jobs}
+          columns={columns}
+          fields={fields}
+          singular="Job"
+          emptyItem={() => ({
+            id: newId("j"),
+            slug: DEFAULT_SLUG_PLACEHOLDER,
+            title: "",
+            department: "",
+            location: "Ikeja, Lagos",
+            employmentType: "Full-time",
+            summary: "",
+            responsibilities: [],
+            requirements: [],
+            postedAt: new Date().toISOString().slice(0, 10),
+            closesAt: null,
+          })}
+          onSave={(item) => {
+            const needsSlug = !item.slug || item.slug === DEFAULT_SLUG_PLACEHOLDER;
+            const finalItem = needsSlug ? { ...item, slug: slugify(item.title) || newId("role") } : item;
+            upsertItem("jobPostings", finalItem);
+          }}
+          onDelete={(id) => deleteItem("jobPostings", id)}
+        />
+      </WriteGate>
     </AdminShell>
   );
 }
