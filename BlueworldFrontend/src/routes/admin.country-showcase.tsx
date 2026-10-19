@@ -20,7 +20,7 @@ export const Route = createFileRoute("/admin/country-showcase")({
 
 const columns: ColumnConfig<CountryShowcase>[] = [
   { key: "image", label: "Image", image: true },
-  { key: "name", label: "Marker name" },
+  { key: "name", label: "Country" },
   { key: "place", label: "Place" },
   { key: "headline", label: "Headline" },
   { key: "order", label: "Order" },
@@ -29,8 +29,9 @@ const columns: ColumnConfig<CountryShowcase>[] = [
 const fields: FieldConfig<CountryShowcase>[] = [
   {
     name: "name",
-    label: "Marker name",
-    help: "Must exactly match one of the country names on the globe (Nigeria, Kenya, China, India) — this is how a click on that marker finds this write-up. Case doesn't matter, spelling does.",
+    label: "Country",
+    type: "country",
+    help: "Search and pick the country. Its pin appears on the homepage globe automatically, and it joins the list beside the globe.",
   },
   { name: "place", label: "City / place", help: "Shown as the small label above the headline, e.g. \"Lagos\", \"Nairobi\"." },
   { name: "headline", label: "Headline" },

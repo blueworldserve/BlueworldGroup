@@ -1,7 +1,7 @@
 import { AppLink } from "@/components/site/app-link";
 import { BrandGlobe } from "@/components/brand/brand-globe";
 import { CmsImage, Section, SectionHeading, LoadingBlock, ErrorBlock, EmptyBlock } from "@/components/site/primitives";
-import { REACH_MARKERS } from "@/data/placeholder-content";
+import { useReachMarkers } from "@/hooks/use-reach-markers";
 import { useTeamMembers } from "@/hooks/use-cms";
 import { cn } from "@/lib/utils";
 import type { PageBlock } from "@/lib/types";
@@ -181,8 +181,7 @@ function TeamGrid({ p }: { p: P }) {
   );
 }
 
-function GlobeReach({ p }: { p: P }) {
-  return (
+function GlobeReach({ p }: { p: P }) {const markers = useReachMarkers(); return (
     <div className="grid items-center gap-14 lg:grid-cols-[1.1fr_1fr]">
       <div>
         <SectionHeading
@@ -190,7 +189,7 @@ function GlobeReach({ p }: { p: P }) {
           title={p["heading"] ?? ""}
         />
         <ul className="mt-10 grid gap-4 sm:grid-cols-2">
-          {REACH_MARKERS.map((m) => (
+          {markers.map((m) => (
             <li key={m.name} className="rounded-2xl border border-border bg-card p-5 shadow-card">
               <p className="font-display text-lg font-bold text-primary-deep">{m.name}</p>
               <p className="mt-1 text-sm text-muted-foreground">{m.note}</p>
@@ -199,7 +198,7 @@ function GlobeReach({ p }: { p: P }) {
         </ul>
       </div>
       <div className="flex justify-center">
-        <BrandGlobe size={400} markers={REACH_MARKERS} />
+        <BrandGlobe size={400} markers={markers} />
       </div>
     </div>
   );

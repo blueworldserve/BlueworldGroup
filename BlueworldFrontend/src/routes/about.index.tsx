@@ -1,93 +1,115 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { AdminShell } from "@/components/admin/admin-shell";
-import { useCmsState } from "@/lib/cms-store";
-import { ResetContentButton } from "@/components/admin/reset-content-button";
-import { API_BASE_URL } from "@/lib/api";
+import { createFileRoute } from "@tanstack/react-router";
+import { AppLink } from "@/components/site/app-link";
+import { BrandGlobe } from "@/components/brand/brand-globe";
+import { CmsImage, PageHero, Section, SectionHeading } from "@/components/site/primitives";
+import { useReachMarkers } from "@/hooks/use-reach-markers";
 
 export const Route = createFileRoute("/about/")({
   head: () => ({
     meta: [
-      { title: "CMS Dashboard — Blue World Cosmetics" },
-      { name: "description", content: "Content overview for the Blue World Cosmetics website." },
-      { name: "robots", content: "noindex" },
-      { property: "og:title", content: "CMS Dashboard — Blue World Cosmetics" },
-      { property: "og:description", content: "Manage site content, brands, products and jobs." },
+      { title: "About Blue World Cosmetics — Our Story" },
+      {
+        name: "description",
+        content:
+          "Founded in Lagos in 1998, Blue World Cosmetics manufactures five personal-care brands sold across Africa and beyond.",
+      },
+      { property: "og:title", content: "About Blue World Cosmetics" },
+      {
+        property: "og:description",
+        content: "A Nigerian manufacturing house built on formulation discipline and local sourcing.",
+      },
     ],
   }),
-  component: AdminDashboard,
+  component: AboutPage,
 });
 
-function AdminDashboard() {
-  const cms = useCmsState();
-
-  const stats = [
-    { label: "Hero slides", value: cms.heroSlides.length, to: "/admin/hero-slides" },
-    { label: "Business units", value: cms.businessUnits.length, to: "/admin/business-units" },
-    { label: "Products", value: cms.products.length, to: "/admin/products" },
-    { label: "Team members", value: cms.teamMembers.length, to: "/admin/team" },
-    { label: "Blog posts", value: cms.blogPosts.length, to: "/admin/blog" },
-    { label: "Open roles", value: cms.jobPostings.length, to: "/admin/jobs" },
-    { label: "Media assets", value: cms.mediaLibrary.length, to: "/admin/media" },
-  ] as const;
-
+function AboutPage() {
+  const markers = useReachMarkers();
   return (
-    <AdminShell
-      title="Dashboard"
-      description="Everything published on blueworldcosmetics.org at a glance."
-      actions={<ResetContentButton />}
-    >
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map((stat) => (
-          <Link
-            key={stat.label}
-            to={stat.to}
-            className="rounded-2xl border border-border bg-card p-6 shadow-card transition-all hover:-translate-y-1 hover:shadow-lift"
-          >
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-accent">{stat.label}</p>
-            <p className="mt-3 font-display text-4xl font-extrabold text-primary-deep">{stat.value}</p>
-          </Link>
-        ))}
-      </div>
+    <>
+      <PageHero
+        eyebrow="About us"
+        title="A cosmetics house built in Lagos, for the world"
+        description="Twenty-eight years of formulating, filling and shipping personal care from Nigeria — with the same rule on day one and today: make it properly or do not ship it."
+        image="about.story"
+      />
 
-      <div className="mt-8 grid gap-5 lg:grid-cols-2">
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
-          <h2 className="font-display text-lg font-bold text-primary-deep">Recent blog posts</h2>
-          <ul className="mt-4 space-y-3">
-            {[...cms.blogPosts]
-              .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
-              .slice(0, 4)
-              .map((post) => (
-                <li key={post.id} className="flex items-center justify-between gap-4 text-sm">
-                  <span className="line-clamp-1 font-medium text-foreground/85">{post.title}</span>
-                  <span className="shrink-0 text-xs text-muted-foreground">{post.publishedAt}</span>
+      <Section>
+        <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
+          <div className="overflow-hidden rounded-3xl shadow-lift">
+            <CmsImage
+              src="about.story"
+              alt="Blue World R&D laboratory in Ikeja"
+              className="aspect-[4/3] w-full object-cover"
+            />
+          </div>
+          <div>
+            <SectionHeading
+              eyebrow="Our story"
+              title="From two mixing vessels to five brands"
+              description="Blue World Cosmetics started in 1998 in a rented unit in Ikeja with two mixing vessels, a hand-filling bench and one product: a glycerin body lotion."
+            />
+            <div className="mt-6 space-y-5 text-base leading-relaxed text-muted-foreground">
+              <p>
+                What grew from there was not a single hero product but a house of brands, each
+                answering a different need on a Nigerian shelf: Vivon for skincare, BlueCrystal for
+                hygiene, Blow Right for hair, BlueFragrance for scent, and the BlueWorld line for
+                everyday essentials.
+              </p>
+              <p>
+                Today we operate two production lines, an in-house R&amp;D laboratory and a quality
+                control unit that clears every batch against eleven separate checks. We source shea
+                and palm derivatives locally wherever the specification allows, and we publish full
+                ingredient decks on pack.
+              </p>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      <Section tone="muted">
+        <div className="grid items-center gap-14 lg:grid-cols-[1.1fr_1fr]">
+          <div>
+            <SectionHeading
+              eyebrow="Where we reach"
+              title={markers.length > 0 ? `${markers.length} ${markers.length === 1 ? "country" : "countries"} on the manifest` : "Where we reach"}
+              description="Hover or tap a marker to see the role each market plays."
+            />
+            <ul className="mt-10 grid gap-4 sm:grid-cols-2">
+              {markers.map((m) => (
+                <li key={m.name} className="rounded-2xl border border-border bg-card p-5 shadow-card">
+                  <p className="font-display text-lg font-bold text-primary-deep">{m.name}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{m.note}</p>
                 </li>
               ))}
-          </ul>
+            </ul>
+          </div>
+          <div className="flex justify-center">
+            <BrandGlobe size={400} markers={markers} />
+          </div>
         </div>
+      </Section>
 
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
-          <h2 className="font-display text-lg font-bold text-primary-deep">Backend status</h2>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            The CMS reads and writes against a local draft while the FastAPI service is unavailable.
-            Every screen maps 1:1 to a REST resource documented in{" "}
-            <span className="font-semibold text-primary-deep">BACKEND_MANIFEST.md</span>.
-          </p>
-          <dl className="mt-5 space-y-2 text-sm">
-            <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">API base URL</dt>
-              <dd className="font-mono text-xs text-primary-deep">{API_BASE_URL}</dd>
-            </div>
-            <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Auth</dt>
-              <dd className="font-semibold text-primary-deep">JWT bearer (access + refresh)</dd>
-            </div>
-            <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Write mode</dt>
-              <dd className="font-semibold text-accent">Local draft</dd>
-            </div>
-          </dl>
+      <Section>
+        <SectionHeading eyebrow="Go deeper" title="Explore the company" align="center" />
+        <div className="mx-auto mt-12 grid max-w-4xl gap-6 sm:grid-cols-3">
+          {[
+            { label: "Who We Are", href: "/about/who-we-are", copy: "The organization, the people, the standards." },
+            { label: "Vision & Mission", href: "/about/vision-mission", copy: "What we are building and why." },
+            { label: "Leadership", href: "/about/leadership", copy: "The team accountable for it." },
+          ].map((c) => (
+            <AppLink
+              key={c.label}
+              href={c.href}
+              className="rounded-2xl border border-border bg-card p-7 shadow-card transition-all hover:-translate-y-1 hover:shadow-lift"
+            >
+              <p className="font-display text-lg font-bold text-primary-deep">{c.label}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{c.copy}</p>
+              <p className="mt-5 text-sm font-bold text-accent">Read more →</p>
+            </AppLink>
+          ))}
         </div>
-      </div>
-    </AdminShell>
+      </Section>
+    </>
   );
 }

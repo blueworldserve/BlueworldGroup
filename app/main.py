@@ -129,3 +129,13 @@ def health():
 @app.get("/")
 def root():
     return {"message": "Welcome to the BlueWorld Cosmetics API!"}
+
+
+from fastapi import Request
+
+@app.get("/debug-ip")
+def debug_ip(request: Request):
+    return {
+        "client_host": request.client.host if request.client else None,
+        "x_forwarded_for": request.headers.get("x-forwarded-for"),
+    }

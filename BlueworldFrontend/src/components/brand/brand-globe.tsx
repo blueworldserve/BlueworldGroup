@@ -118,7 +118,7 @@ export function BrandGlobe({
   showMotto,
   interactive = true,
   showToggle = true,
-  standText = "Five Nigerian-made brands, trusted in homes across four countries and counting.",
+  standText = "Five Nigerian-made brands, trusted in homes across Africa and beyond.",
   // Tightened further from earlier passes — the goal is the sphere nearly
   // filling its box, not floating in a visibly empty square. Bottom stays
   // a bit larger than top/sides because the curved wordmark needs that

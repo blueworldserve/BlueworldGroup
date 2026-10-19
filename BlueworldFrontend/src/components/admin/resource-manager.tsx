@@ -9,12 +9,12 @@ import { ApiError, uploadVideo } from "@/lib/api";
 import { parseVideoUrl } from "@/lib/video";
 import { cn } from "@/lib/utils";
 import { ConfirmDeleteDialog, labelOf } from "@/components/admin/confirm-delete-dialog";
+import { CountryField } from "@/components/admin/country-field"
 
 
 
 
-
-export type FieldType = "text" | "textarea" | "number" | "select" | "multiselect" | "date" | "image" | "video" | "boolean" | "list";
+export type FieldType = "text" | "textarea" | "number" | "select" | "multiselect" | "date" | "image" | "video" | "boolean" | "list" | "country";
 
 export interface FieldConfig<T> {
   name: keyof T & string;
@@ -494,6 +494,8 @@ export function RecordEditor<T extends Record<string, unknown>>({
                 </select>
                 {field.preview?.(draft)}
               </div>
+            ) : field.type === "country" ? (
+              <CountryField id={id} value={String(value ?? "")} onChange={(v) => set(field.name, v)} />
             ) : field.type === "image" ? (
                             <ImageField id={id} value={String(value ?? "")} onChange={(v) => set(field.name, v)} />
             ) : field.type === "video" ? (

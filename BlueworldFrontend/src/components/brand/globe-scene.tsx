@@ -93,12 +93,14 @@ function Marker({
   radius,
   index,
   selected,
+  crowded,
   onSelect,
 }: {
   marker: GlobeMarker;
   radius: number;
   index: number;
   selected: boolean;
+  crowded: boolean;
   onSelect?: (name: string) => void;
 }) {
   const [hovered, setHovered] = useState(false);
@@ -135,7 +137,13 @@ function Marker({
     const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
 
     if (lineRef.current) lineRef.current.material.opacity = eased * 0.65;
-    if (labelRef.current) labelRef.current.style.opacity = String(eased);
+    if (labelRef.current) {
+      // With many pins the labels would pile on top of each other, so past a few
+      // markers only the hovered or selected pin shows its name.
+      const showLabel = !crowded || selected || hovered;
+      labelRef.current.style.opacity = String(showLabel ? eased : 0);
+      labelRef.current.style.pointerEvents = showLabel ? "auto" : "none";
+    }
   });
 
   return (
@@ -260,6 +268,7 @@ function GlobeBody({
           radius={radius}
           index={i}
           selected={selected === m.name}
+          crowded={markers.length > 6}
           onSelect={onSelect}
         />
       ))}
