@@ -1,10 +1,12 @@
 import uuid
 
+from pydantic import Field
+
 from schemas.base import CamelModel
 
 
 class CountryShowcaseBase(CamelModel):
-    name: str
+    name: str = Field(min_length=1, max_length=80)
     place: str
     headline: str
     blurb: str

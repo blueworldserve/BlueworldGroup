@@ -314,6 +314,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
   },
 ];
 
+
 export const BLOG_POSTS: BlogPost[] = [
   {
     id: "b-1",
@@ -557,10 +558,3 @@ export const MEDIA_LIBRARY: MediaAsset[] = [
   },
 ];
 
-/** Countries the products reach — plotted on the About page globe. */
-export const REACH_MARKERS = [
-  { name: "Nigeria", lat: 9.082, lng: 8.6753, note: "Head office & manufacturing" },
-  { name: "Kenya", lat: -1.2921, lng: 36.8219, note: "East Africa distribution" },
-  { name: "China", lat: 31.2304, lng: 121.4737, note: "Ingredient sourcing & contract fill" },
-  { name: "India", lat: 19.076, lng: 72.8777, note: "Ingredient sourcing & export" },
-];

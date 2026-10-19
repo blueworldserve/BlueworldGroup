@@ -9,11 +9,13 @@ import { BrandGlobe } from "@/components/brand/brand-globe";
 import { CmsImage, EmptyBlock, Hl, LoadingBlock, Section, SectionHeading } from "@/components/site/primitives";
 import { useBlogPosts, useBusinessUnits, useHeroSlides, useProducts } from "@/hooks/use-cms";
 import { ENDPOINTS, formErrorMessage, submitForm } from "@/lib/api";
-import { REACH_MARKERS } from "@/data/placeholder-content";
+import type { GlobeMarker } from "@/components/brand/globe-scene";
+import { useReachMarkers } from "@/hooks/use-reach-markers";
 import { HeroFlag } from "@/components/site/hero-context";
 import { ScrollRevealText } from "@/components/site/scroll-reveal-text";
 import { useCollection } from "@/lib/cms-store";
-import type { Product } from "@/lib/types";
+import type { CountryShowcase, Product } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -53,12 +55,12 @@ function orderUnits<T extends { slug: string }>(units: T[]): T[] {
   return [...units].sort((a, b) => rank(a.slug) - rank(b.slug));
 }
 
-const TRUST = [
+const TRUST: { k: string | null; v: string }[] = [
   { k: "2014", v: "Founded in Lagos" },
   { k: "500+", v: "People employed" },
   { k: "5", v: "Brands" },
   { k: "120+", v: "SKUs" },
-  { k: "9", v: "Countries" },
+  { k: null, v: "Countries" }, // number filled in from the CMS
   { k: "11", v: "QC checks per batch" },
 ];
 
@@ -75,6 +77,7 @@ function HomePage() {
   const products = useProducts();
   const posts = useBlogPosts();
   const countryShowcases = useCollection("countryShowcases");
+  const markers = useReachMarkers();
   const [activeCountry, setActiveCountry] = useState<string | null>(null);
   const [openProduct, setOpenProduct] = useState<Product | null>(null);
   const [category, setCategory] = useState("All");
@@ -82,6 +85,13 @@ function HomePage() {
   const showcase = activeCountry
     ? countryShowcases.find((s) => s.name.toLowerCase() === activeCountry.toLowerCase()) ?? null
     : null;
+  const trust = TRUST.filter((t) => t.k !== null || markers.length > 0).map((t) => ({
+    k: t.k ?? String(markers.length),
+    v: t.k === null && markers.length === 1 ? "Country" : t.v,
+  }));
+  const reachPhrase = markers.length === 0 ? "many markets" : markers.length === 1 ? "one country" : `${markers.length} countries`;
+  const overviewTitle =
+    markers.length === 0 ? "Our markets" : `${markers.length} ${markers.length === 1 ? "Country" : "Countries"}, one organization`;
   const orderedUnits = orderUnits(units.data ?? []);
   const latest = (posts.data ?? []).slice(0, 3);
 
@@ -108,7 +118,7 @@ function HomePage() {
       {/* Trust strip: numbers in italic accent, labels quiet */}
       <div className="bg-primary-deep py-7">
         <div className="mx-auto grid max-w-7xl grid-cols-3 gap-y-5 px-5 sm:grid-cols-6 lg:px-8">
-          {TRUST.map((s) => (
+          {trust.map((s) => (
             <div key={s.k} className="text-center">
               <p className="bw-accent bw-orange text-3xl">{s.k}</p>
               <p className="mt-1 text-[0.62rem] uppercase tracking-[0.18em] text-primary-foreground/70">{s.v}</p>
@@ -135,13 +145,7 @@ function HomePage() {
 
       {/* Brands */}
       <section className="bg-white px-5 py-16 lg:py-24">
-        <SectionHeading
-          align="center"
-          eyebrow="Our business"
-          title={<>Five brands, built for <Hl>different</Hl> shelves</>}
-          description="Each unit runs its own formulation brief and packaging language, sharing one factory floor and one quality standard."
-        />
-        <div className="mx-auto mt-14 flex max-w-[1600px] flex-wrap justify-center gap-x-5 gap-y-12">
+        <div className="mx-auto flex max-w-[1600px] flex-wrap justify-center gap-x-5 gap-y-12">
           {units.isLoading && <div className="w-full"><LoadingBlock label="Loading business units…" /></div>}
           {!units.isLoading && orderedUnits.length === 0 && <div className="w-full"><EmptyBlock label="No business units published yet." /></div>}
           {orderedUnits.map((unit, i) => (
@@ -236,11 +240,11 @@ function HomePage() {
             <p className="eyebrow">Where we ship</p>
             <h3 className="mt-2 text-2xl font-bold text-primary-deep">Made in Nigeria, carried around the world</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              From our organization at Obadore, Igando, Lagos, Blue World reaches households across four countries. Tap a marker, or a market below.
+              From our organization at Obadore, Igando, Lagos, Blue World reaches households across {reachPhrase}. Tap a marker, or a market below.
             </p>
             <div className="mt-4">
               <BrandGlobe
-                markers={REACH_MARKERS}
+                markers={markers}
                 maxWidthClass="max-w-none"
                 background="midnight"
                 standText={null}
@@ -249,7 +253,7 @@ function HomePage() {
               />
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
-              {REACH_MARKERS.map((m) => {
+              {markers.map((m) => {
                 const active = activeCountry?.toLowerCase() === m.name.toLowerCase();
                 return (
                   <button
@@ -297,27 +301,8 @@ function HomePage() {
                 ) : (
                   <motion.div key="overview" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.3 }} className="flex flex-1 flex-col">
                     <p className="eyebrow">Every marker, explained</p>
-                    <h3 className="mt-2 text-2xl font-bold text-primary-deep">5 Countries, one organization</h3>
-                    <div className="mt-4 flex flex-1 flex-col gap-2.5">
-                      {REACH_MARKERS.map((m) => {
-                        const s = countryShowcases.find((c) => c.name.toLowerCase() === m.name.toLowerCase());
-                        return (
-                          <button key={m.name} type="button" onClick={() => setActiveCountry(m.name)} className="flex min-h-[4rem] flex-1 items-center gap-3 rounded-xl bg-accent-soft/60 px-4 py-2.5 text-left transition-colors hover:bg-accent-soft">
-                            <MapPin size={14} className="shrink-0 text-accent" />
-                            <span className="min-w-0 flex-1">
-                              <span className="block text-base font-bold text-primary-deep">{m.name}</span>
-                              <span className="block text-xs text-muted-foreground">{m.note}</span>
-                            </span>
-                            {s && (
-                              <span className="shrink-0 text-right">
-                                <span className="bw-accent block text-xl leading-none text-accent">{s.statValue}</span>
-                                <span className="mt-1 block text-[0.6rem] uppercase tracking-wide text-primary-deep/60">{s.statLabel}</span>
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <h3 className="mt-2 text-2xl font-bold text-primary-deep">{overviewTitle}</h3>
+                    <CountryGrid markers={markers} showcases={countryShowcases} onPick={setActiveCountry} />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -365,6 +350,71 @@ function HomePage() {
       <AnimatePresence>
         {openProduct && <ProductDetail key={openProduct.id} product={openProduct} onClose={() => setOpenProduct(null)} />}
       </AnimatePresence>
+    </div>
+  );
+}
+
+/**
+ * The list of countries beside the globe. With a handful it shows big rows that
+ * fill the panel; as countries are added the cards shrink into a tidier grid
+ * (2 columns, then 3), so the list always stays neat instead of stretching.
+ */
+function CountryGrid({
+  markers,
+  showcases,
+  onPick,
+}: {
+  markers: GlobeMarker[];
+  showcases: CountryShowcase[];
+  onPick: (name: string) => void;
+}) {
+  const n = markers.length;
+  if (n === 0) return <p className="mt-4 text-sm text-muted-foreground">Our markets will be listed here soon.</p>;
+
+  const size = n <= 4 ? "lg" : n <= 8 ? "md" : "sm";
+  const layout =
+    size === "lg"
+      ? "mt-4 flex flex-1 flex-col gap-2.5"
+      : size === "md"
+        ? "mt-4 grid grid-cols-2 gap-2.5"
+        : "mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3";
+
+  return (
+    <div className={layout}>
+      {markers.map((m) => {
+        const s = showcases.find((c) => c.name.toLowerCase() === m.name.toLowerCase());
+        return (
+          <button
+            key={m.name}
+            type="button"
+            onClick={() => onPick(m.name)}
+            className={cn(
+              "flex items-center bg-accent-soft/60 text-left transition-colors hover:bg-accent-soft",
+              size === "lg" && "min-h-[4rem] flex-1 gap-3 rounded-xl px-4 py-2.5",
+              size === "md" && "min-h-[4.25rem] gap-2.5 rounded-xl px-3 py-2.5",
+              size === "sm" && "min-h-[3.25rem] gap-2 rounded-lg px-2.5 py-2",
+            )}
+          >
+            <MapPin size={size === "sm" ? 12 : 14} className="shrink-0 text-accent" />
+            <span className="min-w-0 flex-1">
+              <span className={cn("block truncate font-bold text-primary-deep", size === "lg" ? "text-base" : size === "md" ? "text-sm" : "text-[0.8rem]")}>
+                {m.name}
+              </span>
+              {size !== "sm" && m.note && <span className="block truncate text-xs text-muted-foreground">{m.note}</span>}
+            </span>
+            {s && (
+              <span className="shrink-0 text-right">
+                <span className={cn("bw-accent block leading-none text-accent", size === "lg" ? "text-xl" : size === "md" ? "text-lg" : "text-base")}>
+                  {s.statValue}
+                </span>
+                {size === "lg" && (
+                  <span className="mt-1 block text-[0.6rem] uppercase tracking-wide text-primary-deep/60">{s.statLabel}</span>
+                )}
+              </span>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -456,7 +506,7 @@ function NewsletterBlock() {
         >
           {/* Honeypot: invisible to people, tempting to bots. */}
           <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 opacity-0" />
-          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" className="h-14 w-full min-w-0 border border-primary-foreground/25 bg-primary-foreground/10 px-5 text-base text-primary-foreground placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent sm:h-12 sm:flex-1 sm:text-sm" />
+          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" className="h-12 flex-1 border border-primary-foreground/25 bg-primary-foreground/10 px-6 text-sm text-primary-foreground placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent" />
           <button type="submit" disabled={busy} className="h-12 bg-accent px-8 text-[0.72rem] font-bold uppercase tracking-[0.16em] text-accent-foreground disabled:opacity-60">
             {busy ? "Subscribing…" : "Subscribe"}
           </button>
