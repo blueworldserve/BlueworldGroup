@@ -283,37 +283,44 @@ export const TEAM_MEMBERS: TeamMember[] = [
   {
     id: "t-1",
     name: "Chukwuemeka Obi",
+    slug: "chukwuemeka-obi",
     role: "Group Managing Director",
     bio: "Founded Blue World in 1998 with two mixing vessels in Ikeja. Twenty-eight years later he still signs off every new formulation brief.",
     photo: "team.1",
     order: 1,
+    isFeatured: true,
   },
   {
     id: "t-2",
     name: "Amaka Eze",
+    slug: "amaka-eze",
     role: "Executive Director, Brands",
     bio: "Leads the Vivon, Blow Right and BlueFragrance brand teams. Previously ten years in FMCG marketing across West Africa.",
     photo: "team.2",
     order: 2,
+    isFeatured: false,
   },
   {
     id: "t-3",
     name: "Tunde Alabi",
+    slug: "tunde-alabi",
     role: "Director of Manufacturing",
     bio: "Runs both production lines and the export packing floor. Certified lead auditor for ISO 22716 cosmetic GMP.",
     photo: "team.3",
     order: 3,
+    isFeatured: false,
   },
   {
     id: "t-4",
     name: "Dr. Ngozi Adeyemi",
+    slug: "dr-ngozi-adeyemi",
     role: "Head of Research & Development",
     bio: "Cosmetic chemist. Holds the company's tropical-stability testing protocol and leads the in-house formulation laboratory.",
     photo: "team.4",
     order: 4,
+    isFeatured: false,
   },
 ];
-
 
 export const BLOG_POSTS: BlogPost[] = [
   {
