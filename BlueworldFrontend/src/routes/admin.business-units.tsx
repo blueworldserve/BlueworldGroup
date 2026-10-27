@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminShell } from "@/components/admin/admin-shell";
-import { ResourceManager, type ColumnConfig, type FieldConfig } from "@/components/admin/resource-manager";
+import { CatalogManager, type CatalogField, type CatalogGroup } from "@/components/admin/catalog-manager";
 import { deleteItem, newId, upsertItem, useCollection } from "@/lib/cms-store";
 import type { BusinessUnit } from "@/lib/types";
 import { useIsAdmin } from "@/hooks/use-is-admin";
@@ -18,14 +18,7 @@ export const Route = createFileRoute("/admin/business-units")({
   component: BusinessUnitsAdmin,
 });
 
-const columns: ColumnConfig<BusinessUnit>[] = [
-  { key: "heroImage", label: "Cover Photo", image: true },
-  { key: "name", label: "Brand Name" },
-  { key: "accent", label: "Colour Theme" },
-  { key: "order", label: "Display Order" },
-];
-
-const fields: FieldConfig<BusinessUnit>[] = [
+const fields: CatalogField<BusinessUnit>[] = [
   {
     name: "slug",
     label: "Which brand is this?",
@@ -43,8 +36,13 @@ const fields: FieldConfig<BusinessUnit>[] = [
     type: "image",
     help: "This is the ONE main photo for this brand — shown on the homepage and at the top of the brand's page. To show several product photos, add them as separate Products (see the Products tab) and tag them to this brand.",
   },
-  { name: "accent", label: "Colour Theme", type: "select", options: ["blue", "orange"], help: "Which brand colour is used for highlights on this brand's page." },
-  { name: "order", label: "Display Order", type: "number", help: "Lower numbers appear first on the homepage. 1 shows before 2, and so on." },
+  { name: "accent", label: "Colour Theme", type: "select", options: ["blue", "orange"], help: "Which brand colour is used for highlights on this brand's page.", half: true },
+  { name: "order", label: "Display Order", type: "number", help: "Lower numbers appear first on the homepage.", half: true },
+];
+const needsAttention = (u: BusinessUnit) => !u.heroImage || !u.summary || !u.story;
+
+const groups: CatalogGroup<BusinessUnit>[] = [
+  { key: "attention", title: "Needs attention", hint: "Missing a cover photo, description or story", alert: true, match: needsAttention },
 ];
 
 function BusinessUnitsAdmin() {
@@ -54,14 +52,29 @@ function BusinessUnitsAdmin() {
   return (
     <AdminShell
       title="Business Units"
-      description="Each division shown under the Business menu. Note: each brand has one cover photo here — individual product photos are managed separately under Products."
+      description="Each division shown under the Business menu. Each brand has one cover photo here; individual product photos are managed under Products."
     >
-      <ResourceManager<BusinessUnit>
+      <CatalogManager<BusinessUnit>
         items={units}
-        columns={columns}
-        fields={fields}
         singular="Business unit"
-        canDelete={isAdmin}        emptyItem={() =>
+        allLabel="All brands"
+        groups={groups}
+        fields={fields}
+        imageField="heroImage"
+        imageAspect="landscape"
+        getImage={(u) => u.heroImage}
+        getTitle={(u) => u.name}
+        getSubtitle={(u) => u.tagline}
+        getBadges={(u) => [
+          { label: u.accent === "orange" ? "Orange theme" : "Blue theme", tone: u.accent === "orange" ? ("accent" as const) : ("primary" as const) },
+          ...(needsAttention(u) ? [{ label: "Needs attention", tone: "warn" as const }] : []),
+        ]}
+        reorder={{ field: "order", start: 1 }}
+        searchText={(u) => [u.name, u.tagline, u.slug, u.summary]}
+        searchPlaceholder="Search brand name…"
+        validate={(u) => (u.name.trim() ? null : "Give the brand a name first.")}
+        canDelete={isAdmin}
+        emptyItem={() =>
           ({
             id: newId("bu"),
             slug: "vivon",
