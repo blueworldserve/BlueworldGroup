@@ -30,7 +30,7 @@ function AboutPage() {
       <PageHero
         eyebrow="About us"
         title="A cosmetics house built in Lagos, for the world"
-        description="Twenty-eight years of formulating, filling and shipping personal care from Nigeria — with the same rule on day one and today: make it properly or do not ship it."
+        description="10 years of formulating, filling and shipping personal care from Nigeria - with the same rule on day one and today: make it properly or do not ship it."
         image="about.story"
       />
 
@@ -47,17 +47,17 @@ function AboutPage() {
             <SectionHeading
               eyebrow="Our story"
               title="From two mixing vessels to five brands"
-              description="Blue World Cosmetics started in 1998 in a rented unit in Ikeja with two mixing vessels, a hand-filling bench and one product: a glycerin body lotion."
+              description="Blue World Cosmetics started in 2014 in a rented unit in obadore, Igando with two mixing vessels, a hand-filling bench and one product: a glycerin body lotion."
             />
             <div className="mt-6 space-y-5 text-base leading-relaxed text-muted-foreground">
               <p>
                 What grew from there was not a single hero product but a house of brands, each
                 answering a different need on a Nigerian shelf: Vivon for skincare, BlueCrystal for
-                hygiene, Blow Right for hair, BlueFragrance for scent, and the BlueWorld line for
+                hygiene, BlueFragrance for scent, BlowRight for in-house plastic production and the BlueWorld line for
                 everyday essentials.
               </p>
               <p>
-                Today we operate two production lines, an in-house R&amp;D laboratory and a quality
+                Today we operate multiple production lines, an in-house R&amp;D laboratory and a quality
                 control unit that clears every batch against eleven separate checks. We source shea
                 and palm derivatives locally wherever the specification allows, and we publish full
                 ingredient decks on pack.

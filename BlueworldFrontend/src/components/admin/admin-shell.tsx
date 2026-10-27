@@ -19,6 +19,7 @@ import {
   X,
   FileText,
   ScrollText,
+  ClipboardList,
 } from "lucide-react";
 import { getAdminUser, logout, useAdminUser } from "@/hooks/use-admin-auth";
 import { apiFetch } from "@/lib/api";
@@ -38,6 +39,7 @@ export const ADMIN_NAV = [
   { label: "Team", to: "/admin/team", icon: Users },
   { label: "Blog Posts", to: "/admin/blog", icon: Newspaper },
   { label: "Jobs", to: "/admin/jobs", icon: Briefcase },
+  { label: "Applications", to: "/admin/applications", icon: ClipboardList },
   { label: "Media", to: "/admin/media", icon: Images },
   { label: "Access Requests", to: "/admin/access-requests", icon: UserCheck },
   { label: "Audit Log", to: "/admin/audit", icon: ScrollText },
@@ -86,9 +88,13 @@ export function AdminShell({
   // Only admins (and the superuser) ever see Access Requests and the Audit Log.
   // Used by BOTH the desktop sidebar and the mobile menu below.
   const canManageAccess = session.role === "admin" || session.isSuperuser === true;
-  const navItems = ADMIN_NAV.filter(
-    (item) => !["/admin/access-requests", "/admin/audit"].includes(item.to) || canManageAccess,
-  );
+  // Applicants' details and resumes are personal data: only admins, editors and HR see them.
+  const canSeeApplications = canManageAccess || session.role === "editor" || session.role === "hr";
+  const navItems = ADMIN_NAV.filter((item) => {
+    if (item.to === "/admin/access-requests" || item.to === "/admin/audit") return canManageAccess;
+    if (item.to === "/admin/applications") return canSeeApplications;
+    return true;
+  });
 
   return (
     <div className="flex min-h-screen bg-secondary">

@@ -1,16 +1,24 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
+from sqlalchemy.orm import Session, undefer
 
 from core.audit import ACTIVITY, record
 from core.deps import get_db
-from core.permissions import require_read, require_write
-from core.notify import NotConfigured, NotifyError, build_reply_email, send_email, sync_pending_signups
+from core.permissions import require_applications_access, require_read, require_write
+from core.notify import NotConfigured, NotifyError, build_applicant_email, build_reply_email, send_email, sync_pending_signups
 from models.admin_user import AdminRole, AdminUser
-from models.submission import ContactReply, ContactSubmission, CareerApplication, NewsletterSignup
+from models.submission import (
+    ContactReply,
+    ContactSubmission,
+    CareerApplication,
+    CareerApplicationFile,
+    NewsletterSignup,
+)
 from schemas.submission import (
+    ApplicationDecisionIn,
     CareerApplicationOut,
     ContactReplyIn,
     ContactReplyOut,
@@ -133,8 +141,113 @@ def delete_contact_submission(request: Request, message_id: uuid.UUID, db: Sessi
 
 # --------------------------------- careers ---------------------------------- #
 @router.get("/applications", response_model=list[CareerApplicationOut])
-def list_applications(db: Session = Depends(get_db), _=Depends(_can_view)):
+def list_applications(db: Session = Depends(get_db), _=Depends(require_applications_access)):
     return db.query(CareerApplication).order_by(CareerApplication.created_at.desc()).all()
+
+
+@router.get("/applications/{application_id}/resume")
+def download_resume(
+    request: Request,
+    application_id: uuid.UUID,
+    view: bool = Query(False, description="True when the CMS is showing it on screen rather than downloading it"),
+    db: Session = Depends(get_db),
+    user: AdminUser = Depends(require_applications_access),
+):
+    """Resumes are personal data: staff-only, never cached, and every download is written to the audit log."""
+    application = db.get(CareerApplication, application_id)
+    if application is None or application.resume is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No resume on file for this application")
+    file = (
+        db.query(CareerApplicationFile)
+        .options(undefer(CareerApplicationFile.data))
+        .filter(CareerApplicationFile.id == application.resume.id)
+        .one()
+    )
+    verb = "viewed" if view else "downloaded"
+    record(db, request, user, category=ACTIVITY, action="view_resume" if view else "download_resume", resource="applications",
+           resource_id=application.id, summary=f"{user.email} {verb} the resume of {application.full_name} <{application.email}>")
+    db.commit()
+    return Response(
+        content=file.data,
+        media_type=file.content_type,
+        headers={
+            "Content-Disposition": f"attachment; filename*=UTF-8''{quote(file.filename)}",
+            "Cache-Control": "private, no-store",
+        },
+    )
+
+
+def _today_in_lagos():
+    return datetime.now(timezone(timedelta(hours=1))).date()
+
+
+@router.post("/applications/{application_id}/decision", response_model=CareerApplicationOut)
+def decide_application(
+    request: Request,
+    application_id: uuid.UUID,
+    payload: ApplicationDecisionIn,
+    db: Session = Depends(get_db),
+    user: AdminUser = Depends(require_applications_access),
+):
+    """Approve (interview invitation) or decline. The email is sent FIRST; the decision is only recorded if
+    the email provider accepted it, and an application can only be decided once, so nobody gets two letters."""
+    # Lock just this application's row, so a double-click can't send two emails.
+    application = (
+        db.query(CareerApplication)
+        .filter(CareerApplication.id == application_id)
+        .with_for_update(of=CareerApplication)
+        .first()
+    )
+    if application is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Application not found")
+    if application.status != "new":
+        raise HTTPException(status.HTTP_409_CONFLICT, f"This application was already {application.status}.")
+
+    approving = payload.decision == "approve"
+    if approving:
+        if payload.interview_date is None:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Please set the interview date before approving.")
+        if payload.interview_date < _today_in_lagos():
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "The interview date can't be in the past.")
+
+    text, html_body = build_applicant_email(body=payload.body)
+    try:
+        send_email(to=[application.email], subject=payload.subject, text=text, html_body=html_body, reply_to=user.email)
+    except NotConfigured as e:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(e))
+    except NotifyError as e:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, f"The email provider rejected the message: {e}")
+
+    application.status = "approved" if approving else "declined"
+    application.decided_at = datetime.now(timezone.utc)
+    application.decided_by = user.email
+    application.decision_subject = payload.subject
+    application.decision_body = payload.body
+    application.interview_date = payload.interview_date if approving else None
+    application.interview_time = (payload.interview_time or None) if approving else None
+    record(db, request, user, category=ACTIVITY, action="approve_application" if approving else "decline_application",
+           resource="applications", resource_id=application.id,
+           summary=f"{user.email} {'approved' if approving else 'declined'} {application.full_name} <{application.email}>",
+           details={"subject": payload.subject, "interview_date": str(payload.interview_date) if approving else None})
+    db.commit()
+    db.refresh(application)
+    return application
+
+
+@router.delete("/applications/{application_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_application(
+    request: Request,
+    application_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    user: AdminUser = Depends(require_applications_access),
+):
+    application = db.get(CareerApplication, application_id)
+    if application is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Application not found")
+    record(db, request, user, category=ACTIVITY, action="delete_application", resource="applications", resource_id=application.id,
+           summary=f"{user.email} deleted the application of {application.full_name} <{application.email}>")
+    db.delete(application)  # the resume goes with it
+    db.commit()
 
 
 # -------------------------------- newsletter -------------------------------- #

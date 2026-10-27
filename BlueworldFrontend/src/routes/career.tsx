@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { UploadCloud } from "lucide-react";
 import { EmptyBlock, LoadingBlock, PageHero, Section, SectionHeading } from "@/components/site/primitives";
 import { useJobPostings } from "@/hooks/use-cms";
-import { ENDPOINTS, formErrorMessage, submitForm } from "@/lib/api";
+import { ENDPOINTS, formErrorMessage, submitFormData } from "@/lib/api";
 import type { CareerApplication, JobPosting } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -139,8 +140,40 @@ function CareerPage() {
   );
 }
 
+// Keep this the same as MAX_APPLICATIONS_PER_ROLE in the backend (app/routers/public_writes.py).
+const MAX_APPLICATIONS_PER_ROLE: number = 2;
+const RESUME_MAX_BYTES = 5 * 1024 * 1024;
+const RESUME_EXTENSIONS = /\.(pdf|docx?)$/i;
+
+function formatSize(bytes: number): string {
+  return bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 function ApplyForm({ job, onClose }: { job: JobPosting; onClose: () => void }) {
   const [submitting, setSubmitting] = useState(false);
+  const [resume, setResume] = useState<File | null>(null);
+  const [resumeError, setResumeError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // Checked here so people find out straight away, not after waiting for an upload to fail.
+  function pickResume(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+    event.target.value = ""; // lets them pick the same file again after removing it
+    if (!file) return;
+    if (!RESUME_EXTENSIONS.test(file.name)) {
+      setResume(null);
+      setResumeError("Please choose a PDF or Word document (.pdf, .doc or .docx).");
+    } else if (file.size > RESUME_MAX_BYTES) {
+      setResume(null);
+      setResumeError(`That file is ${formatSize(file.size)}. Please choose one under 5 MB.`);
+    } else if (file.size === 0) {
+      setResume(null);
+      setResumeError("That file looks empty. Please choose your resume again.");
+    } else {
+      setResume(file);
+      setResumeError(null);
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -152,9 +185,17 @@ function ApplyForm({ job, onClose }: { job: JobPosting; onClose: () => void }) {
       phone: String(form.get("phone") ?? ""),
       coverMessage: String(form.get("coverMessage") ?? ""),
     };
+    const body = new FormData();
+    body.append("jobSlug", payload.jobSlug);
+    body.append("fullName", payload.fullName);
+    body.append("email", payload.email);
+    body.append("phone", payload.phone);
+    body.append("coverMessage", payload.coverMessage);
+    if (resume) body.append("resume", resume);
+
     setSubmitting(true);
     try {
-      await submitForm(ENDPOINTS.careersApply, payload);
+      await submitFormData(ENDPOINTS.careersApply, body);
       toast.success("Application received", {
         description: `Thanks ${payload.fullName.split(" ")[0]} — our people team will reach out by email.`,
       });
@@ -184,7 +225,15 @@ function ApplyForm({ job, onClose }: { job: JobPosting; onClose: () => void }) {
             Close
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+         <div role="note" className="mt-5 rounded-xl border border-accent/40 bg-accent-soft px-4 py-3 text-sm leading-relaxed text-primary-deep">
+          <p className="font-bold">Before you submit</p>
+          <p className="mt-1">
+            You can apply for this role <strong>{MAX_APPLICATIONS_PER_ROLE === 1 ? "only once" : `a maximum of ${MAX_APPLICATIONS_PER_ROLE} times`}</strong>, and
+            an application can't be edited after it's sent. Please double-check your name, email address and phone number, and attach your resume, before
+            you press Submit.
+          </p>
+        </div>
+        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <Field label="Full name" name="fullName" required maxLength={120} />
           <Field label="Email address" name="email" type="email" required maxLength={254} />
           <Field label="Phone number" name="phone" required maxLength={40} />
@@ -201,6 +250,47 @@ function ApplyForm({ job, onClose }: { job: JobPosting; onClose: () => void }) {
               className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-primary"
             />
           </div>
+          <div>
+            <label htmlFor="resume" className="text-sm font-semibold text-primary-deep">
+              Resume / CV <span className="font-normal text-muted-foreground">(optional)</span>
+            </label>
+            <input
+              id="resume"
+              ref={fileRef}
+              type="file"
+              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              onChange={pickResume}
+              className="sr-only"
+            />
+            {resume ? (
+              <div className="mt-2 flex items-center gap-3 rounded-xl border border-border bg-background px-4 py-3 text-sm">
+                <span className="min-w-0 flex-1 truncate font-medium text-primary-deep">{resume.name}</span>
+                <span className="shrink-0 text-xs text-muted-foreground">{formatSize(resume.size)}</span>
+                <button
+                  type="button"
+                  onClick={() => setResume(null)}
+                  className="shrink-0 text-xs font-bold text-accent hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border px-4 py-5 text-sm font-semibold text-primary-deep transition-colors hover:border-accent"
+              >
+                <UploadCloud className="h-4 w-4 text-accent" />
+                Upload your resume
+              </button>
+            )}
+            <p className="mt-1.5 text-xs text-muted-foreground">PDF or Word (.doc, .docx), up to 5 MB.</p>
+            {resumeError && (
+              <p role="alert" className="mt-1.5 text-xs font-semibold text-destructive">
+                {resumeError}
+              </p>
+            )}
+          </div>
           <button
             type="submit"
             disabled={submitting}
@@ -209,7 +299,7 @@ function ApplyForm({ job, onClose }: { job: JobPosting; onClose: () => void }) {
               submitting && "opacity-60",
             )}
           >
-            {submitting ? "Sending…" : "Submit application"}
+            {submitting ? (resume ? "Uploading…" : "Sending…") : "Submit application"}
           </button>
         </form>
       </div>

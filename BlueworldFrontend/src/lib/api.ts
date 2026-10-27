@@ -19,6 +19,7 @@ export const ENDPOINTS = {
   newsletter: "/newsletter/subscribe",
   adminContactMessages: "/admin/submissions/contact",
   adminNewsletter: "/admin/submissions/newsletter",
+  adminApplications: "/admin/submissions/applications",
   authLogin: "/auth/login",
   authRefresh: "/auth/refresh",
   authMe: "/auth/me",
@@ -69,7 +70,8 @@ async function request<T>(path: string, init: RequestInit, timeoutMs: number): P
       ...init,
       signal: controller.signal,
       headers: {
-        "content-type": "application/json",
+        // A file upload (FormData) must NOT get a content-type: the browser adds its own, with the boundary.
+        ...(typeof FormData !== "undefined" && init.body instanceof FormData ? {} : { "content-type": "application/json" }),
         ...(init.headers ?? {}),
         ...authHeader(),
       },
@@ -186,10 +188,42 @@ export async function submitForm<TBody>(path: string, body: TBody): Promise<void
   await apiFetch<unknown>(path, { method: "POST", body: JSON.stringify(body) }, FORM_TIMEOUT_MS);
 }
 
+/** Like submitForm, but for a form that carries a file. Allows a minute: a phone on a slow network needs time to send a few MB. */
+export async function submitFormData(path: string, body: FormData): Promise<void> {
+  await apiFetch<unknown>(path, { method: "POST", body }, 60_000);
+}
+
+/** Downloads a protected file (e.g. a resume) for a signed-in admin and saves it under `filename`. */
+export async function downloadAuthed(path: string, filename: string): Promise<void> {
+  const res = await authedFetch(`${API_BASE_URL}${path}`, { method: "GET" });
+  if (!res.ok) throw new ApiError(res.status, null, `API ${res.status} on ${path}`);
+  const url = URL.createObjectURL(await res.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}
+
+/** Fetches a protected file as a Blob (used to preview a resume on screen without saving it). */
+export async function fetchAuthedBlob(path: string): Promise<Blob> {
+  const res = await authedFetch(`${API_BASE_URL}${path}`, { method: "GET" });
+  if (!res.ok) throw new ApiError(res.status, null, `API ${res.status} on ${path}`);
+  return res.blob();
+}
+
 /** Turns any error thrown by submitForm into a short, human message. */
 export function formErrorMessage(err: unknown): string {
   if (err instanceof ApiError) {
     if (err.status === 429) return "Too many attempts. Please wait a minute and try again.";
+    if (err.status === 400 || err.status === 409 || err.status === 413 || err.status === 415) {
+      // The server explains file problems in plain words ("larger than 5 MB…") — show those as they are.
+      const message = (err.detail as { detail?: unknown } | null)?.detail;
+      if (typeof message === "string" && message) return message;
+      if (err.status === 413) return "That file is too large. Please upload one under 5 MB.";
+    }
     if (err.status === 422) {
       const items = (err.detail as { detail?: unknown } | null)?.detail;
       const loc = Array.isArray(items) ? ((items[0] as { loc?: unknown[] } | undefined)?.loc ?? []) : [];

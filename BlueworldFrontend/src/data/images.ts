@@ -5,9 +5,9 @@
  * image WITHOUT the backend running, drop a new file into `src/assets/` and
  * point the matching key below at it — nothing else needs to change.
  */
-import heroFactory from "@/assets/hero-factory.jpg";
+import heroFactory from "@/assets/hero-factory.png";
 import heroBeauty from "@/assets/hero-beauty.jpg";
-import heroProducts from "@/assets/hero-products.jpg";
+import heroProducts from "@/assets/hero-products.png";
 import unitVivon from "@/assets/unit-vivon.jpg";
 import unitBlueCrystal from "@/assets/unit-bluecrystal.jpg";
 import unitBlowRight from "@/assets/unit-blowright.jpg";
@@ -17,7 +17,7 @@ import vivonFace from "@/assets/vivon-face.jpg";
 import vivonBody from "@/assets/vivon-body.jpg";
 import vivonChildren from "@/assets/vivon-children.jpg";
 import aboutStory from "@/assets/about-story.jpg";
-import blogIngredients from "@/assets/blog-ingredients.jpg";
+import blogIngredients from "@/assets/blog-ingredients.png";
 import blogExport from "@/assets/blog-export.jpg";
 import blogQuality from "@/assets/blog-quality.jpg";
 import team1 from "@/assets/team-1.jpg";

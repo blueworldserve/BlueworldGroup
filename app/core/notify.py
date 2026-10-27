@@ -120,7 +120,9 @@ def build_reply_email(*, body: str, original_name: str, original_message: str, o
     )
     return text, html_out
 
-
+def build_applicant_email(*, body: str) -> tuple[str, str]:
+    """Returns (text, html) for a message HR wrote to a job applicant (the text is sent exactly as written)."""
+    return body, _wrap_html(f"<p>{_html_text(body)}</p>")
 # --------------------------------------------------------------------------- #
 # WhatsApp Business Cloud API
 # --------------------------------------------------------------------------- #
