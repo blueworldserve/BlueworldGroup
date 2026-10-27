@@ -1,8 +1,8 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, date
 from typing import Annotated, Literal
 
-from pydantic import EmailStr, Field, StringConstraints
+from pydantic import EmailStr, StringConstraints
 
 from schemas.base import CamelModel
 
@@ -11,18 +11,28 @@ MESSAGE_MAX_LENGTH = 800
 
 EnquiryType = Literal["Sales", "Distribution", "Private label", "Export", "General"]
 
-
-def _text(min_length: int, max_length: int):
-    return Annotated[str, StringConstraints(strip_whitespace=True, min_length=min_length, max_length=max_length)]
+# Trimmed strings with length limits. Plain aliases (not function calls) so type checkers understand them.
+Text_1_120 = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)]
+Text_2_120 = Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=120)]
+Text_2_150 = Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=150)]
+Text_2_200 = Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=200)]
+Text_2_5000 = Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=5000)]
+Text_3_200 = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=200)]
+Text_3_254 = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=254)]
+Text_20_5000 = Annotated[str, StringConstraints(strip_whitespace=True, min_length=20, max_length=5000)]
+MessageText = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=5, max_length=MESSAGE_MAX_LENGTH)
+]
+ShortOptional = Annotated[str, StringConstraints(strip_whitespace=True, max_length=40)]
 
 
 class ContactSubmissionIn(CamelModel):
-    full_name: _text(2, 120)
+    full_name: Text_2_120
     email: EmailStr
-    phone: Annotated[str, StringConstraints(strip_whitespace=True, max_length=40)] | None = None
+    phone: ShortOptional | None = None
     enquiry_type: EnquiryType = "General"
-    subject: _text(2, 150)
-    message: _text(5, MESSAGE_MAX_LENGTH)
+    subject: Text_2_150
+    message: MessageText
     # Honeypot: a hidden field real visitors never fill in. Bots do.
     website: str | None = None
 
@@ -54,15 +64,15 @@ class ContactSubmissionDetailOut(ContactSubmissionOut):
 
 
 class ContactReplyIn(CamelModel):
-    subject: _text(2, 200)
-    body: _text(2, 5000)
+    subject: Text_2_200
+    body: Text_2_5000
 
 
 class CareerApplicationIn(CamelModel):
-    job_slug: _text(1, 120)
-    full_name: _text(2, 120)
-    email: _text(3, 254)
-    phone: Annotated[str, StringConstraints(strip_whitespace=True, max_length=40)] | None = None
+    job_slug: Text_1_120
+    full_name: Text_2_120
+    email: Text_3_254
+    phone: ShortOptional | None = None
     cover_message: Annotated[str, StringConstraints(max_length=3000)] | None = None
 
 
@@ -74,6 +84,25 @@ class CareerApplicationOut(CamelModel):
     email: str
     phone: str | None = None
     cover_message: str | None = None
+    resume_filename: str | None = None
+    resume_size: int | None = None
+    status: str = "new"
+    interview_date: date | None = None
+    interview_time: str | None = None
+    decided_at: datetime | None = None
+    decided_by: str | None = None
+    decision_subject: str | None = None
+    decision_body: str | None = None
+
+
+class ApplicationDecisionIn(CamelModel):
+    """HR's decision on an application, with the exact email to send (they can edit it first)."""
+
+    decision: Literal["approve", "decline"]
+    subject: Text_3_200
+    body: Text_20_5000
+    interview_date: date | None = None
+    interview_time: ShortOptional | None = None
 
 
 class NewsletterSignupIn(CamelModel):

@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -219,26 +220,41 @@
 
 
 /* ------------------------------------------------------------------ *
- * CMS tactile controls (raised inputs, chunky pressable buttons)
- *
- * Scoped to :root[data-theme], which useCmsTheme sets only while an admin
- * page is mounted, so the public site and the login / request-access
- * pages are untouched. Deliberately NOT inside a @layer: it has to beat
- * the Tailwind utility classes already on these inputs and buttons.
- * Tune the whole look from the variables in the first block.
+ * CMS corporate controls: flat, square-ish, with a quick press response.
+ * Scoped to :root[data-theme], which is set only while an admin page is
+ * mounted. Not inside a @layer on purpose: it must beat Tailwind utilities.
+ * Tune everything from the variables in the first block.
  * ------------------------------------------------------------------ */
 :root[data-theme] {
-  --cms-hi: rgb(255 255 255 / 0.9);
-  --cms-edge: color-mix(in oklab, var(--foreground) 24%, transparent);
-  --cms-edge-hover: color-mix(in oklab, var(--foreground) 34%, transparent);
-  --cms-drop: rgb(0 0 0 / 0.3);
-  --cms-btn-edge: rgb(0 0 0 / 0.32);
-  --cms-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --cms-radius: 0.5rem;
+  --cms-hi: rgb(255 255 255 / 0.7);
+  --cms-edge: color-mix(in oklab, var(--foreground) 18%, transparent);
+  --cms-edge-hover: color-mix(in oklab, var(--foreground) 32%, transparent);
+  --cms-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+  --cms-shadow-hover: 0 2px 6px rgb(0 0 0 / 0.18);
+  --cms-ease: cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 :root[data-theme].dark {
-  --cms-hi: rgb(255 255 255 / 0.08);
-  --cms-drop: rgb(0 0 0 / 0.55);
+  --cms-hi: rgb(255 255 255 / 0.06);
+  --cms-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+  --cms-shadow-hover: 0 3px 8px rgb(0 0 0 / 0.5);
+}
+
+/* ---- CMS typeface (public site keeps Times New Roman) ---- */
+:root[data-theme] body,
+:root[data-theme] body * {
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ---- Shape: no pills ---- */
+:root[data-theme] :is(main, header) button,
+:root[data-theme] :is(aside, nav) :is(a, button) {
+  border-radius: var(--cms-radius);
+}
+
+:root[data-theme] main :is([class*="rounded-2xl"], [class*="rounded-3xl"]) {
+  border-radius: 0.75rem;
 }
 
 /* ---- Inputs ---- */
@@ -247,25 +263,19 @@
     select,
     textarea
   ) {
-  border-width: 2px;
+  border-width: 1px;
   border-color: var(--cms-edge);
-  background-color: color-mix(in oklab, var(--foreground) 3%, var(--card));
-  padding-block: 0.8rem;
-  box-shadow:
-    inset 0 1px 0 var(--cms-hi),
-    0 3px 0 0 var(--cms-edge),
-    0 10px 16px -10px var(--cms-drop);
-  transition:
-    transform 0.18s var(--cms-ease),
-    box-shadow 0.22s var(--cms-ease),
-    border-color 0.2s ease;
+  border-radius: var(--cms-radius);
+  background-color: var(--card);
+  box-shadow: inset 0 1px 0 var(--cms-hi);
+  transition: border-color 0.15s var(--cms-ease), box-shadow 0.15s var(--cms-ease);
 }
 
 :root[data-theme] main :is(
     input:not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="color"], [type="hidden"]),
     select
   ) {
-  min-height: 3rem;
+  min-height: 2.75rem;
 }
 
 :root[data-theme] main :is(
@@ -274,11 +284,6 @@
     textarea
   ):hover:not(:focus) {
   border-color: var(--cms-edge-hover);
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 1px 0 var(--cms-hi),
-    0 4px 0 0 var(--cms-edge-hover),
-    0 14px 20px -10px var(--cms-drop);
 }
 
 :root[data-theme] main :is(
@@ -288,76 +293,58 @@
   ):focus {
   outline: none;
   border-color: var(--primary);
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 1px 0 var(--cms-hi),
-    0 3px 0 0 color-mix(in oklab, var(--primary) 65%, black),
-    0 0 0 4px color-mix(in oklab, var(--primary) 22%, transparent),
-    0 14px 20px -10px var(--cms-drop);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 25%, transparent);
 }
 
-/* ---- Outlined buttons (edit / delete icons, Cancel, Sign out, theme toggle...) ---- */
+/* ---- Outlined buttons (edit / delete icons, Cancel, Sign out, filters, theme toggle) ---- */
 :root[data-theme] :is(main, header) button[class~="border"] {
-  border-width: 2px;
+  border-width: 1px;
   border-color: var(--cms-edge);
-  background-image: linear-gradient(180deg, color-mix(in oklab, var(--foreground) 6%, transparent), transparent 70%);
-  translate: none;
-  box-shadow:
-    inset 0 1px 0 var(--cms-hi),
-    0 3px 0 0 var(--cms-edge),
-    0 8px 12px -8px var(--cms-drop);
+  background-image: none;
+  box-shadow: inset 0 1px 0 var(--cms-hi), var(--cms-shadow);
   transition:
-    transform 0.16s var(--cms-ease),
-    box-shadow 0.2s var(--cms-ease),
-    background-color 0.2s ease;
+    transform 0.15s var(--cms-ease),
+    box-shadow 0.15s var(--cms-ease),
+    border-color 0.15s ease,
+    background-color 0.15s ease;
 }
 
 :root[data-theme] :is(main, header) button[class~="border"]:not(:disabled):hover {
-  transform: translateY(-2px);
-  box-shadow:
-    inset 0 1px 0 var(--cms-hi),
-    0 5px 0 0 var(--cms-edge-hover),
-    0 14px 18px -8px var(--cms-drop);
+  border-color: var(--cms-edge-hover);
+  background-color: color-mix(in oklab, var(--foreground) 6%, transparent);
+  box-shadow: inset 0 1px 0 var(--cms-hi), var(--cms-shadow-hover);
 }
 
 :root[data-theme] :is(main, header) button[class~="border"]:not(:disabled):active {
-  transform: translateY(2px);
-  box-shadow: inset 0 2px 4px var(--cms-drop), 0 1px 0 0 var(--cms-edge);
+  transform: translateY(1px);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.25);
 }
 
 /* ---- Filled buttons (primary blue + orange CTA). Declared after the outlined
         block so they win when a button matches both. ---- */
 :root[data-theme] :is(main, header) button:is([class~="bg-primary-deep"], [class~="bg-accent"]) {
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.24), rgb(255 255 255 / 0) 55%, rgb(0 0 0 / 0.12));
-  translate: none;
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.4),
-    0 4px 0 0 var(--cms-btn-edge),
-    0 12px 18px -8px var(--cms-drop);
+  background-image: none;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), var(--cms-shadow);
   transition:
-    transform 0.16s var(--cms-ease),
-    box-shadow 0.2s var(--cms-ease),
-    filter 0.2s ease;
+    transform 0.15s var(--cms-ease),
+    box-shadow 0.15s var(--cms-ease),
+    filter 0.15s ease;
 }
 
 :root[data-theme] :is(main, header) button:is([class~="bg-primary-deep"], [class~="bg-accent"]):not(:disabled):hover {
-  transform: translateY(-2px);
-  filter: brightness(1.07);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.45),
-    0 6px 0 0 var(--cms-btn-edge),
-    0 18px 24px -8px var(--cms-drop);
+  filter: brightness(1.08);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), var(--cms-shadow-hover);
 }
 
 :root[data-theme] :is(main, header) button:is([class~="bg-primary-deep"], [class~="bg-accent"]):not(:disabled):active {
-  transform: translateY(3px);
-  filter: brightness(0.96);
-  box-shadow: inset 0 2px 5px rgb(0 0 0 / 0.3), 0 1px 0 0 var(--cms-btn-edge);
+  transform: translateY(1px);
+  filter: brightness(0.94);
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.3);
 }
 
 :root[data-theme] :is(main, header) button:focus-visible {
-  outline: 3px solid color-mix(in oklab, var(--primary) 45%, transparent);
-  outline-offset: 3px;
+  outline: 2px solid color-mix(in oklab, var(--primary) 60%, transparent);
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -368,6 +355,7 @@
     transform: none;
   }
 }
+
 /* Classic corporate buttons: square, uppercase, solid navy -> orange on hover */
 @utility btn-corporate {
   display: inline-flex;

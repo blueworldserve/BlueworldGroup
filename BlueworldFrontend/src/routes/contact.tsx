@@ -67,7 +67,7 @@ function ContactPage() {
   }
 
   const blocks = [
-    { icon: MapPin, title: "Head office & plant", lines: settings.addressLines },
+    { icon: MapPin, title: "Manufacturing Location", lines: settings.addressLines },
     { icon: Phone, title: "Phone", lines: settings.phones },
     { icon: Mail, title: "Email", lines: settings.emails },
     { icon: Clock, title: "Office hours", lines: settings.officeHours },

@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from core import config
 from routers import auth, cms_public, public_writes, admin_audit, admin_business_units, admin_media, admin_settings, admin_submissions, admin_system, pages
@@ -10,9 +11,7 @@ from models.product import Product
 from models.team_member import TeamMember
 from models.blog_post import BlogPost
 from models.job_posting import JobPosting
-from models.job_posting import JobPosting
 from models.country_showcase import CountryShowcase
-
 
 
 
@@ -44,15 +43,29 @@ app = FastAPI(
 )
 
 
+# Public endpoints never need big requests, so refuse oversized ones up front (the careers form
+# is the exception: it can carry a resume of up to 5 MB).
+_BODY_LIMITS = {
+    "/careers/apply": 6 * 1024 * 1024,
+    "/contact": 64 * 1024,
+    "/newsletter/subscribe": 64 * 1024,
+    "/auth/login": 64 * 1024,
+    "/auth/request-access": 64 * 1024,
+}
+
+
 @app.middleware("http")
 async def add_security_headers(request, call_next):
+    limit = _BODY_LIMITS.get(request.url.path)
+    declared = request.headers.get("content-length")
+    if limit is not None and declared and declared.isdigit() and int(declared) > limit:
+        return JSONResponse({"detail": "That request is too large."}, status_code=413)
     response = await call_next(request)
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
     response.headers.setdefault("X-Frame-Options", "DENY")
     response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     response.headers.setdefault("Strict-Transport-Security", "max-age=15552000")
     return response
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -129,13 +142,3 @@ def health():
 @app.get("/")
 def root():
     return {"message": "Welcome to the BlueWorld Cosmetics API!"}
-
-
-from fastapi import Request
-
-# @app.get("/debug-ip")
-# def debug_ip(request: Request):
-#     return {
-#         "client_host": request.client.host if request.client else None,
-#         "x_forwarded_for": request.headers.get("x-forwarded-for"),
-#     }
