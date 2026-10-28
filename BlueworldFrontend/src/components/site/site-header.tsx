@@ -4,6 +4,7 @@ import { AppLink } from "@/components/site/app-link";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useBusinessUnits } from "@/hooks/use-cms";
 
 type NavItem = {
   label: string;
@@ -49,6 +50,19 @@ export const NAV_ITEMS: NavItem[] = [
 
 export function SiteHeader() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // The Business menu follows the order set in Admin → Business Units.
+  const units = useBusinessUnits();
+  const navItems: NavItem[] = NAV_ITEMS.map((item) =>
+    item.label === "Business" && units.data && units.data.length > 0
+      ? {
+          ...item,
+          children: [...units.data]
+            .sort((a, b) => a.order - b.order)
+            .map((u) => ({ label: u.name, to: `/business/${u.slug}` })),
+        }
+      : item,
+  );
 
   const [openMobile, setOpenMobile] = useState(false);
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);

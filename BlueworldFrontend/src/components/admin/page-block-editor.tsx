@@ -1,5 +1,5 @@
 import { Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
-import { ImageField } from "@/components/admin/resource-manager";
+import { ImagePicker } from "@/components/admin/catalog-manager";
 import { cn } from "@/lib/utils";
 import type { PageBlockInput } from "@/lib/pages-admin";
 import type { BlockType } from "@/lib/types";
@@ -239,7 +239,7 @@ function BlockFields({ block, onChange }: { block: PageBlockInput; onChange: (ne
             <ParagraphsInput value={p["paragraphs"] ?? []} onChange={(v) => set({ paragraphs: v })} />
           </Field>
           <Field label="Photo">
-            <ImageField id={`img-${block.type}`} value={p["image"] ?? ""} onChange={(v) => set({ image: v })} />
+            <ImagePicker compact value={p["image"] ?? ""} onChange={(v) => set({ image: v })} aspect="landscape" />
           </Field>
           <Field label="Photo description (for accessibility)"><TextInput value={p["imageAlt"]} onChange={(v) => set({ imageAlt: v })} /></Field>
           <Field label="Photo position">

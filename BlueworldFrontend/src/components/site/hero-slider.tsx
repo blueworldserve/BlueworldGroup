@@ -67,6 +67,8 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
   // (nothing is downloaded or played). YouTube and file videos play as a muted
   // background; Instagram can't autoplay or hide its chrome, so it gets a
   // "Watch video" button that opens the embed.
+  const mobileSrc = slide.mobileImage || slide.image;
+  const mobileIsRemote = /^https?:\/\//.test(mobileSrc);
   const parsed = isWide ? parseVideoUrl(slide.videoUrl) : null;
   const bgVideo = parsed && parsed.kind !== "instagram" && !reduceMotion ? parsed : null;
   const igVideo = parsed?.kind === "instagram" ? parsed : null;
@@ -89,7 +91,13 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
           <picture>
             <source media="(min-width: 768px)" srcSet={resolveImage(slide.image)} />
             <img
-              src={resolveImage(slide.mobileImage || slide.image, 900)}
+              src={resolveImage(mobileSrc, 1200)}
+              srcSet={
+                mobileIsRemote
+                  ? `${resolveImage(mobileSrc, 800)} 800w, ${resolveImage(mobileSrc, 1200)} 1200w, ${resolveImage(mobileSrc, 1600)} 1600w`
+                  : undefined
+              }
+              sizes="100vw"
               alt=""
               fetchPriority="high"
               decoding="async"
@@ -127,17 +135,44 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
 
       {/* Desktop legibility scrim for the centered text. Phones show the photo as-is. */}
       <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-b from-black/25 via-black/5 to-black/35 md:block" />
-      {/* Phones: a faint fade behind the dots only, so they stay visible on bright photos. */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/35 to-transparent md:hidden" />
+      {/* Phones: a soft dark fade over the lower part of the photo, behind the caption and the dots. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/60 via-black/25 to-transparent md:hidden" />
 
-      {/* Phones: no caption panel. The heading stays in the page for screen readers
-          and search engines, and tapping the photo follows the slide's link. */}
-      <h1 className="sr-only md:hidden">{slide.title}</h1>
-      {slide.ctaHref && (
+      {/* Phones: caption sits at the bottom over the dark fade and the photo keeps the top.
+          With no button, tapping the photo still follows the slide's link. */}
+      {slide.ctaHref && !slide.ctaLabel && (
         <AppLink href={slide.ctaHref} className="absolute inset-0 z-[5] md:hidden">
-          <span className="sr-only">{slide.ctaLabel || slide.title}</span>
+          <span className="sr-only">{slide.title}</span>
         </AppLink>
       )}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[6] flex justify-center px-6 pb-14 text-center md:hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`m-copy-${slide.id}`}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.5 }}
+            className="w-full max-w-sm"
+          >
+            {slide.eyebrow && (
+              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-white/85">
+                {slide.eyebrow}
+              </p>
+            )}
+            <h1 className="mt-2 line-clamp-3 text-[1.65rem] font-extrabold uppercase leading-[1.15] tracking-wide text-white [text-shadow:0_1px_14px_rgba(0,0,0,0.35)]">
+              {slide.title}
+            </h1>
+            {slide.ctaLabel && slide.ctaHref && (
+              <div className="pointer-events-auto mt-5">
+                <ButtonLink href={slide.ctaHref} variant="outline">
+                  {slide.ctaLabel}
+                </ButtonLink>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
       {/* Wide screens: centered caption over the photo or video. */}
       <div className="relative hidden h-full items-center justify-center px-6 text-center md:flex">

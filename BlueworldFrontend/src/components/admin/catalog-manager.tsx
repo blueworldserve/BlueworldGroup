@@ -77,9 +77,11 @@ export function CatalogManager<T extends { id: string }>({
   items,
   singular,
   allLabel,
-  fields,
+  fields = [],
   emptyItem,
   onSave,
+  onOpen,
+  onAdd,
   onDelete,
   getTitle,
   getSubtitle,
@@ -103,9 +105,15 @@ export function CatalogManager<T extends { id: string }>({
   singular: string;
   /** Label of the first sidebar button, e.g. "All posts". */
   allLabel: string;
-  fields: CatalogField<T>[];
-  emptyItem: () => T;
-  onSave: (item: T) => void | Promise<unknown>;
+  /** Fields shown in the popup. Not needed when `onOpen` sends people to their own editor page. */
+  fields?: CatalogField<T>[];
+  /** Blank record for the "Add" popup. Not needed when `onAdd` is used. */
+  emptyItem?: () => T;
+  onSave?: (item: T) => void | Promise<unknown>;
+  /** Use a full editor page instead of the popup: called when a card is clicked. */
+  onOpen?: (item: T) => void;
+  /** Use a full editor page instead of the popup: called when "Add" is clicked. */
+  onAdd?: () => void;
   onDelete: (id: string) => void | Promise<unknown>;
   getTitle: (item: T) => string;
   getSubtitle?: (item: T) => string;
@@ -174,7 +182,7 @@ export function CatalogManager<T extends { id: string }>({
   }
 
   async function move(id: string, dir: -1 | 1) {
-    if (!reorder) return;
+    if (!reorder || !onSave) return;
     const from = items.findIndex((i) => i.id === id);
     const to = from + dir;
     if (from < 0 || to < 0 || to >= items.length) return;
@@ -251,15 +259,15 @@ export function CatalogManager<T extends { id: string }>({
             <h2 className="font-display text-lg font-bold text-primary-deep">
               {selectedTitle} <span className="font-normal text-muted-foreground">· {shown.length}</span>
             </h2>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={searchPlaceholder}
-                className="w-56 rounded-full border border-border bg-background px-4 py-1.5 text-sm"
+                className="min-w-0 flex-1 rounded-full border border-border bg-background px-4 py-1.5 text-sm sm:w-56 sm:flex-none"
               />
-              {allowCreate && (
-                <Button onClick={() => setEditing({ item: emptyItem(), isNew: true })}>
+              {allowCreate && (onAdd || emptyItem) && (
+                <Button onClick={() => (onAdd ? onAdd() : emptyItem && setEditing({ item: emptyItem(), isNew: true }))}>
                   <Plus className="mr-1.5 h-4 w-4" />
                   Add {singular.toLowerCase()}
                 </Button>
@@ -307,7 +315,7 @@ export function CatalogManager<T extends { id: string }>({
                   isFirst={index === 0}
                   isLast={index === items.length - 1}
                   canDelete={canDelete}
-                  onOpen={() => setEditing({ item, isNew: false })}
+                  onOpen={() => (onOpen ? onOpen(item) : setEditing({ item, isNew: false }))}
                   onDelete={() => setToDelete(item)}
                   onMove={(dir) => void move(item.id, dir)}
                 />
@@ -329,7 +337,7 @@ export function CatalogManager<T extends { id: string }>({
           getTitle={getTitle}
           validate={validate}
           canDelete={canDelete}
-          onSave={onSave}
+          onSave={onSave ?? (() => undefined)}
           onClose={() => setEditing(null)}
           onDelete={() => setToDelete(editing.item)}
         />
@@ -544,16 +552,16 @@ function CatalogDialog<T extends { id: string }>({
 
   return (
     <Dialog open onOpenChange={(o) => !o && !saving && onClose()}>
-      <DialogContent className={cn("flex h-[92vh] w-[96vw] flex-col gap-0 overflow-hidden p-0", imageField ? "max-w-5xl" : "max-w-3xl")}>
-        <DialogHeader className="border-b border-border p-5 text-left">
+      <DialogContent className={cn("flex h-[92dvh] w-[96vw] flex-col gap-0 overflow-hidden p-0", imageField ? "max-w-5xl" : "max-w-3xl")}>
+        <DialogHeader className="border-b border-border p-4 text-left sm:p-5">
           <DialogTitle className="pr-8 font-display text-xl text-primary-deep">{isNew ? `Add ${noun}` : title || `Untitled ${noun}`}</DialogTitle>
           <DialogDescription>{isNew ? "Fill in the details below." : `Edit this ${noun}'s details.`}</DialogDescription>
         </DialogHeader>
 
         {imageField ? (
-          <div className="grid min-h-0 flex-1 lg:grid-cols-[2fr_3fr]">
+          <div className="grid min-h-0 flex-1 content-start overflow-y-auto lg:grid-cols-[2fr_3fr] lg:overflow-hidden">
             {/* Picture */}
-            <div className="min-h-0 space-y-4 overflow-y-auto bg-secondary p-5">
+            <div className="space-y-4 bg-secondary p-4 sm:p-5 lg:min-h-0 lg:overflow-y-auto">
               {(() => {
                 const field = fields.find((f) => f.name === imageField);
                 return (
@@ -566,10 +574,10 @@ function CatalogDialog<T extends { id: string }>({
               })()}
             </div>
             {/* Details */}
-            <div className="min-h-0 overflow-y-auto border-t border-border p-5 lg:border-l lg:border-t-0">{details}</div>
+            <div className="border-t border-border p-4 sm:p-5 lg:min-h-0 lg:overflow-y-auto lg:border-l lg:border-t-0">{details}</div>
           </div>
         ) : (
-          <div className="min-h-0 flex-1 overflow-y-auto p-5">{details}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">{details}</div>
         )}
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-card p-4">

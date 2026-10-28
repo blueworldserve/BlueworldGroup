@@ -10,6 +10,7 @@ from core.deps import get_db
 from core.permissions import require_applications_access, require_read, require_write
 from core.notify import NotConfigured, NotifyError, build_applicant_email, build_reply_email, send_email, sync_pending_signups
 from models.admin_user import AdminRole, AdminUser
+from models.job_posting import JobPosting
 from models.submission import (
     ContactReply,
     ContactSubmission,
@@ -210,7 +211,14 @@ def decide_application(
         if payload.interview_date < _today_in_lagos():
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "The interview date can't be in the past.")
 
-    text, html_body = build_applicant_email(body=payload.body)
+    role_title = db.query(JobPosting.title).filter(JobPosting.slug == application.job_slug).scalar()
+    text, html_body = build_applicant_email(
+        body=payload.body,
+        decision=payload.decision,
+        role_title=role_title,
+        interview_date=payload.interview_date if approving else None,
+        interview_time=payload.interview_time if approving else None,
+    )
     try:
         send_email(to=[application.email], subject=payload.subject, text=text, html_body=html_body, reply_to=user.email)
     except NotConfigured as e:

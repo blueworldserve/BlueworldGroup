@@ -35,14 +35,22 @@ SALES_NOTIFY_EMAILS = [e.strip() for e in os.getenv("SALES_NOTIFY_EMAILS", "").s
 RESEND_SEGMENT_ID = os.getenv("RESEND_SEGMENT_ID")
 RESEND_AUDIENCE_ID = os.getenv("RESEND_AUDIENCE_ID")
 
-# --- WhatsApp Business Cloud API (Meta) — optional alert to your sales number ---
-WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN")                  # permanent system-user token
-WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID")
-WHATSAPP_NOTIFY_TO = [n.strip().lstrip("+") for n in os.getenv("WHATSAPP_NOTIFY_TO", "").split(",") if n.strip()]
-WHATSAPP_TEMPLATE_NAME = os.getenv("WHATSAPP_TEMPLATE_NAME", "new_website_enquiry")
-WHATSAPP_TEMPLATE_LANG = os.getenv("WHATSAPP_TEMPLATE_LANG", "en")
-WHATSAPP_API_VERSION = os.getenv("WHATSAPP_API_VERSION", "v25.0")
+# --- Email branding ---------------------------------------------------------
+# Public address of the website, e.g. https://blueworldcosmetics.org (no trailing slash).
+# Used for the logo (SITE_URL/blueworld.png) and the buttons inside emails.
+SITE_URL = (os.getenv("SITE_URL") or "").strip().rstrip("/")
+# Override only if the logo lives somewhere else
+MAIL_LOGO_URL = (os.getenv("MAIL_LOGO_URL") or (f"{SITE_URL}/blueworld.png" if SITE_URL else "")).strip()
 
+# --- Job-application alerts to admins + HR ----------------------------------
+# Email as soon as this many applications are waiting...
+APPLICATION_ALERT_THRESHOLD = int(os.getenv("APPLICATION_ALERT_THRESHOLD", "10"))
+# ...and a roundup of whatever is waiting at this hour every day (Lagos time, 24-hour clock).
+APPLICATION_DIGEST_HOUR = int(os.getenv("APPLICATION_DIGEST_HOUR", "14"))
+# Optional: lets an outside scheduler trigger the roundup (see routers/internal.py). Unset = endpoint disabled.
+CRON_SECRET = os.getenv("CRON_SECRET")
+# Set to "true" to turn off the built-in 2 PM scheduler (e.g. when you use an outside cron instead).
+DISABLE_SCHEDULER = os.getenv("DISABLE_SCHEDULER", "").lower() == "true"
 
 
 

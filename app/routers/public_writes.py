@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from core.deps import get_db
 from core.limiter import limiter
-from core.notify import notify_new_contact, sync_newsletter_signup
+from core.notify import notify_applications_if_threshold, notify_new_contact, sync_newsletter_signup
 from models.submission import (
     CareerApplication,
     CareerApplicationFile,
@@ -52,7 +52,7 @@ def submit_contact(
     if payload.website:
         return {"ok": True}
 
-    # 1. Save first — the lead is safe even if email/WhatsApp are down or not set up.
+     # 1. Save first — the lead is safe even if email is down or not set up.
     row = ContactSubmission(**payload.model_dump(exclude={"website"}))
     db.add(row)
     db.commit()
@@ -67,6 +67,7 @@ def submit_contact(
 @limiter.limit("3/minute;15/hour")
 def submit_application(
     request: Request,
+    background: BackgroundTasks,
     job_slug: str = Form(..., alias="jobSlug", min_length=1, max_length=120),
     full_name: str = Form(..., alias="fullName", min_length=2, max_length=120),
     email: str = Form(..., min_length=3, max_length=254),
@@ -114,6 +115,8 @@ def submit_application(
         application.resume = resume_row
     db.add(application)
     db.commit()
+    # Tell admins + HR once enough applications are waiting (runs after the applicant gets their answer).
+    background.add_task(notify_applications_if_threshold)
     return {"ok": True}
 
 

@@ -49,10 +49,8 @@ const PAGE_CSS = `
 .bw-rule { height: 1px; background: linear-gradient(to right, transparent, rgba(10,34,80,.25), transparent); }
 `;
 
-const UNIT_ORDER = ["vivon", "bluefragrance", "blueworld-cosmetics", "bluecrystal", "blow-right"];
-function orderUnits<T extends { slug: string }>(units: T[]): T[] {
-  const rank = (s: string) => (UNIT_ORDER.indexOf(s) === -1 ? UNIT_ORDER.length : UNIT_ORDER.indexOf(s));
-  return [...units].sort((a, b) => rank(a.slug) - rank(b.slug));
+function orderUnits<T extends { order: number }>(units: T[]): T[] {
+  return [...units].sort((a, b) => a.order - b.order);
 }
 
 const TRUST: { k: string | null; v: string }[] = [

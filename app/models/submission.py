@@ -65,6 +65,9 @@ class CareerApplication(Base):
     decision_subject: Mapped[str | None] = mapped_column(String, nullable=True)
     decision_body: Mapped[str | None] = mapped_column(Text, nullable=True)  # exactly what was emailed
 
+    # Set when admins/HR were told about this application (threshold alert or daily digest).
+    notified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
     # The optional resume. Loaded together with the application, but the file's bytes
     # themselves are deferred (see CareerApplicationFile.data), so listing applications stays light.
     resume: Mapped["CareerApplicationFile | None"] = relationship(

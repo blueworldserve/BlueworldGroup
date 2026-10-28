@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { ImageField } from "@/components/admin/resource-manager";
+import { ImagePicker } from "@/components/admin/catalog-manager";
 import { BlockEditorRow, BLOCK_TYPE_LABELS } from "@/components/admin/page-block-editor";
 import { emptyPageBlock, type PageInput } from "@/lib/pages-admin";
 import type { BlockType } from "@/lib/types";
 
 const inputClass =
   "mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary";
-const labelClass = "text-sm font-semibold text-primary-deep";
+const labelClass = "text-xs font-bold uppercase tracking-[0.14em] text-accent";
 
 export function PageForm({
   initial,
@@ -101,7 +101,7 @@ export function PageForm({
           </div>
           <div className="sm:col-span-2">
             <label className={labelClass}>Cover photo (optional)</label>
-            <ImageField id="page-hero-image" value={form.heroImage ?? ""} onChange={(v) => set("heroImage", v)} />
+            <ImagePicker value={form.heroImage ?? ""} onChange={(v) => set("heroImage", v)} aspect="landscape" />
           </div>
         </div>
 

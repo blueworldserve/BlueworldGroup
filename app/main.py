@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from core import config
-from routers import auth, cms_public, public_writes, admin_audit, admin_business_units, admin_media, admin_settings, admin_submissions, admin_system, pages
+from routers import auth, cms_public, public_writes, admin_audit, admin_business_units, admin_media, admin_settings, admin_submissions, admin_system, pages, internal
 from routers.admin_generic import make_admin_crud_router
 
 from models.hero_slide import HeroSlide
@@ -87,6 +87,7 @@ app.include_router(admin_settings.router)
 app.include_router(admin_submissions.router)
 app.include_router(admin_audit.router)
 app.include_router(admin_system.router)
+app.include_router(internal.router)
 app.include_router(pages.public_router)
 app.include_router(pages.admin_router)
 
@@ -132,6 +133,13 @@ def run_startup_tasks():
     except Exception:
         logger.exception("Country showcase seed step failed on startup")
         # not re-raised: same reasoning as the superuser seed above
+
+    # 4. Start the daily applications roundup (2 PM Lagos time by default)
+    try:
+        from core.scheduler import start_scheduler
+        start_scheduler()
+    except Exception:
+        logger.exception("Scheduler failed to start")
 
 
 @app.get("/health")
