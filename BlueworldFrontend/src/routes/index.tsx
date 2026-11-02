@@ -57,9 +57,8 @@ const TRUST: { k: string | null; v: string }[] = [
   { k: "2014", v: "Founded in Lagos" },
   { k: "500+", v: "People employed" },
   { k: "5", v: "Brands" },
-  { k: "120+", v: "SKUs" },
+  { k: "120+", v: "Products" },
   { k: null, v: "Countries" }, // number filled in from the CMS
-  { k: "11", v: "QC checks per batch" },
 ];
 
 const fadeUp = {
@@ -213,6 +212,7 @@ function HomePage() {
                 key={p.id}
                 type="button"
                 onClick={() => setOpenProduct(p)}
+                data-track={`Product: ${p.name}`}
                 className="group text-left"
                 {...fadeUp}
                 transition={{ duration: 0.5, delay: (i % 4) * 0.06 }}

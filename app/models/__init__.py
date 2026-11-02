@@ -1,5 +1,6 @@
 from models.admin_user import AdminUser, AdminRole, AdminStatus 
 from models.audit_log import AuditLog
+from models.analytics_event import AnalyticsEvent
 from models.hero_slide import HeroSlide
 from models.business_unit import (
     BusinessUnit,

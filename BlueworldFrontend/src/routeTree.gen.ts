@@ -18,6 +18,7 @@ import { Route as AboutVisionMissionRouteImport } from './routes/about.vision-mi
 import { Route as AboutWhoWeAreRouteImport } from './routes/about.who-we-are'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAccessRequestsRouteImport } from './routes/admin.access-requests'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminApplicationsRouteImport } from './routes/admin.applications'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminBlogRouteImport } from './routes/admin.blog'
@@ -87,6 +88,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminAccessRequestsRoute = AdminAccessRequestsRouteImport.update({
   id: '/admin/access-requests',
   path: '/admin/access-requests',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/admin/analytics',
+  path: '/admin/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminApplicationsRoute = AdminApplicationsRouteImport.update({
@@ -224,6 +230,7 @@ export interface FileRoutesByFullPath {
   '/about/vision-mission': typeof AboutVisionMissionRoute
   '/about/who-we-are': typeof AboutWhoWeAreRoute
   '/admin/access-requests': typeof AdminAccessRequestsRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/blog': typeof AdminBlogRoute
@@ -260,6 +267,7 @@ export interface FileRoutesByTo {
   '/about/vision-mission': typeof AboutVisionMissionRoute
   '/about/who-we-are': typeof AboutWhoWeAreRoute
   '/admin/access-requests': typeof AdminAccessRequestsRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/blog': typeof AdminBlogRoute
@@ -297,6 +305,7 @@ export interface FileRoutesById {
   '/about/vision-mission': typeof AboutVisionMissionRoute
   '/about/who-we-are': typeof AboutWhoWeAreRoute
   '/admin/access-requests': typeof AdminAccessRequestsRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/blog': typeof AdminBlogRoute
@@ -335,6 +344,7 @@ export interface FileRouteTypes {
     | '/about/vision-mission'
     | '/about/who-we-are'
     | '/admin/access-requests'
+    | '/admin/analytics'
     | '/admin/applications'
     | '/admin/audit'
     | '/admin/blog'
@@ -371,6 +381,7 @@ export interface FileRouteTypes {
     | '/about/vision-mission'
     | '/about/who-we-are'
     | '/admin/access-requests'
+    | '/admin/analytics'
     | '/admin/applications'
     | '/admin/audit'
     | '/admin/blog'
@@ -407,6 +418,7 @@ export interface FileRouteTypes {
     | '/about/vision-mission'
     | '/about/who-we-are'
     | '/admin/access-requests'
+    | '/admin/analytics'
     | '/admin/applications'
     | '/admin/audit'
     | '/admin/blog'
@@ -444,6 +456,7 @@ export interface RootRouteChildren {
   AboutVisionMissionRoute: typeof AboutVisionMissionRoute
   AboutWhoWeAreRoute: typeof AboutWhoWeAreRoute
   AdminAccessRequestsRoute: typeof AdminAccessRequestsRoute
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminApplicationsRoute: typeof AdminApplicationsRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminBlogRoute: typeof AdminBlogRoute
@@ -536,6 +549,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/access-requests'
       fullPath: '/admin/access-requests'
       preLoaderRoute: typeof AdminAccessRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/admin/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/applications': {
@@ -724,6 +744,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutVisionMissionRoute: AboutVisionMissionRoute,
   AboutWhoWeAreRoute: AboutWhoWeAreRoute,
   AdminAccessRequestsRoute: AdminAccessRequestsRoute,
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminApplicationsRoute: AdminApplicationsRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminBlogRoute: AdminBlogRoute,

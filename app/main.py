@@ -1,9 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from core import config
-from routers import auth, cms_public, public_writes, admin_audit, admin_business_units, admin_media, admin_settings, admin_submissions, admin_system, pages, internal
+from routers import auth, cms_public, public_writes, admin_audit, admin_business_units, admin_media, admin_settings, admin_submissions, admin_system, pages, internal, analytics
 from routers.admin_generic import make_admin_crud_router
 
 from models.hero_slide import HeroSlide
@@ -14,7 +14,7 @@ from models.job_posting import JobPosting
 from models.country_showcase import CountryShowcase
 
 
-
+from sqlalchemy import text
 from schemas.hero_slide import HeroSlideOut, HeroSlideCreate
 from schemas.product import ProductOut, ProductCreate
 from schemas.team_member import TeamMemberOut, TeamMemberCreate
@@ -27,6 +27,7 @@ from schemas.country_showcase import CountryShowcaseOut, CountryShowcaseCreate
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from core.limiter import limiter
+from db.session import engine
 
 import os
 import logging
@@ -51,6 +52,7 @@ _BODY_LIMITS = {
     "/newsletter/subscribe": 64 * 1024,
     "/auth/login": 64 * 1024,
     "/auth/request-access": 64 * 1024,
+    "/analytics/collect": 32 * 1024,
 }
 
 
@@ -61,10 +63,21 @@ async def add_security_headers(request, call_next):
     if limit is not None and declared and declared.isdigit() and int(declared) > limit:
         return JSONResponse({"detail": "That request is too large."}, status_code=413)
     response = await call_next(request)
+    path = request.url.path
+    if path.startswith(("/admin", "/auth")):
+        # Private data: no browser, proxy or CDN may keep a copy.
+        response.headers["Cache-Control"] = "no-store"
+    elif request.method == "GET" and path.startswith("/cms/") and response.status_code == 200:
+        # Public content: a CDN may reuse it for 60s and, if this API is down, serve the last copy for a day.
+        # max-age=0 keeps browsers asking, so the CMS shows an edit straight after saving.
+        response.headers.setdefault(
+            "Cache-Control", "public, max-age=0, s-maxage=60, stale-while-revalidate=300, stale-if-error=86400"
+        )
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
     response.headers.setdefault("X-Frame-Options", "DENY")
     response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     response.headers.setdefault("Strict-Transport-Security", "max-age=15552000")
+    response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
     return response
 
 app.add_middleware(
@@ -88,6 +101,8 @@ app.include_router(admin_submissions.router)
 app.include_router(admin_audit.router)
 app.include_router(admin_system.router)
 app.include_router(internal.router)
+app.include_router(analytics.public_router)
+app.include_router(analytics.admin_router)
 app.include_router(pages.public_router)
 app.include_router(pages.admin_router)
 
@@ -142,8 +157,21 @@ def run_startup_tasks():
         logger.exception("Scheduler failed to start")
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health():
+    return {"status": "ok"}
+
+
+@app.api_route("/health/db", methods=["GET", "HEAD"])
+@limiter.limit("30/minute")
+def health_db(request: Request):
+    """Like /health, but also proves the database answers. Point your uptime monitor here."""
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("select 1"))
+    except Exception:
+        logger.exception("Health check: database unreachable")
+        return JSONResponse({"status": "database_unreachable"}, status_code=503)
     return {"status": "ok"}
 
 

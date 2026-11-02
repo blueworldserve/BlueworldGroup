@@ -40,7 +40,7 @@ const ACCENT = "#f5a623";
 // Official three.js example asset — publicly hosted with CORS headers set,
 // so it loads fine as a WebGL texture from any origin. Swap this for your
 // own hosted Earth map later if you want a different look/resolution.
-const EARTH_TEXTURE_URL = "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg";
+const EARTH_TEXTURE_URL = "/textures/earth_atmos_2048.jpg";
 
 /** Resting spin speed once the entrance settles — rad/s. Deliberately well
  *  above the old 0.14 (which read as "boringly slow"); this completes a

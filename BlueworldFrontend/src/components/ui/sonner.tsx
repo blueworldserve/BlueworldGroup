@@ -1,11 +1,16 @@
 import { Toaster as Sonner } from "sonner";
+import { useCmsTheme } from "@/hooks/use-cms-theme";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
+  // Follow the CMS light/dark switch (not the phone's system setting), so toasts never clash with the page.
+  const { theme } = useCmsTheme();
   return (
     <Sonner
+      theme={theme}
       className="toaster group"
+      mobileOffset={{ bottom: "calc(env(safe-area-inset-bottom) + 16px)", left: 16, right: 16 }}
       toastOptions={{
         classNames: {
           toast:

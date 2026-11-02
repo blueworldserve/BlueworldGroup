@@ -396,3 +396,58 @@
 .bw-orange { color: var(--accent, #ee8a1e); }
 .bw-ch { display: inline-block; transition: transform .35s cubic-bezier(.2,.8,.2,1); }
 .bw-hl:hover .bw-ch { transform: translateY(-4px); }
+
+
+
+/* ------------------------------------------------------------------ *
+ * CMS: phones, tablets and dark mode hardening.
+ * Unlayered on purpose so it beats Tailwind utilities.
+ * ------------------------------------------------------------------ */
+:root { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* Native controls (date/time pickers, <select> lists, scrollbars) follow the CMS theme. */
+:root[data-theme] { color-scheme: light; -webkit-tap-highlight-color: transparent; }
+:root[data-theme].dark { color-scheme: dark; }
+
+/* iPhones and iPads zoom the whole page when a field is smaller than 16px. */
+@media (pointer: coarse) {
+  :root[data-theme] :is(
+      input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="hidden"]),
+      select,
+      textarea
+    ) {
+    font-size: 16px;
+  }
+
+  /* Small square icon buttons (edit, delete, move, close) get a finger-sized target. */
+  :root[data-theme] :is(main, header, [role="dialog"], [role="alertdialog"]) button:is([class~="h-8"], [class~="h-9"], [class~="h-10"]):is([class~="w-8"], [class~="w-9"], [class~="w-10"]) {
+    min-height: 2.5rem;
+    min-width: 2.5rem;
+  }
+
+  /* Filter chips and pill buttons */
+  :root[data-theme] :is(main, [role="dialog"]) button[class~="rounded-full"][class~="border"] {
+    min-height: 2.5rem;
+  }
+}
+
+/* Full-screen editors on phones: keep the footer clear of the home indicator. */
+@media (max-width: 639px) {
+  [role="dialog"].editor-dialog {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+.editor-dialog .overflow-y-auto { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+
+/* Dark mode: the few hard-coded pastel badges would glare on a navy card. */
+.dark .bg-amber-100 { background-color: oklch(0.36 0.07 75); }
+.dark .text-amber-800 { color: oklch(0.89 0.12 85); }
+.dark .bg-emerald-100 { background-color: oklch(0.34 0.06 160); }
+.dark .text-emerald-800 { color: oklch(0.87 0.1 160); }
+.dark .bg-red-100 { background-color: oklch(0.36 0.09 25); }
+.dark .text-red-800 { color: oklch(0.88 0.09 25); }
+.dark input:-webkit-autofill,
+.dark textarea:-webkit-autofill {
+  -webkit-text-fill-color: var(--foreground);
+  box-shadow: 0 0 0 1000px var(--card) inset;
+}

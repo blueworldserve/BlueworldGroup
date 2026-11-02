@@ -16,13 +16,14 @@ import { Toaster } from "../components/ui/sonner";
 
 import appCss from "../styles.css?url";
 import { reportError } from "../lib/error-reporting";
+import { useAnalytics } from "../lib/analytics";
 
 import { HeroProvider, useHasHero } from "../components/site/hero-context";
 import { cn } from "../lib/utils";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <img
           src="/blueworld.png"
@@ -57,10 +58,22 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
   useEffect(() => {
     reportError(error, { boundary: "tanstack_root_error_component" });
+    // After a new deploy, an already-open tab asks for JS files that no longer exist.
+    // Reload once to pick up the new version (the flag stops it from looping).
+    if (/dynamically imported module|importing a module script|loading chunk|chunkloaderror/i.test(error.message)) {
+      try {
+        if (!sessionStorage.getItem("bwc.chunk-reload")) {
+          sessionStorage.setItem("bwc.chunk-reload", "1");
+          window.location.reload();
+        }
+      } catch {
+        /* storage unavailable: show the normal error screen */
+      }
+    }
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <img
           src="/blueworld.png"
@@ -100,7 +113,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-const SITE_URL = (import.meta.env.VITE_SITE_URL as string | undefined) ?? "https://blueworldcosmetics.org";
+const SITE_URL = (import.meta.env.VITE_SITE_URL as string | undefined) ?? "https://blueworldcosmetics.ng";
 const OG_IMAGE = `${SITE_URL}/blueworld.png`;
 
 
@@ -110,7 +123,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" },
       { title: "Blue World Cosmetics — Nigerian Cosmetics Manufacturer" },
       {
         name: "description",
@@ -181,6 +194,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const isAdmin = useRouterState({ select: (s) => s.location.pathname.startsWith("/admin") });
+  useAnalytics();
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -195,7 +209,7 @@ function RootComponent() {
 function AppShell({ isAdmin }: { isAdmin: boolean }) {
   const hasHero = useHasHero();
   return (
-    <div className="flex min-h-screen flex-col">
+   <div className="flex min-h-dvh flex-col">
       {!isAdmin && <SiteHeader />}
       <div className={cn("flex-1", !isAdmin && !hasHero && "pt-20")}>
         <Outlet />

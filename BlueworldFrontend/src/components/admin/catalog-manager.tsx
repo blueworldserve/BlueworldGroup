@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Plus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, EDITOR_DIALOG_CLASS } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -261,6 +261,8 @@ export function CatalogManager<T extends { id: string }>({
             </h2>
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
               <input
+                type="search"
+                enterKeyHint="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={searchPlaceholder}
@@ -552,7 +554,7 @@ function CatalogDialog<T extends { id: string }>({
 
   return (
     <Dialog open onOpenChange={(o) => !o && !saving && onClose()}>
-      <DialogContent className={cn("flex h-[92dvh] w-[96vw] flex-col gap-0 overflow-hidden p-0", imageField ? "max-w-5xl" : "max-w-3xl")}>
+      <DialogContent className={cn(EDITOR_DIALOG_CLASS, imageField ? "sm:max-w-5xl" : "sm:max-w-3xl")}>
         <DialogHeader className="border-b border-border p-4 text-left sm:p-5">
           <DialogTitle className="pr-8 font-display text-xl text-primary-deep">{isNew ? `Add ${noun}` : title || `Untitled ${noun}`}</DialogTitle>
           <DialogDescription>{isNew ? "Fill in the details below." : `Edit this ${noun}'s details.`}</DialogDescription>
@@ -580,15 +582,15 @@ function CatalogDialog<T extends { id: string }>({
           <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">{details}</div>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-card p-4">
+        <div className="flex flex-col-reverse gap-3 border-t border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
           {isNew || !canDelete ? (
             <span />
           ) : (
-            <button type="button" onClick={onDelete} className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-destructive">
+            <button type="button" onClick={onDelete} className="inline-flex min-h-10 items-center justify-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-destructive">
               <Trash2 className="h-3.5 w-3.5" /> Delete {noun}
             </button>
           )}
-          <div className="flex gap-2">
+          <div className="flex gap-2 [&>button]:flex-1 sm:[&>button]:flex-none">
             <Button variant="outline" onClick={onClose} disabled={saving}>
               Cancel
             </Button>

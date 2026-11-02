@@ -5,7 +5,7 @@ import { ImageOff, Plus, Star, Trash2 } from "lucide-react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { WriteGate } from "@/components/admin/write-gate";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, EDITOR_DIALOG_CLASS } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -171,12 +171,14 @@ function ProductsAdmin() {
               <h2 className="font-display text-lg font-bold text-primary-deep">
                 {selectedTitle} <span className="font-normal text-muted-foreground">· {shown.length}</span>
               </h2>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                 <input
+                  type="search"
+                  enterKeyHint="search"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search name, category, size…"
-                  className="w-56 rounded-full border border-border bg-background px-4 py-1.5 text-sm"
+                  className="min-w-0 flex-1 rounded-full border border-border bg-background px-4 py-1.5 text-sm sm:w-56 sm:flex-none"
                 />
                 <Button onClick={startNew}>
                   <Plus className="mr-1.5 h-4 w-4" />
@@ -396,13 +398,13 @@ function ProductDialog({
 
   return (
     <Dialog open onOpenChange={(o) => !o && !saving && onClose()}>
-      <DialogContent className="flex h-[92vh] w-[96vw] max-w-5xl flex-col gap-0 overflow-hidden p-0">
+      <DialogContent className={cn(EDITOR_DIALOG_CLASS, "sm:max-w-5xl")}>
         <DialogHeader className="border-b border-border p-5 text-left">
           <DialogTitle className="pr-8 font-display text-xl text-primary-deep">{isNew ? "Add product" : name || "Untitled product"}</DialogTitle>
           <DialogDescription>{isNew ? "Fill in the details and pick an image." : "Edit this product's details and image."}</DialogDescription>
         </DialogHeader>
 
-        <div className="grid min-h-0 flex-1 lg:grid-cols-[2fr_3fr]">
+        <div className="grid min-h-0 flex-1 content-start overflow-y-auto lg:grid-cols-[2fr_3fr] lg:overflow-hidden">
           {/* Image */}
           <div className="min-h-0 space-y-4 overflow-y-auto bg-secondary p-5">
             <div className="mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-xl border border-border bg-card">
@@ -510,15 +512,15 @@ function ProductDialog({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-card p-4">
+        <div className="flex flex-col-reverse gap-3 border-t border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
           {isNew ? (
             <span />
           ) : (
-            <button type="button" onClick={onDelete} className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-destructive">
+            <button type="button" onClick={onDelete} className="inline-flex min-h-10 items-center justify-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-destructive">
               <Trash2 className="h-3.5 w-3.5" /> Delete product
             </button>
           )}
-          <div className="flex gap-2">
+          <div className="flex gap-2 [&>button]:flex-1 sm:[&>button]:flex-none">
             <Button variant="outline" onClick={onClose} disabled={saving}>
               Cancel
             </Button>

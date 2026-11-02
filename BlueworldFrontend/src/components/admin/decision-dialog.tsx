@@ -100,7 +100,7 @@ export function DecisionDialog<T extends DecidableApplication>({
 
   return (
     <Dialog open onOpenChange={(open) => !open && !sending && onClose()}>
-      <DialogContent className="max-h-[92vh] max-w-2xl overflow-y-auto">
+      <DialogContent className="max-h-[calc(100dvh-1rem)] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{approving ? "Send approval letter" : "Send rejection letter"}</DialogTitle>
           <DialogDescription>
@@ -176,7 +176,7 @@ export function DecisionDialog<T extends DecidableApplication>({
           )}
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-2">
+        <DialogFooter className="gap-2 sm:gap-2 [&>button]:min-h-11">
           <Button variant="outline" onClick={onClose} disabled={sending}>
             Cancel
           </Button>

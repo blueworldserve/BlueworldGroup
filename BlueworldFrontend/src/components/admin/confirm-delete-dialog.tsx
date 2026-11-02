@@ -55,7 +55,7 @@ export function ConfirmDeleteDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[80] grid place-items-center bg-primary-deep/60 p-4 backdrop-blur-sm dark:bg-black/70"
+      className="fixed inset-0 z-[80] grid place-items-center overflow-y-auto bg-primary-deep/60 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm dark:bg-black/70"
       onClick={onCancel}
       role="dialog"
       aria-modal="true"
@@ -93,12 +93,12 @@ export function ConfirmDeleteDialog({
           )}
         </p>
 
-        <div className="mt-6 flex justify-end gap-3">
+        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <button
             type="button"
             autoFocus
             onClick={step === 1 ? onCancel : () => setStep(1)}
-            className="rounded-full border border-border px-5 py-2.5 text-sm font-semibold text-foreground/80"
+            className="min-h-11 rounded-full border border-border px-5 py-2.5 text-sm font-semibold text-foreground/80"
           >
             {step === 1 ? "Cancel" : "Go back"}
           </button>
@@ -106,7 +106,7 @@ export function ConfirmDeleteDialog({
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="rounded-full border border-destructive/50 px-5 py-2.5 text-sm font-bold text-destructive"
+              className="min-h-11 rounded-full border border-destructive/50 px-5 py-2.5 text-sm font-bold text-destructive"
             >
               Yes, continue
             </button>
@@ -115,7 +115,7 @@ export function ConfirmDeleteDialog({
               type="button"
               disabled={locked}
               onClick={onConfirm}
-              className="rounded-full bg-destructive px-5 py-2.5 text-sm font-bold text-destructive-foreground disabled:cursor-not-allowed disabled:opacity-50"
+              className="min-h-11 rounded-full bg-destructive px-5 py-2.5 text-sm font-bold text-destructive-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >
               {locked ? "Please wait…" : "Delete permanently"}
             </button>

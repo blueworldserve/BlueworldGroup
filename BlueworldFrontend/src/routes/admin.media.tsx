@@ -5,7 +5,7 @@ import { Copy, ImageOff, Loader2, Trash2, UploadCloud } from "lucide-react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { WriteGate } from "@/components/admin/write-gate";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, EDITOR_DIALOG_CLASS } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -149,10 +149,12 @@ function MediaAdmin() {
                 {selectedTitle} <span className="font-normal text-muted-foreground">· {shown.length}</span>
               </h2>
               <input
+                type="search"
+                enterKeyHint="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search filename or area…"
-                className="w-60 rounded-full border border-border bg-background px-4 py-1.5 text-sm"
+                className="w-full rounded-full border border-border bg-background px-4 py-1.5 text-sm sm:w-60"
               />
             </div>
 
@@ -302,17 +304,17 @@ function MediaDialog({ asset, onClose, onDelete }: { asset: MediaAsset; onClose:
 
   return (
     <Dialog open onOpenChange={(o) => !o && !saving && onClose()}>
-      <DialogContent className="flex h-[92vh] w-[96vw] max-w-5xl flex-col gap-0 overflow-hidden p-0">
+      <DialogContent className={cn(EDITOR_DIALOG_CLASS, "sm:max-w-5xl")}>
         <DialogHeader className="border-b border-border p-5 text-left">
           <DialogTitle className="pr-8 font-display text-xl text-primary-deep">{asset.filename || "Untitled image"}</DialogTitle>
           <DialogDescription>Edit the details and tag where this image is used.</DialogDescription>
         </DialogHeader>
 
-        <div className="grid min-h-0 flex-1 lg:grid-cols-[3fr_minmax(320px,2fr)]">
+        <div className="grid min-h-0 flex-1 content-start overflow-y-auto lg:grid-cols-[3fr_minmax(320px,2fr)] lg:overflow-hidden">
           {/* Preview */}
           <div className="flex min-h-0 items-center justify-center bg-secondary p-4">
             {url ? (
-              <img src={url} alt={filename} className="max-h-full max-w-full rounded-lg object-contain" />
+              <img src={url} alt={filename} className="max-h-[40dvh] max-w-full rounded-lg object-contain lg:max-h-full" />
             ) : (
               <ImageOff className="h-10 w-10 text-muted-foreground" />
             )}
@@ -369,11 +371,11 @@ function MediaDialog({ asset, onClose, onDelete }: { asset: MediaAsset; onClose:
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-card p-4">
-          <button type="button" onClick={onDelete} className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-destructive">
+        <div className="flex flex-col-reverse gap-3 border-t border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+          <button type="button" onClick={onDelete} className="inline-flex min-h-10 items-center justify-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-destructive">
             <Trash2 className="h-3.5 w-3.5" /> Delete image
           </button>
-          <div className="flex gap-2">
+          <div className="flex gap-2 [&>button]:flex-1 sm:[&>button]:flex-none">
             <Button variant="outline" onClick={() => void copyUrl()} disabled={!url}>
               <Copy className="mr-1.5 h-3.5 w-3.5" />
               Copy link

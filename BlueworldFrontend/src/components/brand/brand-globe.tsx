@@ -3,6 +3,7 @@ import { Globe as GlobeIcon, Image as ImageIcon, X } from "lucide-react";
 import type { GlobeFocus, GlobeMarker } from "@/components/brand/globe-scene";
 import { useCollection } from "@/lib/cms-store";
 import { resolveTint } from "@/lib/tint";
+import { GlobeBoundary } from "@/components/brand/globe-boundary";
 
 const GlobeScene = lazy(() => import("@/components/brand/globe-scene"));
 
@@ -216,15 +217,17 @@ export function BrandGlobe({
       ) : (
         <>
           <div className="absolute transition-all duration-700 ease-in-out" style={globeBox}>
-            <Suspense fallback={<div className="h-full w-full animate-pulse rounded-full bg-white/10" />}>
-              <GlobeScene
-                markers={markers}
-                interactive
-                focus={focus}
-                selected={activeCountry}
-                onSelect={onSelectCountry}
-              />
-            </Suspense>
+            <GlobeBoundary fallback={<img src="/blueworld.png" alt="Blue World Cosmetics" className="h-full w-full object-contain" draggable={false} />}>
+              <Suspense fallback={<div className="h-full w-full animate-pulse rounded-full bg-white/10" />}>
+                <GlobeScene
+                  markers={markers}
+                  interactive
+                  focus={focus}
+                  selected={activeCountry}
+                  onSelect={onSelectCountry}
+                />
+              </Suspense>
+            </GlobeBoundary>
           </div>
 
           {standText && !showcase && (

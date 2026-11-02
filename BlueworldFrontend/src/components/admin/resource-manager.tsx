@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { Pencil, Plus, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
@@ -76,11 +76,11 @@ export function ResourceManager<T extends Row>({
   return (
     <div className="space-y-6">
       {allowCreate && (
-        <div className="flex justify-end">
+        <div className="flex sm:justify-end">
           <button
             type="button"
             onClick={() => setEditing(emptyItem())}
-            className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-accent-foreground shadow-card transition-transform hover:-translate-y-0.5"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 sm:w-auto text-sm font-bold text-accent-foreground shadow-card transition-transform hover:-translate-y-0.5"
           >
             <Plus className="h-4 w-4" />
             New {singular}
@@ -155,7 +155,7 @@ export function ResourceManager<T extends Row>({
                           setPendingDelete(item);
                         }}
                         hidden={!canDelete}
-                        className="grid h-9 w-9place-items-center rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10"
+                        className="gridh-9 w-9 place-items-center rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -203,7 +203,7 @@ export function ResourceManager<T extends Row>({
                   type="button"
                   onClick={() => setEditing(item)}
                   aria-label={`Edit ${item.id}`}
-                  className="grid h-10 w-10 place-items-center rounded-lg border border-border text-primary-deep hover:bg-primary-soft"
+                  className="grid h-11 w-11 place-items-center rounded-lg border border-border text-primary-deep hover:bg-primary-soft"
                 >
                   <Pencil className="h-4 w-4" />
                 </button>
@@ -214,7 +214,7 @@ export function ResourceManager<T extends Row>({
                     setPendingDelete(item);
                   }}
                   hidden={!canDelete}
-                  className="grid h-10 w-10place-items-center rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10"
+                  className="grid h-11 w-11 place-items-center rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -432,6 +432,19 @@ export function RecordEditor<T extends Record<string, unknown>>({
 }) {
   const [draft, setDraft] = useState<T>(record);
 
+  // Popup mode: stop the page behind from scrolling, and let Esc close it.
+  useEffect(() => {
+    if (inline) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onCancel?.();
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [inline, onCancel]);
+
   function set(name: string, value: unknown) {
     setDraft((d) => ({ ...d, [name]: value }));
   }
@@ -570,10 +583,16 @@ export function RecordEditor<T extends Record<string, unknown>>({
         );
       })}
 
-      <div className="flex gap-3 pt-2">
+      <div
+        className={cn(
+          "flex gap-3 pt-2",
+          !inline &&
+            "sticky bottom-0 z-10 -mx-5 -mb-5 mt-6 border-t border-border bg-card px-5 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:-mx-7 sm:-mb-7 sm:px-7",
+        )}
+      >
         <button
           type="submit"
-          className="rounded-full bg-primary-deep px-6 py-3 text-sm font-bold text-primary-foreground transition-transform hover:-translate-y-0.5"
+          className="min-h-11 flex-1 rounded-full bg-primary-deep px-6 py-3 sm:flex-none text-sm font-bold text-primary-foreground transition-transform hover:-translate-y-0.5"
         >
           Save {singular.toLowerCase()}
         </button>
@@ -581,7 +600,7 @@ export function RecordEditor<T extends Record<string, unknown>>({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-full border border-border px-6 py-3 text-sm font-semibold text-muted-foreground"
+            className="min-h-11 flex-1 rounded-full border border-border px-6 py-3 text-sm font-semibold text-muted-foreground sm:flex-none"
           >
             Cancel
           </button>
@@ -593,10 +612,15 @@ export function RecordEditor<T extends Record<string, unknown>>({
   if (inline) return body;
 
   return (
-    <div className="fixed inset-0 z-[60] grid place-items-center bg-primary-deep/60 p-4 backdrop-blur-sm dark:bg-black/70">
+     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Edit ${singular.toLowerCase()}`}
+      className="fixed inset-0 z-[60] grid place-items-center bg-primary-deep/60 backdrop-blur-sm dark:bg-black/70 sm:p-4"
+    >
       {/* CHANGED: tighter padding on mobile (`p-5`), original `p-7` kept
           from `sm` up. */}
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-5 shadow-lift sm:p-7">
+      <div className="h-dvh w-full max-w-2xl overflow-y-auto overscroll-contain border-border bg-card p-5 pt-[max(1.25rem,env(safe-area-inset-top))] shadow-lift sm:h-auto sm:max-h-[90dvh] sm:rounded-2xl sm:border sm:p-7">
         <h2 className="font-display text-xl font-bold text-primary-deep">Edit {singular.toLowerCase()}</h2>
         <div className="mt-6">{body}</div>
       </div>
