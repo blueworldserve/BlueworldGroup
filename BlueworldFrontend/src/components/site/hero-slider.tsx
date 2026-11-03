@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Play, X } from "lucide-react";
+import { ArrowRight, Play, X } from "lucide-react";
 import { AppLink } from "@/components/site/app-link";
 import { ButtonLink } from "@/components/site/primitives";
 import { resolveImage } from "@/data/images";
@@ -9,6 +9,12 @@ import type { HeroSlide } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const SLIDE_MS = 7000;
+
+export type HeroCard = { title: string; image: string; href: string };
+export type HeroStat = { k: string; v: string };
+
+const PRODUCTS_BTN =
+  "inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3.5 text-[0.74rem] font-bold uppercase tracking-[0.16em] text-accent-foreground shadow-lg shadow-black/25 transition hover:-translate-y-0.5 hover:bg-white hover:text-primary-deep";
 
 /** True from the `md` breakpoint (768px) up. False on the server and on phones. */
 function useIsWide(): boolean {
@@ -23,7 +29,15 @@ function useIsWide(): boolean {
   return wide;
 }
 
-export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
+export function HeroSlider({
+  slides,
+  cards = [],
+  stats = [],
+}: {
+  slides: HeroSlide[];
+  cards?: HeroCard[];
+  stats?: HeroStat[];
+}) {
   const ordered = useMemo(() => [...slides].sort((a, b) => a.order - b.order), [slides]);
   const count = ordered.length;
   const [index, setIndex] = useState(0);
@@ -63,22 +77,15 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
   const active = index % count;
   const slide = ordered[active]!;
 
-  // Videos are for wide screens only. On phones the slide is just its photo
-  // (nothing is downloaded or played). YouTube and file videos play as a muted
-  // background; Instagram can't autoplay or hide its chrome, so it gets a
-  // "Watch video" button that opens the embed.
   const mobileSrc = slide.mobileImage || slide.image;
   const mobileIsRemote = /^https?:\/\//.test(mobileSrc);
   const parsed = isWide ? parseVideoUrl(slide.videoUrl) : null;
   const bgVideo = parsed && parsed.kind !== "instagram" && !reduceMotion ? parsed : null;
   const igVideo = parsed?.kind === "instagram" ? parsed : null;
+  const showSlideCta = Boolean(slide.ctaLabel && slide.ctaHref && slide.ctaHref !== "/products");
 
   return (
-    <section className="relative aspect-[9/16] max-h-[88svh] w-full overflow-hidden bg-primary-deep md:aspect-auto md:h-[92vh] md:max-h-none">
-      {/* One photo at a time. On a phone the box is phone-shaped (9:16) and the
-          photo fills it edge to edge: `object-cover` scales it up if it's small
-          and crops whatever overflows if it's a different shape. From 768px up
-          the slide's main (wide) photo is used instead. */}
+    <section className="relative aspect-[9/16] max-h-[88svh] w-full overflow-hidden bg-primary-deep md:aspect-auto md:h-[94vh] md:max-h-none">
       <AnimatePresence mode="sync">
         <motion.div
           key={slide.id}
@@ -102,7 +109,7 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
               fetchPriority="high"
               decoding="async"
               draggable={false}
-              className="absolute inset-0 h-full w-full object-cover object-[50%_22%] md:object-[50%_30%]"
+              className="absolute inset-0 h-full w-full object-cover object-[50%_22%] saturate-[1.12] contrast-[1.05] md:object-[50%_30%]"
             />
           </picture>
           {bgVideo?.kind === "file" && (
@@ -116,7 +123,7 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
               playsInline
               preload="metadata"
               aria-hidden="true"
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover saturate-[1.12] contrast-[1.05]"
             />
           )}
           {bgVideo?.kind === "youtube" && (
@@ -133,19 +140,20 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
         </motion.div>
       </AnimatePresence>
 
-      {/* Desktop legibility scrim for the centered text. Phones show the photo as-is. */}
-      <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-b from-black/25 via-black/5 to-black/35 md:block" />
-      {/* Phones: a soft dark fade over the lower part of the photo, behind the caption and the dots. */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/60 via-black/25 to-transparent md:hidden" />
+      {/* Desktop: dark only where the text sits (left) and behind the stats bar (bottom), so the photo stays vivid. */}
+      <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-black/60 via-black/15 to-transparent md:block" />
+      <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-t from-black/50 via-transparent to-transparent md:block" />
+      {/* Phones */}
+      <div className="pointer-events-none absolute inset-0 bg-black/35 md:hidden" />
 
-      {/* Phones: caption sits at the bottom over the dark fade and the photo keeps the top.
-          With no button, tapping the photo still follows the slide's link. */}
       {slide.ctaHref && !slide.ctaLabel && (
         <AppLink href={slide.ctaHref} className="absolute inset-0 z-[5] md:hidden">
           <span className="sr-only">{slide.title}</span>
         </AppLink>
       )}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[6] flex justify-center px-6 pb-14 text-center md:hidden">
+
+      {/* Phones: caption at the bottom */}
+      <div className="pointer-events-none absolute inset-0 z-[6] flex items-center justify-center px-6 text-center md:hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={`m-copy-${slide.id}`}
@@ -156,64 +164,126 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
             className="w-full max-w-sm"
           >
             {slide.eyebrow && (
-              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-white/85">
-                {slide.eyebrow}
-              </p>
+              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-white/85">{slide.eyebrow}</p>
             )}
             <h1 className="mt-2 line-clamp-3 text-[1.65rem] font-extrabold uppercase leading-[1.15] tracking-wide text-white [text-shadow:0_1px_14px_rgba(0,0,0,0.35)]">
               {slide.title}
             </h1>
-            {slide.ctaLabel && slide.ctaHref && (
-              <div className="pointer-events-auto mt-5">
+            <div className="pointer-events-auto mt-5 flex flex-col items-center gap-3">
+              <AppLink href="/products" className={PRODUCTS_BTN}>
+                See products <ArrowRight className="h-4 w-4" />
+              </AppLink>
+              {showSlideCta && (
                 <ButtonLink href={slide.ctaHref} variant="outline">
                   {slide.ctaLabel}
                 </ButtonLink>
-              </div>
-            )}
+              )}
+            </div>
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Wide screens: centered caption over the photo or video. */}
-      <div className="relative hidden h-full items-center justify-center px-6 text-center md:flex">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`copy-${slide.id}`}
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.6 }}
-            className="w-full max-w-xl"
-          >
-            {slide.eyebrow && (
-              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/85">{slide.eyebrow}</p>
-            )}
-            <h1 className="mt-4 text-3xl font-extrabold uppercase leading-tight tracking-wide text-white lg:text-5xl">
-              {slide.title}
-            </h1>
-            {slide.ctaLabel && slide.ctaHref && (
-              <div className="mt-8">
-                <ButtonLink href={slide.ctaHref} variant="outline">
-                  {slide.ctaLabel}
-                </ButtonLink>
+      {/* Wide screens: left-aligned caption, brand cards on the right */}
+      <div className="relative hidden h-full md:block">
+        <div
+          className={cn(
+            "mx-auto flex h-full max-w-7xl items-center justify-between gap-10 px-8 pt-28",
+            stats.length > 0 ? "pb-32" : "pb-20",
+          )}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`copy-${slide.id}`}
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.6 }}
+              className="max-w-xl text-left"
+            >
+              {slide.eyebrow && (
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/85">{slide.eyebrow}</p>
+              )}
+              <h1 className="mt-4 text-4xl font-extrabold uppercase leading-[1.05] tracking-wide text-white [text-shadow:0_2px_20px_rgba(0,0,0,0.3)] lg:text-6xl">
+                {slide.title}
+              </h1>
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <AppLink href="/products" className={PRODUCTS_BTN}>
+                  See products <ArrowRight className="h-4 w-4" />
+                </AppLink>
+                {showSlideCta && (
+                  <ButtonLink href={slide.ctaHref} variant="outline">
+                    {slide.ctaLabel}
+                  </ButtonLink>
+                )}
+                {igVideo && (
+                  <button
+                    type="button"
+                    onClick={() => setIgOpen(true)}
+                    className="inline-flex items-center gap-2 rounded-full bg-white/15 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/25"
+                  >
+                    <Play className="h-4 w-4 fill-current" />
+                    Watch video
+                  </button>
+                )}
               </div>
-            )}
-            {igVideo && (
-              <button
-                type="button"
-                onClick={() => setIgOpen(true)}
-                className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/25"
-              >
-                <Play className="h-4 w-4 fill-current" />
-                Watch video
-              </button>
-            )}
-          </motion.div>
-        </AnimatePresence>
+            </motion.div>
+          </AnimatePresence>
+
+          {cards.length > 0 && (
+            <div className="hidden w-64 shrink-0 flex-col gap-4 lg:flex">
+              {cards.slice(0, 2).map((c, i) => (
+                <AppLink
+                  key={c.href}
+                  href={c.href}
+                  className={cn(
+                    "group flex gap-3 rounded-2xl p-3 shadow-xl shadow-black/30 transition duration-300 hover:-translate-y-1",
+                    i === 0 ? "bg-accent text-accent-foreground" : "bg-primary-deep text-white",
+                  )}
+                >
+                  <img
+                    src={resolveImage(c.image, 400)}
+                    alt=""
+                    draggable={false}
+                    className="h-24 w-24 shrink-0 rounded-xl object-cover"
+                  />
+                  <span className="flex flex-col justify-between py-1">
+                    <span className="text-base font-bold leading-tight">{c.title}</span>
+                    <span className="text-xs font-semibold underline underline-offset-4">Explore</span>
+                  </span>
+                </AppLink>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Wide screens: stats bar. Columns always split the width evenly, whatever the count. */}
+      {stats.length > 0 && (
+        <div className="absolute inset-x-0 bottom-0 z-10 hidden px-8 pb-4 md:block">
+          <div className="mx-auto max-w-5xl rounded-xl border border-white/20 bg-primary-deep/55 py-3 backdrop-blur-xl">
+            <div
+              className="grid divide-x divide-white/15"
+              style={{ gridTemplateColumns: `repeat(${stats.length}, minmax(0, 1fr))` }}
+            >
+              {stats.map((s) => (
+                <div key={s.v} className="px-3 text-center">
+                  <p className="bw-accent bw-orange text-xl">{s.k}</p>
+                  <p className="mt-0.5 text-[0.55rem] uppercase tracking-[0.16em] text-white/75">{s.v}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {count > 1 && (
-        <div className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 gap-2 md:bottom-6">
+        <div
+          className={cn(
+            "absolute left-1/2 z-10 flex -translate-x-1/2 gap-2",
+            "bottom-5",
+            stats.length > 0 ? "md:bottom-24" : "md:bottom-6",
+          )}
+        >
           {ordered.map((s, i) => (
             <button
               key={s.id}

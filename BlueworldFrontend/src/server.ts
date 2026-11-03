@@ -7,6 +7,9 @@ type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
 
+// Origin of the FastAPI backend. In dev it is plain http, which `https:` alone does not cover.
+const API_ORIGIN = (import.meta.env["VITE_API_BASE_URL"] as string | undefined) ?? "http://localhost:8000";
+
 // Sent with every page. The API sets its own headers; this covers the website itself, which had none.
 const SECURITY_HEADERS: Record<string, string> = {
   "x-content-type-options": "nosniff",
@@ -16,7 +19,7 @@ const SECURITY_HEADERS: Record<string, string> = {
   "strict-transport-security": "max-age=15552000",
   // Report-only: nothing is blocked, but the console lists anything that WOULD be. When quiet, rename to content-security-policy.
   "content-security-policy-report-only":
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://res.cloudinary.com; media-src 'self' blob: https://res.cloudinary.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.instagram.com; connect-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'",
+    `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://res.cloudinary.com; media-src 'self' blob: https://res.cloudinary.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.instagram.com; connect-src 'self' https: ${API_ORIGIN}; object-src 'none'; base-uri 'self'; frame-ancestors 'self'`,
 };
 
 function withSecurityHeaders(response: Response): Response {

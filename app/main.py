@@ -149,6 +149,14 @@ def run_startup_tasks():
         logger.exception("Country showcase seed step failed on startup")
         # not re-raised: same reasoning as the superuser seed above
 
+    # 3b. Make sure About/Business/Career/Blog/Contact exist as CMS pages (editable banner photos)
+    try:
+        from scripts.seed_page_heroes import seed_page_heroes
+        seed_page_heroes()
+    except Exception:
+        logger.exception("Page hero seed step failed on startup")
+        # not re-raised: the pages simply keep their built-in photos
+
     # 4. Start the daily applications roundup (2 PM Lagos time by default)
     try:
         from core.scheduler import start_scheduler

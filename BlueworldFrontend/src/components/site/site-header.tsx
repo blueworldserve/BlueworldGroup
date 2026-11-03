@@ -1,16 +1,28 @@
 import { useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { AppLink } from "@/components/site/app-link";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { CmsImage } from "@/components/site/primitives";
+import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useBusinessUnits } from "@/hooks/use-cms";
 
+type NavChild = {
+  label: string;
+  to: string;
+  description?: string | undefined;
+  image?: string | undefined;
+};
+
 type NavItem = {
   label: string;
   to: string;
-  children?: { label: string; to: string }[];
+  blurb?: string | undefined;
+  children?: NavChild[] | undefined;
 };
+
+/** Items listed here open the wide mega menu. Every other item with children gets a simple dropdown. */
+const MEGA_ITEMS = new Set(["Business"]);
 
 export const NAV_ITEMS: NavItem[] = [
   { label: "Home", to: "/" },
@@ -26,6 +38,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     label: "Business",
     to: "/business/vivon",
+    blurb: "Five brands, one manufacturing house. Pick a brand to see what it makes.",
     children: [
       { label: "Vivon", to: "/business/vivon" },
       { label: "BlueCrystal", to: "/business/bluecrystal" },
@@ -59,7 +72,12 @@ export function SiteHeader() {
           ...item,
           children: [...units.data]
             .sort((a, b) => a.order - b.order)
-            .map((u) => ({ label: u.name, to: `/business/${u.slug}` })),
+            .map((u) => ({
+              label: u.name,
+              to: `/business/${u.slug}`,
+              description: u.tagline,
+              image: u.heroImage,
+            })),
         }
       : item,
   );
@@ -68,17 +86,25 @@ export function SiteHeader() {
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [previewTo, setPreviewTo] = useState<string | null>(null);
 
-  // Transparent on EVERY page, on every fresh load and every client-side
-  // navigation, until the user scrolls, hovers the bar, or opens the mobile
-  // menu. No route is special-cased.
-  const transparent = !scrolled && !openMobile && !hovered;
+  const openItem = navItems.find((i) => i.label === openMenu && i.children?.length);
+  const megaItem = openItem && MEGA_ITEMS.has(openItem.label) ? openItem : undefined;
+
+  // Glass-over-hero until the user scrolls, hovers the bar, opens a menu or the mobile drawer.
+  const transparent = !scrolled && !openMobile && !hovered && !openItem;
+
+  const togglePanel = (label: string) => {
+    setOpenMenu((c) => (c === label ? null : label));
+    setPreviewTo(null);
+  };
+  const showPanel = (label: string) => {
+    setOpenMenu(label);
+    setPreviewTo(null);
+  };
 
   useEffect(() => {
-    // A client-side route change keeps this component mounted with its old
-    // state — always reset to "not scrolled" the instant the route changes,
-    // then hand off to the real scroll position on the next paint (by which
-    // point the router's own scroll-restoration has settled).
     setScrolled(false);
     const onScroll = () => setScrolled(window.scrollY > 40);
     const raf = requestAnimationFrame(onScroll);
@@ -88,6 +114,18 @@ export function SiteHeader() {
       window.removeEventListener("scroll", onScroll);
     };
   }, [pathname]);
+
+  // Close menus on every route change.
+  useEffect(() => {
+    setOpenMenu(null);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!openMenu) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpenMenu(null);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [openMenu]);
 
   useEffect(() => {
     if (!openMobile) return;
@@ -101,222 +139,358 @@ export function SiteHeader() {
     };
   }, [openMobile]);
 
+  const linkBase =
+    "rounded-xl px-2.5 py-2 text-[0.74rem] font-semibold uppercase tracking-[0.12em] transition-colors duration-200 xl:px-3";
+
   return (
     <>
-    <header
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className={cn(
-        "fixed top-0 left-0 z-50 w-full transition-all duration-500 ease-out",
-        transparent
-          ? "border-transparent bg-transparent shadow-none"
-          : "border-b border-border/70 bg-background/95 backdrop-blur-xl shadow-sm",
-      )}
-    >
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-5 lg:px-8">
-        <Link to="/" className="group flex items-center gap-3" onClick={() => setOpenMobile(false)}>
-          <img
-            src="/blueworld.png"
-            alt="Blue World Cosmetics"
-            className="h-14 w-14 object-cover"
-            draggable={false}
-          />
-          <span className="flex flex-col leading-none">
-            <span
-              className={cn(
-                "font-display text-[1.05rem] font-extrabold tracking-tight transition-colors",
-                transparent ? "text-white" : "text-primary-deep",
-              )}
-            >
-              BLUE WORLD
-            </span>
-            <span
-              className={cn(
-                "mt-1 text-[0.62rem] font-bold uppercase tracking-[0.28em] transition-colors",
-                transparent ? "text-white/80" : "text-accent",
-              )}
-            >
-              Cosmetics
-            </span>
-          </span>
-        </Link>
-
-        <nav className="hidden items-center gap-1 lg:flex">
-          {NAV_ITEMS.map((item) => {
-            const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to.split("?")[0]!);
-            if (!item.children) {
-              return (
-                <AppLink
-                  key={item.label}
-                  href={item.to}
-                  className={cn(
-                    "px-3 py-2 text-[0.78rem] font-semibold uppercase tracking-[0.14em] transition-colors duration-200",
-                    transparent
-                      ? "text-white/90 hover:text-accent"
-                      : "text-foreground/80 hover:text-accent",
-                    active && (transparent ? "text-white" : "text-primary-deep"),
-                  )}
-                >
-                  {item.label}
-                </AppLink>
-              );
-            }
-            return (
-              <div key={item.label} className="group relative">
-                <button
-                  type="button"
-                  className={cn(
-                    "flex items-center gap-1 px-3 py-2 text-[0.78rem] font-semibold uppercase tracking-[0.14em] transition-colors duration-200",
-                    transparent
-                      ? "text-white/90 hover:text-accent"
-                      : "text-foreground/80 hover:text-accent",
-                    active && (transparent ? "text-white" : "text-primary-deep"),
-                  )}
-                >
-                  {item.label}
-                  <ChevronDown className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
-                </button>
-                <div className="invisible absolute left-0 top-full w-64 translate-y-2 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                  <div className="overflow-hidden border border-border bg-card p-2 shadow-lift">
-                    {item.children.map((child) => (
-                      <AppLink
-                        key={child.label}
-                        href={child.to}
-                        className="block px-4 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary-soft hover:text-primary-deep"
-                      >
-                        {child.label}
-                      </AppLink>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </nav>
-
-        <div className="hidden lg:block">
-          <Link
-            to="/contact"
-            className={cn(
-              "inline-flex items-center px-6 py-3 text-[0.72rem] font-bold uppercase tracking-[0.16em] transition-colors duration-200",
-              transparent
-                ? "border border-white/70 text-white hover:bg-white hover:text-primary-deep"
-                : "bg-accent text-accent-foreground",
-            )}
-          >
-            Talk to sales
-          </Link>
-        </div>
-
-        <button
-          type="button"
-          aria-label={openMobile ? "Close menu" : "Open menu"}
-          onClick={() => setOpenMobile((v) => !v)}
+      <header
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => {
+          setHovered(false);
+          setOpenMenu(null);
+        }}
+        className="fixed inset-x-2 top-2 z-50 mx-auto max-w-7xl"
+      >
+        {/* Glass layer is its own element (not on <header>) so the mega panel can blur the page too. */}
+        <div
+          aria-hidden="true"
           className={cn(
-            "grid h-11 w-11 place-items-center border lg:hidden transition-colors",
-            transparent ? "border-white/50 text-white" : "border-border text-primary-deep",
+            "pointer-events-none absolute inset-0 -z-10 rounded-2xl border backdrop-blur-xl transition-all duration-500 ease-out",
+            transparent
+              ? "border-white/15 bg-primary-deep/25 shadow-none"
+              : "border-border/60 bg-background/70 shadow-lg shadow-black/5",
           )}
-        >
-          {openMobile ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-      </div>
-    </header>
+        />
 
-    {/* Drawer sits OUTSIDE <header>: the header's backdrop-blur would otherwise trap position:fixed. */}
-    <AnimatePresence>
-      {openMobile && (
-        <>
-          <motion.div
-            key="scrim"
-            className="fixed inset-0 z-[60] bg-black/55 lg:hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setOpenMobile(false)}
-          />
-          <motion.aside
-            key="drawer"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Site menu"
-            className="fixed right-0 top-0 z-[70] flex h-full w-[86%] max-w-sm flex-col bg-background shadow-2xl lg:hidden"
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <div className="flex h-20 shrink-0 items-center justify-between border-b border-border px-5">
-              <span className="text-xs font-bold uppercase tracking-[0.24em] text-accent">Menu</span>
-              <button
-                type="button"
-                aria-label="Close menu"
-                onClick={() => setOpenMobile(false)}
-                className="grid h-10 w-10 place-items-center border border-border text-primary-deep"
+        <div className="box-content flex h-14 items-center justify-between gap-4 p-2">
+          <Link to="/" className="group flex items-center gap-3" onClick={() => setOpenMobile(false)}>
+            <img
+              src="/blueworld.png"
+              alt="Blue World Cosmetics"
+              className="h-12 w-12 rounded-xl object-cover"
+              draggable={false}
+            />
+            <span className="flex flex-col leading-none">
+              <span
+                className={cn(
+                  "font-display text-[1.02rem] font-extrabold tracking-tight transition-colors",
+                  transparent ? "text-white" : "text-primary-deep",
+                )}
               >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+                BLUE WORLD
+              </span>
+              <span
+                className={cn(
+                  "mt-1 text-[0.6rem] font-bold uppercase tracking-[0.28em] transition-colors",
+                  transparent ? "text-white/80" : "text-accent",
+                )}
+              >
+                Cosmetics
+              </span>
+            </span>
+          </Link>
 
-            <nav className="flex-1 overflow-y-auto px-5 py-4">
-              {NAV_ITEMS.map((item) => (
-                <div key={item.label} className="border-b border-border/70">
-                  {item.children ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => setOpenAccordion((c) => (c === item.label ? null : item.label))}
-                        className="flex w-full items-center justify-between py-4 text-left text-xl font-bold text-primary-deep"
-                      >
-                        {item.label}
-                        <ChevronDown className={cn("h-4 w-4 transition-transform", openAccordion === item.label && "rotate-180")} />
-                      </button>
-                      <AnimatePresence initial={false}>
-                        {openAccordion === item.label && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.25 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="mb-3 ml-1 border-l-2 border-accent pl-4">
-                              {item.children.map((child) => (
-                                <AppLink
-                                  key={child.label}
-                                  href={child.to}
-                                  onClick={() => setOpenMobile(false)}
-                                  className="block py-2.5 text-base text-foreground/80 hover:text-accent"
-                                >
-                                  {child.label}
-                                </AppLink>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </>
-                  ) : (
-                    <AppLink
-                      href={item.to}
-                      onClick={() => setOpenMobile(false)}
-                      className="block py-4 text-xl font-bold text-primary-deep"
-                    >
+          <nav className="hidden items-center gap-0.5 lg:flex">
+            {navItems.map((item) => {
+              const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to.split("?")[0]!);
+              const tone = cn(
+                linkBase,
+                transparent
+                  ? "text-white/90 hover:bg-white/10"
+                  : "text-foreground/80 hover:bg-primary-soft hover:text-primary-deep",
+                active && (transparent ? "bg-white/10 text-white" : "bg-primary-soft text-primary-deep"),
+              );
+              if (!item.children?.length) {
+                return (
+                  <div key={item.label} onMouseEnter={() => setOpenMenu(null)}>
+                    <AppLink href={item.to} className={cn("block", tone)}>
                       {item.label}
                     </AppLink>
-                  )}
-                </div>
-              ))}
-            </nav>
+                  </div>
+                );
+              }
+              const isOpen = openMenu === item.label;
+              const isMega = MEGA_ITEMS.has(item.label);
+              return (
+                <div key={item.label} className="relative" onMouseEnter={() => showPanel(item.label)}>
+                  <button
+                    type="button"
+                    aria-expanded={isOpen}
+                    aria-haspopup="true"
+                    onClick={() => togglePanel(item.label)}
+                    className={cn("flex items-center gap-1", tone, isOpen && !transparent && "bg-primary-soft text-primary-deep")}
+                  >
+                    {item.label}
+                    <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", isOpen && "rotate-180")} />
+                  </button>
 
-            <div className="shrink-0 border-t border-border p-5">
-              <Link to="/contact" onClick={() => setOpenMobile(false)} className="btn-corporate w-full">
-                Talk to sales
-              </Link>
-            </div>
-          </motion.aside>
-        </>
-      )}
-    </AnimatePresence>
+                  {/* Simple dropdown for every item that is not a mega menu. */}
+                  <AnimatePresence>
+                    {!isMega && isOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.18, ease: "easeOut" }}
+                        // The top padding is an invisible bridge so the pointer can cross the gap without closing the menu.
+                        className="absolute left-0 top-full w-64 pt-[1.625rem]"
+                      >
+                        <div className="rounded-2xl border border-border/60 bg-background/85 p-2 shadow-lift backdrop-blur-2xl">
+                          {item.children.map((child) => (
+                            <AppLink
+                              key={child.label}
+                              href={child.to}
+                              onClick={() => setOpenMenu(null)}
+                              className="block rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground/85 transition-colors hover:bg-primary-soft hover:text-primary-deep"
+                            >
+                              {child.label}
+                            </AppLink>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+          </nav>
+
+          <div className="hidden lg:block" onMouseEnter={() => setOpenMenu(null)}>
+            <Link
+              to="/contact"
+              className={cn(
+                "inline-flex items-center rounded-xl px-5 py-3 text-[0.72rem] font-bold uppercase tracking-[0.16em] transition-colors duration-200",
+                transparent
+                  ? "border border-white/70 text-white hover:bg-white hover:text-primary-deep"
+                  : "bg-accent text-accent-foreground hover:opacity-90",
+              )}
+            >
+              Talk to sales
+            </Link>
+          </div>
+
+          <button
+            type="button"
+            aria-label={openMobile ? "Close menu" : "Open menu"}
+            onClick={() => setOpenMobile((v) => !v)}
+            className={cn(
+              "grid h-11 w-11 place-items-center rounded-xl border transition-colors lg:hidden",
+              transparent ? "border-white/50 text-white" : "border-border text-primary-deep",
+            )}
+          >
+            {openMobile ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+
+        <AnimatePresence>
+          {megaItem && (
+            <MegaPanel
+              key={megaItem.label}
+              item={megaItem}
+              previewTo={previewTo}
+              onPreview={setPreviewTo}
+              onNavigate={() => setOpenMenu(null)}
+            />
+          )}
+        </AnimatePresence>
+      </header>
+
+      {/* Drawer sits OUTSIDE <header> so position:fixed is never trapped by an ancestor. */}
+      <AnimatePresence>
+        {openMobile && (
+          <>
+            <motion.div
+              key="scrim"
+              className="fixed inset-0 z-[60] bg-black/55 lg:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setOpenMobile(false)}
+            />
+            <motion.aside
+              key="drawer"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Site menu"
+              className="fixed right-0 top-0 z-[70] flex h-full w-[86%] max-w-sm flex-col bg-background shadow-2xl lg:hidden"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <div className="flex h-20 shrink-0 items-center justify-between border-b border-border px-5">
+                <span className="text-xs font-bold uppercase tracking-[0.24em] text-accent">Menu</span>
+                <button
+                  type="button"
+                  aria-label="Close menu"
+                  onClick={() => setOpenMobile(false)}
+                  className="grid h-10 w-10 place-items-center rounded-xl border border-border text-primary-deep"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <nav className="flex-1 overflow-y-auto px-5 py-4">
+                {navItems.map((item) => (
+                  <div key={item.label} className="border-b border-border/70">
+                    {item.children ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setOpenAccordion((c) => (c === item.label ? null : item.label))}
+                          className="flex w-full items-center justify-between py-4 text-left text-xl font-bold text-primary-deep"
+                        >
+                          {item.label}
+                          <ChevronDown className={cn("h-4 w-4 transition-transform", openAccordion === item.label && "rotate-180")} />
+                        </button>
+                        <AnimatePresence initial={false}>
+                          {openAccordion === item.label && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.25 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="mb-3 ml-1 border-l-2 border-accent pl-4">
+                                {item.children.map((child) => (
+                                  <AppLink
+                                    key={child.label}
+                                    href={child.to}
+                                    onClick={() => setOpenMobile(false)}
+                                    className="block py-2.5 text-base text-foreground/80 hover:text-accent"
+                                  >
+                                    {child.label}
+                                  </AppLink>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </>
+                    ) : (
+                      <AppLink
+                        href={item.to}
+                        onClick={() => setOpenMobile(false)}
+                        className="block py-4 text-xl font-bold text-primary-deep"
+                      >
+                        {item.label}
+                      </AppLink>
+                    )}
+                  </div>
+                ))}
+              </nav>
+
+              <div className="shrink-0 border-t border-border p-5">
+                <Link to="/contact" onClick={() => setOpenMobile(false)} className="btn-corporate w-full">
+                  Talk to sales
+                </Link>
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
     </>
+  );
+}
+
+/**
+ * Mega menu (Business only): same width as the nav. Column 1 introduces the section,
+ * columns 2 and 3 hold the links, column 4 previews whichever link is hovered or focused.
+ */
+function MegaPanel({
+  item,
+  previewTo,
+  onPreview,
+  onNavigate,
+}: {
+  item: NavItem;
+  previewTo: string | null;
+  onPreview: (to: string) => void;
+  onNavigate: () => void;
+}) {
+  const children = item.children ?? [];
+  const half = Math.ceil(children.length / 2);
+  const columns = [children.slice(0, half), children.slice(half)];
+  const active = children.find((c) => c.to === previewTo) ?? children[0];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -6 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+      // pt-2 is an invisible bridge so the pointer can cross the gap without closing the menu.
+      className="absolute inset-x-0 top-full pt-2"
+    >
+      <div className="grid grid-cols-[1.1fr_1fr_1fr_1.2fr] gap-2 rounded-2xl border border-border/60 bg-background/80 p-2 shadow-lift backdrop-blur-2xl">
+        <div className="flex flex-col justify-between p-4">
+          <div>
+            <p className="text-[0.62rem] font-bold uppercase tracking-[0.24em] text-accent">{item.label}</p>
+            <h3 className="mt-2 font-display text-2xl font-bold leading-tight text-primary-deep">Our brands</h3>
+            {item.blurb && <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{item.blurb}</p>}
+          </div>
+          <AppLink
+            href={item.to}
+            onClick={onNavigate}
+            className="mt-6 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-primary-deep transition-colors hover:text-accent"
+          >
+            Explore {item.label}
+            <ArrowRight className="h-3.5 w-3.5" />
+          </AppLink>
+        </div>
+
+        {columns.map((col, i) => (
+          <div key={i} className="flex flex-col gap-1 py-2">
+            {col.map((child) => (
+              <div key={child.to} onMouseEnter={() => onPreview(child.to)} onFocus={() => onPreview(child.to)}>
+                <AppLink
+                  href={child.to}
+                  onClick={onNavigate}
+                  className={cn(
+                    "block rounded-xl border-l-2 border-transparent p-3 transition-all hover:bg-primary-soft",
+                    active?.to === child.to && "border-accent bg-primary-soft pl-4",
+                  )}
+                >
+                  <span className="block text-sm font-bold text-primary-deep">{child.label}</span>
+                  {child.description && (
+                    <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">{child.description}</span>
+                  )}
+                </AppLink>
+              </div>
+            ))}
+          </div>
+        ))}
+
+        <div className="relative min-h-[17rem] overflow-hidden rounded-xl bg-primary-deep">
+          <AnimatePresence mode="wait">
+            {active && (
+              <motion.div
+                key={active.to}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                className="absolute inset-0"
+              >
+                <AppLink href={active.to} onClick={onNavigate} className="relative block h-full w-full">
+                  {active.image ? (
+                    <CmsImage src={active.image} alt={active.label} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="h-full w-full bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.14),transparent_60%)]" />
+                  )}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-4 text-white">
+                    <p className="text-[0.6rem] font-bold uppercase tracking-[0.22em] text-accent">Highlighted</p>
+                    <p className="mt-1 font-display text-lg font-bold leading-tight">{active.label}</p>
+                    {active.description && <p className="mt-1 text-xs text-white/80">{active.description}</p>}
+                  </div>
+                </AppLink>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </motion.div>
   );
 }

@@ -3,28 +3,34 @@ export function renderErrorPage(): string {
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>This page didn't load</title>
+    <title>This page didn't load — Blue World Cosmetics</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
     <style>
-      body { font: 15px/1.5 system-ui, -apple-system, sans-serif; background: #fafafa; color: #111; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1.5rem; }
-      .card { max-width: 28rem; width: 100%; text-align: center; padding: 2rem; }
-      h1 { font-size: 1.25rem; margin: 0 0 0.5rem; }
-      p { color: #4b5563; margin: 0 0 1.5rem; }
-      .actions { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
-      a, button { padding: 0.5rem 1rem; border-radius: 0.375rem; font: inherit; cursor: pointer; text-decoration: none; border: 1px solid transparent; }
-      .primary { background: #111; color: #fff; }
-      .secondary { background: #fff; color: #111; border-color: #d1d5db; }
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 1.5rem; background: #fdfdff; color: #1f2a44; font: 16px/1.6 Georgia, "Times New Roman", serif; }
+      .card { max-width: 30rem; width: 100%; text-align: center; }
+      .logo { width: 80px; height: 80px; object-fit: contain; background: #f26b1d; margin: 0 auto 1.75rem; display: block; }
+      .eyebrow { margin: 0 0 .75rem; font-size: .75rem; font-weight: 700; letter-spacing: .28em; text-transform: uppercase; color: #f26b1d; }
+      h1 { margin: 0 0 1rem; font-size: 2rem; line-height: 1.15; color: #0b2a5b; }
+      p { margin: 0 0 2rem; color: #4b5563; }
+      .actions { display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
+      a, button { padding: .8rem 1.4rem; font: 700 .75rem/1 Georgia, serif; letter-spacing: .14em; text-transform: uppercase; text-decoration: none; cursor: pointer; border: 1px solid #0b2a5b; }
+      .primary { background: #f26b1d; border-color: #f26b1d; color: #0b2a5b; }
+      .secondary { background: #fff; color: #0b2a5b; }
     </style>
   </head>
   <body>
-    <div class="card">
+    <main class="card">
+      <img class="logo" src="/blueworld.png" alt="Blue World Cosmetics" />
+      <p class="eyebrow">Something went wrong</p>
       <h1>This page didn't load</h1>
-      <p>Something went wrong on our end. You can try refreshing or head back home.</p>
+      <p>Something went wrong on our end. Please try again, or head back to the home page.</p>
       <div class="actions">
         <button class="primary" onclick="location.reload()">Try again</button>
-        <a class="secondary" href="/">Go home</a>
+        <a class="secondary" href="/">Back to home</a>
       </div>
-    </div>
+    </main>
   </body>
 </html>`;
 }

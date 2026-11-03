@@ -143,17 +143,41 @@ export function ButtonLink({
   );
 }
 
+/** Full-width hero photo that asks for a large version instead of the default size. */
+function HeroPhoto({ src }: { src: string }) {
+  const remote = /^https?:\/\//.test(src);
+  return (
+    <img
+      src={resolveImage(src, 2000)}
+      srcSet={
+        remote
+          ? `${resolveImage(src, 1200)} 1200w, ${resolveImage(src, 1600)} 1600w, ${resolveImage(src, 2400)} 2400w`
+          : undefined
+      }
+      sizes="100vw"
+      alt=""
+      fetchPriority="high"
+      decoding="async"
+      draggable={false}
+      className="h-full w-full object-cover"
+    />
+  );
+}
+
 export function PageHero({
   eyebrow,
   title,
   description,
   image,
+  mobileImage,
   children,
 }: {
   eyebrow?: string;
   title: string;
   description?: string;
   image?: string;
+  /** Optional portrait photo used on phones (under 768px) instead of `image`. */
+  mobileImage?: string;
   children?: ReactNode;
 }) {
   return (
@@ -161,7 +185,22 @@ export function PageHero({
       <HeroFlag />
       {(image || "hero.factory") && (
         <div className="absolute inset-0">
-          <CmsImage src={image || "hero.factory"} alt="" className="h-full w-full object-cover" eager />
+          {mobileImage ? (
+            <picture className="block h-full w-full">
+              <source media="(min-width: 768px)" srcSet={resolveImage(image || "hero.factory")} />
+              <img
+                src={resolveImage(mobileImage, 1200)}
+                alt=""
+                fetchPriority="high"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
+            </picture>
+          ) : (
+            <HeroPhoto src={image || "hero.factory"} />
+          )}
+          {/* On a phone the text spans the whole width, so darken evenly instead of only from the left. */}
+          {mobileImage && <div className="absolute inset-0 bg-black/30 md:hidden" />}
           <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/30 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
         </div>

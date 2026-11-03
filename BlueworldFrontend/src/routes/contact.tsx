@@ -2,7 +2,8 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Mail, MapPin, Phone, Clock } from "lucide-react";
-import { PageHero, Section, SectionHeading } from "@/components/site/primitives";
+import { Section, SectionHeading } from "@/components/site/primitives";
+import { CmsPageHero } from "@/components/site/cms-page-hero";
 import { useSiteSettings } from "@/hooks/use-cms";
 import { SITE_SETTINGS } from "@/data/placeholder-content";
 import { ENDPOINTS, formErrorMessage, submitForm } from "@/lib/api";
@@ -75,7 +76,8 @@ function ContactPage() {
 
   return (
     <>
-      <PageHero
+      <CmsPageHero
+        slug="contact"
         eyebrow="Contact"
         title="Talk to the people who make it"
         description="Distribution, private label, contract manufacturing or export — send us the detail and the right desk will answer."

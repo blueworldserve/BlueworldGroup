@@ -2,7 +2,8 @@ import { useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { UploadCloud } from "lucide-react";
-import { EmptyBlock, LoadingBlock, PageHero, Section, SectionHeading } from "@/components/site/primitives";
+import { EmptyBlock, LoadingBlock, Section, SectionHeading } from "@/components/site/primitives";
+import { CmsPageHero } from "@/components/site/cms-page-hero";
 import { useJobPostings } from "@/hooks/use-cms";
 import { ENDPOINTS, formErrorMessage, submitFormData } from "@/lib/api";
 import type { CareerApplication, JobPosting } from "@/lib/types";
@@ -42,7 +43,8 @@ function CareerPage() {
 
   return (
     <>
-      <PageHero
+      <CmsPageHero
+        slug="career"
         eyebrow="Career"
         title="Work where the product is actually made"
         description="We hire chemists, machine operators, QA analysts and commercial people who care about doing manufacturing properly."

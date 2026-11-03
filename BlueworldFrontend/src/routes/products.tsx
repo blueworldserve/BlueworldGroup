@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { Search, X } from "lucide-react";
 import { HeroFlag } from "@/components/site/hero-context";
+import { CmsPageHero } from "@/components/site/cms-page-hero";
 import { CmsImage, EmptyBlock, LoadingBlock } from "@/components/site/primitives";
 import { ProductDetail } from "@/components/site/product-detail";
 import { useBusinessUnits, useProducts } from "@/hooks/use-cms";
@@ -28,6 +29,8 @@ export const Route = createFileRoute("/products")({
   component: ProductsPage,
 });
 
+const PAGE_SIZE = 12;
+
 function chipClass(active: boolean) {
   return cn(
     "rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-[0.12em] transition-colors",
@@ -45,6 +48,7 @@ function ProductsPage() {
   const [category, setCategory] = useState("All");
   const [unit, setUnit] = useState("all");
   const [openProduct, setOpenProduct] = useState<Product | null>(null);
+  const [visible, setVisible] = useState(PAGE_SIZE);
 
   const all = products.data;
 
@@ -79,6 +83,11 @@ function ProductsPage() {
     return list.filter((p) => p.featured).concat(list.filter((p) => !p.featured));
   }, [all, category, unit, query]);
 
+  // Searching or filtering starts the list over from the first batch.
+  useEffect(() => {
+    setVisible(PAGE_SIZE);
+  }, [query, category, unit]);
+
   const hasFilters = query.trim() !== "" || category !== "All" || unit !== "all";
   const clearFilters = () => {
     setQuery("");
@@ -88,32 +97,14 @@ function ProductsPage() {
 
   return (
     <>
-            {/* Same look as PageHero, but shorter so the products sit closer to the top. */}
-      <section className="relative flex min-h-[46svh] items-center overflow-hidden bg-primary-deep md:min-h-[52vh]">
-        <HeroFlag />
-        <div className="absolute inset-0">
-          <CmsImage src="hero.products" alt="" className="h-full w-full object-cover" eager />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/30 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
-        </div>
-        <div className="relative mx-auto w-full max-w-7xl px-5 pb-12 pt-32 lg:px-8 lg:pb-16 lg:pt-36">
-          <motion.div
-            initial={{ opacity: 0, y: 22 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="max-w-3xl"
-          >
-            <p className="eyebrow">Products</p>
-            <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] text-primary-foreground lg:text-6xl">
-              The full Blue World range
-            </h1>
-            <span className="mt-6 block h-0.5 w-16 bg-accent" />
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-primary-foreground/80">
-              Skincare, hygiene, haircare and fragrance, formulated, filled and shipped from Lagos.
-            </p>
-          </motion.div>
-        </div>
-      </section>
+                 <HeroFlag />
+      <CmsPageHero
+        slug="products"
+        eyebrow="Products"
+        title="The full Blue World range"
+        description="Skincare, hygiene, haircare and fragrance, formulated, filled and shipped from Lagos."
+        image="hero.products"
+      />
 
       <section className="bg-[#faf6ef] px-5 py-14 lg:px-8 lg:py-20">
         <div className="mx-auto max-w-7xl">
@@ -165,7 +156,7 @@ function ProductsPage() {
           {!products.isLoading && (all ?? []).length > 0 && (
             <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-primary-deep/10 pt-6">
               <p className="text-sm text-primary-deep/70">
-                Showing {filtered.length} of {(all ?? []).length} products
+                Showing {Math.min(visible, filtered.length)} of {filtered.length} products
               </p>
               {hasFilters && (
                 <button
@@ -199,7 +190,7 @@ function ProductsPage() {
 
           {/* Grid */}
           <div className="mt-10 grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
-            {filtered.map((p, i) => (
+            {filtered.slice(0, visible).map((p, i) => (
               <motion.button
                 key={p.id}
                 type="button"
@@ -210,7 +201,7 @@ function ProductsPage() {
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.5, delay: (i % 4) * 0.06 }}
               >
-                <div className="aspect-square overflow-hidden bg-white ring-1 ring-primary-deep/10">
+                <div className="aspect-square overflow-hidden rounded-2xl bg-white shadow-lg shadow-primary-deep/10 ring-1 ring-primary-deep/10 saturate-[1.12] contrast-[1.05] transition duration-500 group-hover:-translate-y-1 group-hover:shadow-xl">
                   <CmsImage
                     src={p.image}
                     alt={p.name}
@@ -232,6 +223,18 @@ function ProductsPage() {
               </motion.button>
             ))}
           </div>
+
+          {visible < filtered.length && (
+            <div className="mt-12 text-center">
+              <button
+                type="button"
+                onClick={() => setVisible((v) => v + PAGE_SIZE)}
+                className="rounded-full border border-primary-deep px-8 py-3 text-xs font-bold uppercase tracking-[0.16em] text-primary-deep transition-colors hover:bg-primary-deep hover:text-white"
+              >
+                Load more ({filtered.length - visible} left)
+              </button>
+            </div>
+          )}
         </div>
       </section>
 

@@ -42,7 +42,8 @@ function LeadershipPage() {
           page?.description ||
           "Our strength lies in visionary leadership that inspires growth, drives innovation, and ensures sustainability across every brand we run."
         }
-        image={page?.heroImage || undefined}
+        {...(page?.heroImage ? { image: page.heroImage } : {})}
+        {...(page?.mobileHeroImage ? { mobileImage: page.mobileHeroImage } : {})}
       />
 
       {/* Mission & Vision — a confident, editorial statement before the people themselves */}

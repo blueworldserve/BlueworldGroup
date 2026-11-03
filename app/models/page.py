@@ -34,6 +34,7 @@ class Page(Base):
     eyebrow: Mapped[str | None] = mapped_column(String, nullable=True)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     hero_image: Mapped[str | None] = mapped_column(String, nullable=True)
+    mobile_hero_image: Mapped[str | None] = mapped_column(String, nullable=True)
     meta_title: Mapped[str | None] = mapped_column(String, nullable=True)
     meta_description: Mapped[str | None] = mapped_column(String, nullable=True)
     status: Mapped[PageStatus] = mapped_column(

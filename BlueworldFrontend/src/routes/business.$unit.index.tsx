@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { AnimatePresence } from "framer-motion";
 import {
   CmsImage,
   EmptyBlock,
@@ -7,7 +9,8 @@ import {
   Section,
   SectionHeading,
 } from "@/components/site/primitives";
-import { ProductCard } from "@/components/site/product-card";
+import { ProductDetail } from "@/components/site/product-detail";
+import type { Product } from "@/lib/types";
 import { useBusinessUnits, useProducts } from "@/hooks/use-cms";
 import { BUSINESS_UNITS } from "@/data/placeholder-content";
 
@@ -42,6 +45,7 @@ function BusinessUnitPage() {
   const { data: products } = useProducts();
   const unit = units?.find((u) => u.slug === slug);
   const unitProducts = (products ?? []).filter((p) => p.unit === slug);
+  const [openProduct, setOpenProduct] = useState<Product | null>(null);
 
   if (isLoading && !unit) {
     return (
@@ -65,6 +69,7 @@ function BusinessUnitPage() {
         title={unit.name}
         description={unit.tagline}
         image={unit.heroImage}
+        {...(unit.mobileHeroImage ? { mobileImage: unit.mobileHeroImage } : {})}
       />
 
       <Section>
@@ -134,12 +139,38 @@ function BusinessUnitPage() {
           ) : (
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {unitProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <button
+                  key={product.id}
+                  type="button"
+                  onClick={() => setOpenProduct(product)}
+                  className="group text-left"
+                >
+                  <div className="aspect-square overflow-hidden rounded-2xl bg-white shadow-lg shadow-primary-deep/10 ring-1 ring-primary-deep/10 saturate-[1.12] contrast-[1.05] transition duration-500 group-hover:-translate-y-1 group-hover:shadow-xl">
+                    <CmsImage
+                      src={product.image}
+                      alt={product.name}
+                      className="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-105"
+                    />
+                  </div>
+                  <p className="mt-4 text-[0.6rem] font-bold uppercase tracking-[0.2em] text-accent">
+                    {product.category} · {product.size}
+                  </p>
+                  <h3 className="mt-1 text-lg font-bold text-primary-deep">{product.name}</h3>
+                  <span className="mt-2 inline-block bg-gradient-to-r from-accent to-accent bg-[length:0%_1px] bg-[position:0_100%] bg-no-repeat pb-0.5 text-xs text-primary-deep/70 transition-[background-size] duration-500 group-hover:bg-[length:100%_1px]">
+                    View details
+                  </span>
+                </button>
               ))}
             </div>
           )}
         </div>
       </Section>
+
+      <AnimatePresence>
+        {openProduct && (
+          <ProductDetail key={openProduct.id} product={openProduct} onClose={() => setOpenProduct(null)} />
+        )}
+      </AnimatePresence>
     </>
   );
 }

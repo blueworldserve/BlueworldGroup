@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { MapPin, X } from "lucide-react";
 import { HeroSlider } from "@/components/site/hero-slider";
 import { AppLink } from "@/components/site/app-link";
@@ -12,7 +12,6 @@ import { ENDPOINTS, formErrorMessage, submitForm } from "@/lib/api";
 import type { GlobeMarker } from "@/components/brand/globe-scene";
 import { useReachMarkers } from "@/hooks/use-reach-markers";
 import { HeroFlag } from "@/components/site/hero-context";
-import { ScrollRevealText } from "@/components/site/scroll-reveal-text";
 import { useCollection } from "@/lib/cms-store";
 import type { CountryShowcase, Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -61,6 +60,9 @@ const TRUST: { k: string | null; v: string }[] = [
   { k: null, v: "Countries" }, // number filled in from the CMS
 ];
 
+// Always show this many on the homepage, whatever is uploaded. Everything else lives on /products.
+const HOME_PRODUCTS = 4;
+
 const fadeUp = {
   initial: { opacity: 0, y: 18 },
   whileInView: { opacity: 1, y: 0 },
@@ -69,10 +71,21 @@ const fadeUp = {
 };
 
 function HomePage() {
-  const slides = useHeroSlides();
-  const units = useBusinessUnits();
-  const products = useProducts();
-  const posts = useBlogPosts();
+  // false while hydrating (matches the server HTML), true right after.
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+  const slidesQ = useHeroSlides();
+  const unitsQ = useBusinessUnits();
+  const productsQ = useProducts();
+  const postsQ = useBlogPosts();
+  const hold = { isLoading: true, data: undefined } as const;
+  const slides = mounted ? slidesQ : { ...slidesQ, ...hold };
+  const units = mounted ? unitsQ : { ...unitsQ, ...hold };
+  const products = mounted ? productsQ : { ...productsQ, ...hold };
+  const posts = mounted ? postsQ : { ...postsQ, ...hold };
   const countryShowcases = useCollection("countryShowcases");
   const markers = useReachMarkers();
   const [activeCountry, setActiveCountry] = useState<string | null>(null);
@@ -92,6 +105,7 @@ function HomePage() {
   const orderedUnits = orderUnits(units.data ?? []);
   const latest = (posts.data ?? []).slice(0, 3);
 
+
   const categories = useMemo(
     () => ["All", ...Array.from(new Set((products.data ?? []).map((p) => p.category)))],
     [products.data],
@@ -99,7 +113,7 @@ function HomePage() {
   const shown = useMemo(() => {
     const all = products.data ?? [];
     const pool = category === "All" ? all.filter((p) => p.featured).concat(all.filter((p) => !p.featured)) : all.filter((p) => p.category === category);
-    return pool.slice(0, 8);
+    return pool.slice(0, HOME_PRODUCTS);
   }, [products.data, category]);
 
   return (
@@ -109,14 +123,14 @@ function HomePage() {
       {slides.isLoading ? (
         <div className="h-[70vh] animate-pulse bg-primary-deep" />
       ) : (
-        <HeroSlider slides={slides.data ?? []} />
+        <HeroSlider slides={slides.data ?? []} stats={trust} />
       )}
 
       {/* Trust strip: numbers in italic accent, labels quiet */}
-      <div className="bg-primary-deep py-7">
-        <div className="mx-auto grid max-w-7xl grid-cols-3 gap-y-5 px-5 sm:grid-cols-6 lg:px-8">
+      <div className="bg-primary-deep py-7 md:hidden">
+        <div className="mx-auto flex max-w-7xl flex-wrap justify-center gap-x-4 gap-y-5 px-5 lg:px-8">
           {trust.map((s) => (
-            <div key={s.k} className="text-center">
+            <div key={s.k} className="w-[6.5rem] text-center">
               <p className="bw-accent bw-orange text-3xl">{s.k}</p>
               <p className="mt-1 text-[0.62rem] uppercase tracking-[0.18em] text-primary-foreground/70">{s.v}</p>
             </div>
@@ -124,18 +138,21 @@ function HomePage() {
         </div>
       </div>
 
-      {/* Statement */}
-      <section className="bw-ivory px-5 py-20 text-center lg:py-28">
-        <motion.div {...fadeUp} className="mx-auto max-w-3xl">
-          <p className="eyebrow">Our house</p>
-          <h2 className="mt-5 text-3xl leading-tight text-primary-deep sm:text-5xl">
-            Five brands. 2 Branches. <Hl>Made</Hl> in Lagos, <Hl>properly</Hl>.
+      {/* Motto */}
+      <section className="bw-ivory px-5 py-10 text-center lg:py-14">
+        <motion.div {...fadeUp} className="mx-auto max-w-2xl">
+          <div className="flex items-center gap-5">
+            <span className="bw-rule flex-1" />
+            <span className="h-2 w-2 rotate-45 bg-accent" />
+            <span className="bw-rule flex-1" />
+          </div>
+          <h2 className="py-6 text-2xl leading-[1.1] tracking-tight text-primary-deep sm:text-3xl lg:py-8 lg:text-4xl">
+            God Is Our <span className="bw-accent bw-orange text-[1.1em]">Strength</span>
           </h2>
-          <div className="mt-8">
-            <ScrollRevealText
-              text="God Is Our Strength"
-              className="text-sm font-semibold uppercase tracking-[0.3em] text-primary-deep/70"
-            />
+          <div className="flex items-center gap-5">
+            <span className="bw-rule flex-1" />
+            <span className="h-2 w-2 rotate-45 bg-accent" />
+            <span className="bw-rule flex-1" />
           </div>
         </motion.div>
       </section>
@@ -153,7 +170,7 @@ function HomePage() {
               transition={{ duration: 0.6, delay: i * 0.06 }}
             >
               <AppLink href={`/business/${unit.slug}`} className="group block">
-                <div className="relative aspect-[3/4] overflow-hidden rounded-t-full rounded-b-2xl bg-secondary ring-1 ring-border">
+                <div className="relative aspect-[3/4] overflow-hidden rounded-t-full rounded-b-2xl bg-secondary shadow-xl shadow-primary-deep/20 ring-1 ring-primary-deep/10 saturate-[1.12] contrast-[1.05] transition duration-500 group-hover:-translate-y-1.5 group-hover:shadow-2xl">
                   <CmsImage src={unit.heroImage} alt={unit.name} className="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-105" />
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/45 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
                 </div>
@@ -351,12 +368,6 @@ function HomePage() {
     </div>
   );
 }
-
-/**
- * The list of countries beside the globe. With a handful it shows big rows that
- * fill the panel; as countries are added the cards shrink into a tidier grid
- * (2 columns, then 3), so the list always stays neat instead of stretching.
- */
 function CountryGrid({
   markers,
   showcases,
@@ -369,16 +380,13 @@ function CountryGrid({
   const n = markers.length;
   if (n === 0) return <p className="mt-4 text-sm text-muted-foreground">Our markets will be listed here soon.</p>;
 
-  const size = n <= 4 ? "lg" : n <= 8 ? "md" : "sm";
-  const layout =
-    size === "lg"
-      ? "mt-4 flex flex-1 flex-col gap-2.5"
-      : size === "md"
-        ? "mt-4 grid grid-cols-2 gap-2.5"
-        : "mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3";
+  // Cards wrap and grow (flex-1 basis), so every row fills the width and rows share the panel height.
+  const basis =
+    n <= 3 ? "basis-full" : n <= 8 ? "basis-[calc(50%-0.3125rem)]" : "basis-[calc(33.333%-0.42rem)]";
+  const roomy = n <= 8;
 
   return (
-    <div className={layout}>
+    <div className="mt-4 flex flex-1 flex-wrap content-stretch gap-2.5">
       {markers.map((m) => {
         const s = showcases.find((c) => c.name.toLowerCase() === m.name.toLowerCase());
         return (
@@ -387,27 +395,25 @@ function CountryGrid({
             type="button"
             onClick={() => onPick(m.name)}
             className={cn(
-              "flex items-center bg-accent-soft/60 text-left transition-colors hover:bg-accent-soft",
-              size === "lg" && "min-h-[4rem] flex-1 gap-3 rounded-xl px-4 py-2.5",
-              size === "md" && "min-h-[4.25rem] gap-2.5 rounded-xl px-3 py-2.5",
-              size === "sm" && "min-h-[3.25rem] gap-2 rounded-lg px-2.5 py-2",
+              "flex min-h-[3.5rem] grow items-center gap-3 rounded-xl bg-accent-soft/60 px-4 py-2.5 text-left transition-colors hover:bg-accent-soft",
+              basis,
             )}
           >
-            <MapPin size={size === "sm" ? 12 : 14} className="shrink-0 text-accent" />
+            <MapPin size={14} className="shrink-0 text-accent" />
             <span className="min-w-0 flex-1">
-              <span className={cn("block truncate font-bold text-primary-deep", size === "lg" ? "text-base" : size === "md" ? "text-sm" : "text-[0.8rem]")}>
+              <span className={cn("block truncate font-bold text-primary-deep", roomy ? "text-base" : "text-sm")}>
                 {m.name}
               </span>
-              {size !== "sm" && m.note && <span className="block truncate text-xs text-muted-foreground">{m.note}</span>}
+              {m.note && <span className="block truncate text-xs text-muted-foreground">{m.note}</span>}
             </span>
             {s && (
               <span className="shrink-0 text-right">
-                <span className={cn("bw-accent block leading-none text-accent", size === "lg" ? "text-xl" : size === "md" ? "text-lg" : "text-base")}>
+                <span className={cn("bw-accent block leading-none text-accent", roomy ? "text-xl" : "text-lg")}>
                   {s.statValue}
                 </span>
-                {size === "lg" && (
-                  <span className="mt-1 block text-[0.6rem] uppercase tracking-wide text-primary-deep/60">{s.statLabel}</span>
-                )}
+                <span className="mt-1 block text-[0.6rem] uppercase tracking-wide text-primary-deep/60">
+                  {s.statLabel}
+                </span>
               </span>
             )}
           </button>
@@ -416,6 +422,8 @@ function CountryGrid({
     </div>
   );
 }
+
+
 
 function ProductDetail({ product, onClose }: { product: Product; onClose: () => void }) {
   useEffect(() => {

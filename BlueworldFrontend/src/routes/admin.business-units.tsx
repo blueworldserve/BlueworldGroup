@@ -36,6 +36,12 @@ const fields: CatalogField<BusinessUnit>[] = [
     type: "image",
     help: "This is the ONE main photo for this brand — shown on the homepage and at the top of the brand's page. To show several product photos, add them as separate Products (see the Products tab) and tag them to this brand.",
   },
+  {
+    name: "mobileHeroImage",
+    label: "Mobile Cover Photo (optional)",
+    type: "image",
+    help: "Shown at the top of the brand's page on phones instead of the cover photo. Use a tall (portrait) photo. Leave blank to reuse the cover photo.",
+  },
   { name: "accent", label: "Colour Theme", type: "select", options: ["blue", "orange"], help: "Which brand colour is used for highlights on this brand's page.", half: true },
   { name: "order", label: "Display Order", type: "number", help: "Lower numbers appear first on the homepage.", half: true },
 ];
@@ -83,6 +89,7 @@ function BusinessUnitsAdmin() {
             summary: "",
             story: "",
             heroImage: "",
+            mobileHeroImage: "",
             accent: "blue",
             order: units.length + 1,
           }) as BusinessUnit

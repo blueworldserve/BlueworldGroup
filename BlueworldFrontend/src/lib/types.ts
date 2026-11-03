@@ -38,6 +38,8 @@ export interface BusinessUnit {
   /** Longer brand story, rendered as paragraphs (split on \n\n). */
   story: string;
   heroImage: string;
+  /** Optional portrait photo shown at the top of the brand page on phones. */
+  mobileHeroImage?: string | null;
   accent: "blue" | "orange";
   /** Only Vivon uses sub-lines today; the model stays open for other units. */
   subLines?: BusinessSubLine[];
@@ -233,6 +235,7 @@ export interface CmsPage {
   eyebrow?: string | null;
   description?: string | null;
   heroImage?: string | null;
+  mobileHeroImage?: string | null;
   metaTitle?: string | null;
   metaDescription?: string | null;
   status: "draft" | "published";

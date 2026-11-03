@@ -113,7 +113,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-const SITE_URL = (import.meta.env.VITE_SITE_URL as string | undefined) ?? "https://blueworldcosmetics.ng";
+const SITE_URL = (import.meta.env["VITE_SITE_URL"] as string | undefined) ?? "https://blueworldcosmetics.ng";
 const OG_IMAGE = `${SITE_URL}/blueworld.png`;
 
 
@@ -211,7 +211,7 @@ function AppShell({ isAdmin }: { isAdmin: boolean }) {
   return (
    <div className="flex min-h-dvh flex-col">
       {!isAdmin && <SiteHeader />}
-      <div className={cn("flex-1", !isAdmin && !hasHero && "pt-20")}>
+      <div className={cn("flex-1", !isAdmin && !hasHero && "pt-24")}>
         <Outlet />
       </div>
       {!isAdmin && <SiteFooter />}

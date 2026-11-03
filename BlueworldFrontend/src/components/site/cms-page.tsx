@@ -22,6 +22,7 @@ export function CmsPageView({ page }: { page: CmsPageType }) {
           eyebrow: page.eyebrow,
           description: page.description,
           image: page.heroImage,
+          mobileImage: page.mobileHeroImage,
         })}
         title={page.title}
       />

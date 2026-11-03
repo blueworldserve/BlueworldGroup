@@ -16,6 +16,7 @@ export interface PageInput {
   eyebrow?: string | null;
   description?: string | null;
   heroImage?: string | null;
+  mobileHeroImage?: string | null;
   metaTitle?: string | null;
   metaDescription?: string | null;
   status: "draft" | "published";
@@ -69,6 +70,7 @@ export function emptyPage(): PageInput {
     eyebrow: "",
     description: "",
     heroImage: "",
+    mobileHeroImage: "",
     metaTitle: "",
     metaDescription: "",
     status: "draft",

@@ -103,6 +103,11 @@ export function PageForm({
             <label className={labelClass}>Cover photo (optional)</label>
             <ImagePicker value={form.heroImage ?? ""} onChange={(v) => set("heroImage", v)} aspect="landscape" />
           </div>
+          <div className="sm:col-span-2">
+            <label className={labelClass}>Mobile cover photo (optional)</label>
+            <p className="mb-2 text-xs text-muted-foreground">Shown instead of the cover photo on phones. Use a tall (portrait) photo. Leave blank to reuse the cover photo.</p>
+            <ImagePicker value={form.mobileHeroImage ?? ""} onChange={(v) => set("mobileHeroImage", v)} aspect="portrait" />
+          </div>
         </div>
 
         <details className="mt-6 rounded-xl border border-border p-4">

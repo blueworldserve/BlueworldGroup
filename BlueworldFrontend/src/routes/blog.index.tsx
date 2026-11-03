@@ -3,10 +3,10 @@ import {
   CmsImage,
   EmptyBlock,
   LoadingBlock,
-  PageHero,
   Section,
   SectionHeading,
 } from "@/components/site/primitives";
+import { CmsPageHero } from "@/components/site/cms-page-hero";
 import { useBlogPosts } from "@/hooks/use-cms";
 import { cn } from "@/lib/utils";
 
@@ -45,7 +45,8 @@ function BlogIndexPage() {
 
   return (
     <>
-      <PageHero
+      <CmsPageHero
+        slug="blog"
         eyebrow="Blog"
         title="Notes from the lab and the line"
         description="Formulation science, quality standards and company news — written by the people doing the work."

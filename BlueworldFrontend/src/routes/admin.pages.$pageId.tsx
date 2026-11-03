@@ -73,6 +73,7 @@ function EditPage() {
     eyebrow: page.eyebrow ?? "",
     description: page.description ?? "",
     heroImage: page.heroImage ?? "",
+    mobileHeroImage: page.mobileHeroImage ?? "",
     metaTitle: page.metaTitle ?? "",
     metaDescription: page.metaDescription ?? "",
     status: page.status,

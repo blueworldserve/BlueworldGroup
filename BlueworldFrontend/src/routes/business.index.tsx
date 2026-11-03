@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CmsImage, LoadingBlock, PageHero, Section, SectionHeading } from "@/components/site/primitives";
+import { CmsImage, LoadingBlock, Section, SectionHeading } from "@/components/site/primitives";
+import { CmsPageHero } from "@/components/site/cms-page-hero";
 import { useBusinessUnits } from "@/hooks/use-cms";
 
 export const Route = createFileRoute("/business/")({
@@ -27,7 +28,8 @@ function BusinessIndexPage() {
 
   return (
     <>
-      <PageHero
+      <CmsPageHero
+        slug="business"
         eyebrow="Business"
         title="Five brands, one factory floor"
         description="Each division owns its own chemistry, packaging and audience — all produced, tested and filled at our Obadore, Igando, Lagos manufacturing Company."

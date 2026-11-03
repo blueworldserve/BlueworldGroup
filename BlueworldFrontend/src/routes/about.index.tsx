@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppLink } from "@/components/site/app-link";
 import { BrandGlobe } from "@/components/brand/brand-globe";
-import { CmsImage, PageHero, Section, SectionHeading } from "@/components/site/primitives";
+import { CmsImage, Section, SectionHeading } from "@/components/site/primitives";
+import { CmsPageHero } from "@/components/site/cms-page-hero";
 import { useReachMarkers } from "@/hooks/use-reach-markers";
 
 export const Route = createFileRoute("/about/")({
@@ -27,7 +28,8 @@ function AboutPage() {
   const markers = useReachMarkers();
   return (
     <>
-      <PageHero
+      <CmsPageHero
+        slug="about"
         eyebrow="About us"
         title="A cosmetics house built in Lagos, for the world"
         description="10 years of formulating, filling and shipping personal care from Nigeria - with the same rule on day one and today: make it properly or do not ship it."

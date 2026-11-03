@@ -152,6 +152,7 @@ class PageBase(CamelModel):
     eyebrow: str | None = None
     description: str | None = None
     hero_image: str | None = None
+    mobile_hero_image: str | None = None
     meta_title: str | None = None
     meta_description: str | None = None
     status: PageStatus = PageStatus.draft
