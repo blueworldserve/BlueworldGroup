@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { MapPin, X } from "lucide-react";
 import { HeroSlider } from "@/components/site/hero-slider";
 import { AppLink } from "@/components/site/app-link";
+import { RichText, stripMarkup } from "@/components/site/rich-text";
 import { BrandGlobe } from "@/components/brand/brand-globe";
 import { CmsImage, EmptyBlock, Hl, LoadingBlock, Section, SectionHeading } from "@/components/site/primitives";
 import { useBlogPosts, useBusinessUnits, useHeroSlides, useProducts } from "@/hooks/use-cms";
@@ -177,10 +178,10 @@ function HomePage() {
                 <div className="mt-4 text-center">
                   <p className="bw-accent text-sm text-muted-foreground">Collection</p>
                   <h3 className="mt-1 text-lg font-bold text-primary-deep">{unit.name}</h3>
-                  <p className="mt-1 text-[0.6rem] font-bold uppercase tracking-[0.2em] text-accent">{unit.tagline}</p>
+                  <p className="mt-1 text-[0.6rem] font-bold uppercase tracking-[0.2em] text-accent">{stripMarkup(unit.tagline)}</p>
                   <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-500 group-hover:grid-rows-[1fr]">
                     <div className="overflow-hidden">
-                      <p className="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">{unit.summary}</p>
+                      <p className="mx-auto mt-3 max-w-xs text-base leading-7 text-muted-foreground"><RichText text={unit.summary} /></p>
                     </div>
                   </div>
                 </div>

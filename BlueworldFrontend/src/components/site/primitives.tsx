@@ -4,6 +4,7 @@ import { ImageOff } from "lucide-react";
 import { resolveImage } from "@/data/images";
 import { AppLink } from "@/components/site/app-link";
 import { HeroFlag } from "@/components/site/hero-context";
+import { RichText } from "@/components/site/rich-text";
 import { cn } from "@/lib/utils";
 
 export function Section({
@@ -49,7 +50,7 @@ export function SectionHeading({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}
       transition={{ duration: 0.5 }}
-      className={cn("max-w-2xl", align === "center" && "mx-auto text-center")}
+      className={cn("max-w-3xl", align === "center" && "mx-auto text-center")}
     >
       {eyebrow && <p className="eyebrow">{eyebrow}</p>}
       <h2
@@ -58,17 +59,17 @@ export function SectionHeading({
           invert ? "text-primary-foreground" : "text-primary-deep",
         )}
       >
-        {title}
+        {typeof title === "string" ? <RichText text={title} /> : title}
       </h2>
       <span className={cn("mt-5 block h-0.5 w-14 bg-accent", align === "center" && "mx-auto")} />
       {description && (
         <p
           className={cn(
-            "mt-5 text-base leading-relaxed",
-            invert ? "text-primary-foreground/75" : "text-muted-foreground",
+            "mt-5 text-lg leading-8 lg:text-xl lg:leading-9",
+            invert ? "text-primary-foreground/80" : "text-muted-foreground",
           )}
         >
-          {description}
+          <RichText text={description} />
         </p>
       )}
     </motion.div>
@@ -210,15 +211,17 @@ export function PageHero({
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="max-w-3xl"
+          className="max-w-4xl"
         >
           {eyebrow && <p className="eyebrow">{eyebrow}</p>}
-          <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] text-primary-foreground lg:text-6xl">
+          <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] text-primary-foreground [text-shadow:0_2px_24px_rgba(0,0,0,0.4)] lg:text-6xl">
             {title}
           </h1>
           <span className="mt-6 block h-0.5 w-16 bg-accent" />
           {description && (
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-primary-foreground/80">{description}</p>
+            <p className="mt-6 max-w-3xl text-xl leading-9 text-primary-foreground/95 [text-shadow:0_1px_16px_rgba(0,0,0,0.45)] lg:text-2xl lg:leading-[1.55]">
+              <RichText text={description} />
+            </p>
           )}
           {children && <div className="mt-8">{children}</div>}
         </motion.div>

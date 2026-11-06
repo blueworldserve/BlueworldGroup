@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { CmsImage, EmptyBlock, Section } from "@/components/site/primitives";
+import { RichParagraphs, splitParagraphs } from "@/components/site/rich-text";
 import { useBlogPosts } from "@/hooks/use-cms";
 import { BLOG_POSTS } from "@/data/placeholder-content";
 
@@ -73,13 +74,7 @@ function BlogPostPage() {
           <div className="overflow-hidden rounded-2xl border border-border shadow-card">
             <CmsImage src={post.coverImage} alt={post.title} className="aspect-[16/9] w-full object-cover" />
           </div>
-          <div className="mt-10 space-y-6">
-            {post.body.split("\n\n").map((para) => (
-              <p key={para.slice(0, 32)} className="text-base leading-relaxed text-foreground/85">
-                {para}
-              </p>
-            ))}
-          </div>
+          <RichParagraphs className="mt-10" paragraphs={splitParagraphs(post.body)} />
 
           <div className="mt-14 border-t border-border pt-10">
             <h2 className="font-display text-lg font-bold text-primary-deep">Keep reading</h2>

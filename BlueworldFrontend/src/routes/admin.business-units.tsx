@@ -4,6 +4,7 @@ import { CatalogManager, type CatalogField, type CatalogGroup } from "@/componen
 import { deleteItem, newId, upsertItem, useCollection } from "@/lib/cms-store";
 import type { BusinessUnit } from "@/lib/types";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { stripMarkup } from "@/components/site/rich-text";
 
 export const Route = createFileRoute("/admin/business-units")({
   head: () => ({
@@ -27,9 +28,9 @@ const fields: CatalogField<BusinessUnit>[] = [
     help: "This is fixed to one of the five brands — it controls which page on the website this content appears on.",
   },
   { name: "name", label: "Brand Name (as shown on the page)" },
-  { name: "tagline", label: "Short slogan", help: "A one-line phrase shown under the brand name, e.g. 'Skincare that listens to your skin'." },
-  { name: "summary", label: "Short description", type: "textarea", rows: 3, help: "A brief overview shown on the homepage card for this brand." },
-  { name: "story", label: "Full brand story", type: "textarea", rows: 8, help: "The longer story shown on the brand's own page. Leave a blank line to start a new paragraph." },
+  { name: "tagline", label: "Short slogan (hero text)", type: "textarea", rich: true, rows: 2, help: "A one-line phrase shown under the brand name, e.g. 'Skincare that listens to your skin'." },
+  { name: "summary", label: "Short description", type: "textarea", rich: true, rows: 3, help: "A brief overview shown on the homepage card for this brand." },
+  { name: "story", label: "Full brand story", type: "textarea", rich: true, rows: 10, help: "The longer story shown on the brand's own page. Leave a blank line to start a new paragraph." },
   {
     name: "heroImage",
     label: "Cover Photo",
@@ -70,7 +71,7 @@ function BusinessUnitsAdmin() {
         imageAspect="landscape"
         getImage={(u) => u.heroImage}
         getTitle={(u) => u.name}
-        getSubtitle={(u) => u.tagline}
+        getSubtitle={(u) => stripMarkup(u.tagline)}
         getBadges={(u) => [
           { label: u.accent === "orange" ? "Orange theme" : "Blue theme", tone: u.accent === "orange" ? ("accent" as const) : ("primary" as const) },
           ...(needsAttention(u) ? [{ label: "Needs attention", tone: "warn" as const }] : []),

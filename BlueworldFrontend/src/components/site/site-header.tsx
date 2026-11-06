@@ -5,6 +5,7 @@ import { CmsImage } from "@/components/site/primitives";
 import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { stripMarkup } from "@/components/site/rich-text";
 import { useBusinessUnits } from "@/hooks/use-cms";
 
 type NavChild = {
@@ -75,7 +76,7 @@ export function SiteHeader() {
             .map((u) => ({
               label: u.name,
               to: `/business/${u.slug}`,
-              description: u.tagline,
+              description: stripMarkup(u.tagline),
               image: u.heroImage,
             })),
         }

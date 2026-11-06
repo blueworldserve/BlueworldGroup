@@ -35,7 +35,7 @@ function slugify(text: string): string {
 const fields: CatalogField<BlogPost>[] = [
   { name: "title", label: "Article title" },
   { name: "excerpt", label: "Short summary", type: "textarea", rows: 3, help: "A one- or two-sentence teaser shown on the blog listing page." },
-  { name: "body", label: "Full article", type: "textarea", rows: 12, help: "Leave a blank line between paragraphs to start a new one." },
+  { name: "body", label: "Full article", type: "textarea", rich: true, rows: 14, help: "Leave a blank line between paragraphs to start a new one." },
   { name: "category", label: "Category", type: "select", options: POST_CATEGORIES, half: true },
   { name: "author", label: "Written by", half: true },
   { name: "publishedAt", label: "Publish date", type: "date", help: "The date this article should go live.", half: true },

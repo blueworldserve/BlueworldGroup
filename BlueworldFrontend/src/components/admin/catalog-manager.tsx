@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { CmsImage } from "@/components/site/primitives";
 import { CountryField } from "@/components/admin/country-field";
+import { RichTextArea } from "@/components/admin/rich-text-area";
 import { VideoField, type FieldConfig } from "@/components/admin/resource-manager";
 import { useCollection } from "@/lib/cms-store";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,8 @@ import { cn } from "@/lib/utils";
 /** Same as the old FieldConfig, plus `half` to put two short fields side by side. */
 export interface CatalogField<T> extends FieldConfig<T> {
   half?: boolean;
+  /** Textarea fields only: show the bold / italic / orange / bigger toolbar and a live preview. */
+  rich?: boolean;
 }
 
 /** One button in the left sidebar. The "All" button is added automatically. */
@@ -615,7 +618,9 @@ function FieldControl<T>({ field, draft, onChange }: { field: CatalogField<T>; d
 
   let control: ReactNode;
 
-  if (type === "textarea") {
+  if (type === "textarea" && field.rich) {
+    control = <RichTextArea id={id} rows={field.rows ?? 6} value={String(value ?? "")} onChange={(v) => onChange(v)} className={inputClass} />;
+  } else if (type === "textarea") {
     control = <textarea id={id} rows={field.rows ?? 4} value={String(value ?? "")} onChange={(e) => onChange(e.target.value)} className={inputClass} />;
   } else if (type === "list") {
     const list = (value as string[] | undefined) ?? [];

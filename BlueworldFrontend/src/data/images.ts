@@ -52,6 +52,14 @@ export type LocalImageKey = keyof typeof LOCAL_IMAGES;
 /** Resolves a CMS image value: a local key, or a remote URL from the backend. */
 export function resolveImage(value: string, width = 1600): string {
   if (value in LOCAL_IMAGES) return LOCAL_IMAGES[value as LocalImageKey];
+  // A bare file name (no scheme, no slash) is a typo-style value such as "vivon-face-hero.jpg".
+  // Browsers would look for it under the current page (/business/...) and 404, so map it to the
+  // matching local key ("vivon.face") when there is one, and otherwise anchor it to the site root.
+  if (value && !/^(https?:)?\/\//.test(value) && !value.startsWith("/") && !value.startsWith("data:") && !value.startsWith("blob:")) {
+    const key = value.replace(/\.[a-z0-9]+$/i, "").replace(/-hero$/i, "").replace(/-/g, ".");
+    if (key in LOCAL_IMAGES) return LOCAL_IMAGES[key as LocalImageKey];
+    return `/${value}`;
+  }
   return optimizeCloudinary(value, width);
 }
 

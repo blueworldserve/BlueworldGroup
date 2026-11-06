@@ -10,6 +10,8 @@ import {
   SectionHeading,
 } from "@/components/site/primitives";
 import { ProductDetail } from "@/components/site/product-detail";
+import { resolveImage } from "@/data/images";
+import { RichParagraphs, splitParagraphs, stripMarkup } from "@/components/site/rich-text";
 import type { Product } from "@/lib/types";
 import { useBusinessUnits, useProducts } from "@/hooks/use-cms";
 import { BUSINESS_UNITS } from "@/data/placeholder-content";
@@ -30,9 +32,9 @@ export const Route = createFileRoute("/business/$unit/")({
     return {
       meta: [
         { title },
-        { name: "description", content: loaderData.summary.slice(0, 155) },
+        { name: "description", content: stripMarkup(loaderData.summary).slice(0, 155) },
         { property: "og:title", content: title },
-        { property: "og:description", content: loaderData.tagline },
+        { property: "og:description", content: stripMarkup(loaderData.tagline) },
       ],
     };
   },
@@ -75,21 +77,31 @@ function BusinessUnitPage() {
       <Section>
         <div className="grid gap-14 lg:grid-cols-[1.1fr_1fr] lg:items-start">
           <div>
-            <SectionHeading eyebrow="Brand story" title={`Inside ${unit.name}`} />
-            <div className="mt-6 space-y-5">
-              {unit.story.split("\n\n").map((para) => (
-                <p key={para.slice(0, 32)} className="text-base leading-relaxed text-muted-foreground">
-                  {para}
-                </p>
-              ))}
-            </div>
-          </div>
-          <div className="overflow-hidden rounded-2xl border border-border shadow-card">
-            <CmsImage
-              src={unit.heroImage}
-              alt={unit.name}
-              className="aspect-[4/3] w-full object-cover"
+            <SectionHeading
+              eyebrow="Brand story"
+              title={<>Inside <span className="rt-mark">{unit.name}</span></>}
             />
+            <RichParagraphs className="mt-8" paragraphs={splitParagraphs(unit.story)} />
+          </div>
+          <div className="overflow-hidden rounded-2xl border border-border shadow-card lg:sticky lg:top-28">
+            {unit.mobileHeroImage ? (
+              <picture className="block">
+                <source media="(max-width: 767px)" srcSet={resolveImage(unit.mobileHeroImage, 1200)} />
+                <img
+                  src={resolveImage(unit.heroImage)}
+                  alt={unit.name}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-[4/5] w-full object-cover md:aspect-[4/3]"
+                />
+              </picture>
+            ) : (
+              <CmsImage
+                src={unit.heroImage}
+                alt={unit.name}
+                className="aspect-[4/3] w-full object-cover"
+              />
+            )}
           </div>
         </div>
       </Section>

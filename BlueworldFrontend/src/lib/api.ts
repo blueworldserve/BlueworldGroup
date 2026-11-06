@@ -152,7 +152,9 @@ export interface SourcedResult<T> {
  */
 export async function fetchWithSource<T>(path: string, fallback: T): Promise<SourcedResult<T>> {
   try {
-    const data = await apiFetch<unknown>(path, { method: "GET" });
+    // "no-cache" makes the browser re-check with the server on every load, so a reload right after saving
+    // never shows the previous copy (the API's stale-while-revalidate header otherwise allows that).
+    const data = await apiFetch<unknown>(path, { method: "GET", cache: "no-cache" });
     if (data && typeof data === "object" && "items" in (data as Record<string, unknown>)) {
       const items = (data as { items: unknown }).items;
       if (Array.isArray(items) && items.length > 0) return { data: items as unknown as T, isLive: true };

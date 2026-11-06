@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { ImagePicker } from "@/components/admin/catalog-manager";
+import { RichTextArea } from "@/components/admin/rich-text-area";
 import { BlockEditorRow, BLOCK_TYPE_LABELS } from "@/components/admin/page-block-editor";
 import { emptyPageBlock, type PageInput } from "@/lib/pages-admin";
 import type { BlockType } from "@/lib/types";
@@ -92,10 +93,10 @@ export function PageForm({
           </div>
           <div className="sm:col-span-2">
             <label className={labelClass}>Short description (shown under the title)</label>
-            <textarea
-              rows={2}
+            <RichTextArea
+              rows={3}
               value={form.description ?? ""}
-              onChange={(e) => set("description", e.target.value)}
+              onChange={(v) => set("description", v)}
               className={inputClass}
             />
           </div>

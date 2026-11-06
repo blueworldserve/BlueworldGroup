@@ -1,6 +1,7 @@
 import { AppLink } from "@/components/site/app-link";
 import { BrandGlobe } from "@/components/brand/brand-globe";
 import { CmsImage, Section, SectionHeading, LoadingBlock, ErrorBlock, EmptyBlock } from "@/components/site/primitives";
+import { RichParagraphs, RichText, splitParagraphs } from "@/components/site/rich-text";
 import { useReachMarkers } from "@/hooks/use-reach-markers";
 import { useTeamMembers } from "@/hooks/use-cms";
 import { cn } from "@/lib/utils";
@@ -32,9 +33,7 @@ function Prose({ p }: { p: P }) {
   return (
     <>
       {(p["eyebrow"] || p["heading"]) && <SectionHeading {...heading} title={p["heading"] ?? ""} />}
-      <div className="mt-6 space-y-5 text-base leading-relaxed text-muted-foreground">
-        {((p["paragraphs"] as string[]) ?? []).map((t, i) => <p key={i}>{t}</p>)}
-      </div>
+      <RichParagraphs className="mt-8 max-w-4xl" paragraphs={(p["paragraphs"] as string[]) ?? []} />
     </>
   );
 }
@@ -52,9 +51,7 @@ function ProseImage({ p }: { p: P }) {
         {...orNothing({ eyebrow: p["eyebrow"], description: p["description"] })}
         title={p["heading"] ?? ""}
       />
-      <div className="mt-6 space-y-5 text-base leading-relaxed text-muted-foreground">
-        {((p["paragraphs"] as string[]) ?? []).map((t, i) => <p key={i}>{t}</p>)}
-      </div>
+      <RichParagraphs className="mt-8" paragraphs={(p["paragraphs"] as string[]) ?? []} />
     </div>
   );
   return (
@@ -74,8 +71,8 @@ function CardGrid({ p }: { p: P }) {
       <div className={cn("mt-12 grid gap-6", cols)}>
         {((p["cards"] as P[]) ?? []).map((c) => (
           <div key={c["title"]} className="rounded-2xl border border-border bg-card p-8 shadow-card">
-            <h3 className="font-display text-xl font-bold text-primary-deep">{c["title"]}</h3>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{c["body"]}</p>
+            <h3 className="font-display text-2xl font-bold text-primary-deep"><RichText text={c["title"] ?? ""} /></h3>
+            <p className="mt-3 whitespace-pre-line text-base leading-7 text-muted-foreground lg:text-lg lg:leading-8"><RichText text={c["body"] ?? ""} /></p>
           </div>
         ))}
       </div>
@@ -95,8 +92,8 @@ function NumberedGrid({ p }: { p: P }) {
             <span className="font-display text-3xl font-extrabold text-accent">
               {String(i + 1).padStart(2, "0")}
             </span>
-            <h3 className="mt-4 font-display text-lg font-bold text-primary-deep">{c["title"]}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{c["body"]}</p>
+            <h3 className="mt-4 font-display text-xl font-bold text-primary-deep"><RichText text={c["title"] ?? ""} /></h3>
+            <p className="mt-2 whitespace-pre-line text-base leading-7 text-muted-foreground lg:text-lg lg:leading-8"><RichText text={c["body"] ?? ""} /></p>
           </div>
         ))}
       </div>
@@ -116,8 +113,8 @@ function FeaturePair({ p }: { p: P }) {
           )}
         >
           <p className="eyebrow">{it["eyebrow"]}</p>
-          <p className="mt-5 font-display text-2xl font-bold leading-snug text-primary-deep lg:text-3xl">
-            {it["body"]}
+          <p className="mt-5 whitespace-pre-line font-display text-2xl font-bold leading-snug text-primary-deep lg:text-4xl lg:leading-tight">
+            <RichText text={it["body"] ?? ""} />
           </p>
         </div>
       ))}
@@ -139,7 +136,7 @@ function LinkCards({ p }: { p: P }) {
             className="rounded-2xl border border-border bg-card p-7 shadow-card transition-all hover:-translate-y-1 hover:shadow-lift"
           >
             <p className="font-display text-lg font-bold text-primary-deep">{c["label"]}</p>
-            <p className="mt-2 text-sm text-muted-foreground">{c["copy"]}</p>
+            <p className="mt-2 text-base leading-7 text-muted-foreground"><RichText text={c["copy"] ?? ""} /></p>
             <p className="mt-5 text-sm font-bold text-accent">Read more →</p>
           </AppLink>
         ))}

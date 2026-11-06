@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CmsImage, LoadingBlock, Section, SectionHeading } from "@/components/site/primitives";
 import { CmsPageHero } from "@/components/site/cms-page-hero";
+import { RichText, stripMarkup } from "@/components/site/rich-text";
 import { useBusinessUnits } from "@/hooks/use-cms";
 
 export const Route = createFileRoute("/business/")({
@@ -56,9 +57,9 @@ function BusinessIndexPage() {
               <div className="p-6">
                 <h3 className="font-display text-xl font-bold text-primary-deep">{unit.name}</h3>
                 <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-accent">
-                  {unit.tagline}
+                  {stripMarkup(unit.tagline)}
                 </p>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{unit.summary}</p>
+                <p className="mt-3 text-base leading-7 text-muted-foreground"><RichText text={unit.summary} /></p>
               </div>
             </Link>
           ))}

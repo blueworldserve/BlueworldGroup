@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
 import { Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { RichTextArea } from "@/components/admin/rich-text-area";
+import { splitParagraphs } from "@/components/site/rich-text";
 import { ImagePicker } from "@/components/admin/catalog-manager";
 import { cn } from "@/lib/utils";
 import type { PageBlockInput } from "@/lib/pages-admin";
@@ -36,11 +39,21 @@ function TextInput({ value, onChange, placeholder }: { value: string; onChange: 
 }
 
 function ParagraphsInput({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
+  // Keep the raw text locally so blank lines typed at the end are not swallowed
+  // while the editor is mid-sentence; only the split paragraphs are saved.
+  const joined = (value ?? []).join("\n\n");
+  const [text, setText] = useState(joined);
+  useEffect(() => {
+    if (splitParagraphs(text).join("\n\n") !== joined) setText(joined);
+  }, [joined]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
-    <textarea
-      rows={6}
-      value={(value ?? []).join("\n\n")}
-      onChange={(e) => onChange(e.target.value.split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean))}
+    <RichTextArea
+      rows={9}
+      value={text}
+      onChange={(t) => {
+        setText(t);
+        onChange(splitParagraphs(t));
+      }}
       className={inputClass}
     />
   );
@@ -74,12 +87,12 @@ function CardsRepeater({
               <Trash2 className="h-4 w-4" />
             </button>
           </div>
-          <textarea
-            rows={2}
+          <RichTextArea
+            rows={3}
             value={card.body}
-            onChange={(e) => onChange(cards.map((c, j) => (j === i ? { ...c, body: e.target.value } : c)))}
+            onChange={(v) => onChange(cards.map((c, j) => (j === i ? { ...c, body: v } : c)))}
             placeholder="Body text"
-            className={cn(inputClass, "mt-2")}
+            className={inputClass}
           />
         </div>
       ))}
@@ -191,12 +204,12 @@ function FeatureItemsRepeater({
               </button>
             </div>
           </div>
-          <textarea
-            rows={2}
+          <RichTextArea
+            rows={3}
             value={item.body}
-            onChange={(e) => onChange(items.map((it, j) => (j === i ? { ...it, body: e.target.value } : it)))}
+            onChange={(v) => onChange(items.map((it, j) => (j === i ? { ...it, body: v } : it)))}
             placeholder="Body text"
-            className={cn(inputClass, "mt-2")}
+            className={inputClass}
           />
         </div>
       ))}
