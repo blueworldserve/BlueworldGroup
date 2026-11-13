@@ -32,18 +32,23 @@ export const Route = createFileRoute("/admin/products")({
 });
 
 const PRODUCT_CATEGORIES = [
-  "Face serum",
-  "Cleanser",
-  "Body lotion",
-  "Body cream",
-  "Children wash",
-  "Baby balm",
-  "Antiseptic",
-  "Medicated soap",
-  "Relaxer",
-  "Styling",
-  "Eau de parfum",
-  "Essentials",
+  "Body Lotions",
+  "Body Creams",
+  "Face Care",
+  "Body Wash & Shower Gel",
+  "Bathing Soaps",
+  "Hair Relaxers",
+  "Shampoos & Conditioners",
+  "Hair Styling Products",
+  "Perfumes",
+  "Body Sprays & Mists",
+  "Roll-ons & Deodorants",
+  "Petroleum Jelly",
+  "Glycerin & Oils",
+  "Antiseptics & Disinfectants",
+  "Hand & Personal Hygiene",
+  "Baby Care",
+  "Children's Care",
 ];
 
 const UNITS = [

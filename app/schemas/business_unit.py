@@ -28,6 +28,7 @@ class BusinessUnitBase(CamelModel):
     story: str | None = None
     hero_image: str | None = None
     mobile_hero_image: str | None = None
+    read_more_url: str | None = None
     accent: str = "blue"
     order: int = 0
 

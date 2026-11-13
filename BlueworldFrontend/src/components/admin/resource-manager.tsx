@@ -14,7 +14,7 @@ import { CountryField } from "@/components/admin/country-field"
 
 
 
-export type FieldType = "text" | "textarea" | "number" | "select" | "multiselect" | "date" | "image" | "video" | "boolean" | "list" | "country";
+export type FieldType = "text" | "textarea" | "number" | "select" | "multiselect" | "date" | "image" | "video" | "boolean" | "list" | "country" | "link";
 
 export interface FieldConfig<T> {
   name: keyof T & string;

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from core import config
-from routers import auth, cms_public, public_writes, admin_audit, admin_business_units, admin_media, admin_settings, admin_submissions, admin_system, pages, internal, analytics
+from routers import auth, cms_public, public_writes, admin_audit, admin_business_units, admin_media, admin_settings, admin_submissions, pages, internal, analytics
 from routers.admin_generic import make_admin_crud_router
 
 from models.hero_slide import HeroSlide
@@ -99,7 +99,6 @@ app.include_router(admin_media.router)
 app.include_router(admin_settings.router)
 app.include_router(admin_submissions.router)
 app.include_router(admin_audit.router)
-app.include_router(admin_system.router)
 app.include_router(internal.router)
 app.include_router(analytics.public_router)
 app.include_router(analytics.admin_router)
@@ -133,7 +132,7 @@ def run_startup_tasks():
         logger.exception("Migration step failed on startup")
         raise  # fail loudly — don't let the app serve traffic against an unmigrated DB
 
-        # 2. Seed superuser — no-ops if one already exists
+    # 2. Make sure a superuser exists — no-ops if one already exists (login bootstrap only, no site content)
     try:
         from scripts.seed_superuser import seed_superuser
         seed_superuser(interactive=False)
@@ -141,23 +140,7 @@ def run_startup_tasks():
         logger.exception("Superuser seed step failed on startup")
         # not re-raised: a missing superuser shouldn't take the whole app down
 
-    # 3. Seed country showcase content — no-ops per-country if it already exists
-    try:
-        from scripts.seed_country_showcase import main as seed_country_showcase
-        seed_country_showcase()
-    except Exception:
-        logger.exception("Country showcase seed step failed on startup")
-        # not re-raised: same reasoning as the superuser seed above
-
-    # 3b. Make sure About/Business/Career/Blog/Contact exist as CMS pages (editable banner photos)
-    try:
-        from scripts.seed_page_heroes import seed_page_heroes
-        seed_page_heroes()
-    except Exception:
-        logger.exception("Page hero seed step failed on startup")
-        # not re-raised: the pages simply keep their built-in photos
-
-    # 4. Start the daily applications roundup (2 PM Lagos time by default)
+    # 3. Start the daily applications roundup (2 PM Lagos time by default)
     try:
         from core.scheduler import start_scheduler
         start_scheduler()

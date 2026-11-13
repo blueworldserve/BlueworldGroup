@@ -20,6 +20,8 @@ export const Route = createFileRoute("/admin/hero-slides")({
 
 const CTA_DESTINATIONS = [
   "/",
+  "/business",
+  "/products",
   "/about/who-we-are",
   "/about/vision-mission",
   "/about/leadership",
@@ -39,7 +41,7 @@ const fields: CatalogField<HeroSlide>[] = [
   { name: "subtitle", label: "Subtitle", type: "textarea", rows: 3 },
   { name: "eyebrow", label: "Eyebrow", help: "Small text above the title.", half: true },
   { name: "ctaLabel", label: "Button label", half: true },
-  { name: "ctaHref", label: "Button link", type: "select", options: CTA_DESTINATIONS, half: true },
+  { name: "ctaHref", label: "Button link", type: "link", options: CTA_DESTINATIONS, help: "Pick a page, or choose \"Custom link…\" to type your own path (e.g. /new-page) or a full website address.", half: true },
   { name: "order", label: "Order", type: "number", help: "Lower numbers show first.", half: true },
   {
     name: "videoUrl",

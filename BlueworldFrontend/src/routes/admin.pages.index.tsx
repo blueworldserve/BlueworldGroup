@@ -36,8 +36,8 @@ function AdminPagesList() {
 
   return (
     <AdminShell
-      title="About Pages"
-      description="Content and images for the About section — Index, Who We Are, Vision & Mission, Leadership. Open a card to edit it."
+      title="Pages"
+      description="Create new pages and edit the content and banner photos of existing ones — About, Business, Career, Blog, Contact and any page you add. Open a card to edit it."
     >
       {isLoading ? (
         <div className="rounded-2xl border border-border bg-card py-10 text-center text-sm text-muted-foreground">Loading pages…</div>

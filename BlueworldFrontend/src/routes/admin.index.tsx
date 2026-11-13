@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { toast } from "sonner";
 import { AdminShell } from "@/components/admin/admin-shell";
-import { resetCms, useCmsState } from "@/lib/cms-store";
+import { useCmsState } from "@/lib/cms-store";
 import { API_BASE_URL } from "@/lib/api";
 
 export const Route = createFileRoute("/admin/")({
@@ -34,18 +33,6 @@ function AdminDashboard() {
     <AdminShell
       title="Dashboard"
       description="Everything published on blueworldcosmetics.org at a glance."
-      actions={
-        <button
-          type="button"
-          onClick={() => {
-            resetCms();
-            toast.success("Content reset to the seeded dataset");
-          }}
-          className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-foreground/75 hover:bg-primary-soft"
-        >
-          Reset content
-        </button>
-      }
     >
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => (

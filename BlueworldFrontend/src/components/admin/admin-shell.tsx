@@ -35,7 +35,7 @@ export const ADMIN_NAV = [
   { label: "Inbox", to: "/admin/inbox", icon: Inbox },
   { label: "Hero Slides", to: "/admin/hero-slides", icon: Sparkles },
   { label: "Business Units", to: "/admin/business-units", icon: Layers },
-  { label: "About Pages", to: "/admin/pages", icon: FileText },
+  { label: "Pages", to: "/admin/pages", icon: FileText },
   { label: "Country Showcase", to: "/admin/country-showcase", icon: Globe2 },
   { label: "Products", to: "/admin/products", icon: Package },
   { label: "Team", to: "/admin/team", icon: Users },

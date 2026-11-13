@@ -43,6 +43,11 @@ const fields: CatalogField<BusinessUnit>[] = [
     type: "image",
     help: "Shown at the top of the brand's page on phones instead of the cover photo. Use a tall (portrait) photo. Leave blank to reuse the cover photo.",
   },
+  {
+    name: "readMoreUrl",
+    label: "\"Read More\" link (optional)",
+    help: "Paste the brand's own website, e.g. https://vivon.ng. A Read More button appears on the brand card only when this is filled. Leave blank to hide it.",
+  },
   { name: "accent", label: "Colour Theme", type: "select", options: ["blue", "orange"], help: "Which brand colour is used for highlights on this brand's page.", half: true },
   { name: "order", label: "Display Order", type: "number", help: "Lower numbers appear first on the homepage.", half: true },
 ];
@@ -91,6 +96,7 @@ function BusinessUnitsAdmin() {
             story: "",
             heroImage: "",
             mobileHeroImage: "",
+            readMoreUrl: "",
             accent: "blue",
             order: units.length + 1,
           }) as BusinessUnit

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import { AppLink } from "@/components/site/app-link";
 import { CmsImage, EmptyBlock, Hl, LoadingBlock, PageHero, Section, SectionHeading } from "@/components/site/primitives";
 import { useTeamMembers, usePage } from "@/hooks/use-cms";
@@ -122,7 +123,7 @@ function LeadershipPage() {
                 href={`/about/leadership/${memberSlug(featured)}`}
                 className="btn-corporate mt-6"
               >
-                Read full profile →
+                Read full profile <ArrowRight className="h-4 w-4" strokeWidth={3} />
               </AppLink>
             </div>
           </motion.div>
@@ -161,7 +162,7 @@ function LeadershipPage() {
                 </div>
                 <h3 className="mt-4 font-display text-lg font-bold text-primary-deep">{member.name}</h3>
                 <p className="mt-1 text-xs font-bold uppercase tracking-[0.16em] text-accent">{member.role}</p>
-                <span className="mt-2 block text-[0.65rem] font-bold uppercase tracking-[0.16em] text-primary-deep opacity-0 transition-opacity duration-300 group-hover:opacity-100">View profile →</span>
+                <span className="mt-2 block text-[0.65rem] font-bold uppercase tracking-[0.16em] text-primary-deep opacity-0 transition-opacity duration-300 group-hover:opacity-100">View profile <ArrowRight className="ml-1 inline h-3.5 w-3.5" strokeWidth={3} /></span>
               </AppLink>
             </motion.div>
           ))}

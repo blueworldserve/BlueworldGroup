@@ -255,12 +255,6 @@ export async function updateSettings(settings: SiteSettings) {
   }
 }
 
-/** Re-fetches every collection from the backend, discarding any local cache. */
-export function resetCms() {
-  hydrated = false;
-  void hydrate();
-}
-
 export function newId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
 }

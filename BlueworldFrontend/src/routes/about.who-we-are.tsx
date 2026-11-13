@@ -35,7 +35,7 @@ function WhoWeArePage() {
   if (isError || !page) {
     return (
       <Section>
-        <ErrorBlock label="This page isn't published yet — check /admin/pages, or run the seed script on the backend." />
+        <ErrorBlock label="This page isn't published yet — check Pages in the CMS." />
       </Section>
     );
   }

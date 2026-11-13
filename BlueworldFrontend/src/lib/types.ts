@@ -40,6 +40,8 @@ export interface BusinessUnit {
   heroImage: string;
   /** Optional portrait photo shown at the top of the brand page on phones. */
   mobileHeroImage?: string | null;
+  /** Optional link to the brand's own standalone website. Shows a "Read More" button when set. */
+  readMoreUrl?: string | null;
   accent: "blue" | "orange";
   /** Only Vivon uses sub-lines today; the model stays open for other units. */
   subLines?: BusinessSubLine[];

@@ -34,6 +34,7 @@ class BusinessUnit(Base):
     story: Mapped[str] = mapped_column(Text, nullable=True)
     hero_image: Mapped[str] = mapped_column(String, nullable=True)
     mobile_hero_image: Mapped[str | None] = mapped_column(String, nullable=True)
+    read_more_url: Mapped[str | None] = mapped_column(String, nullable=True)
     accent: Mapped[str] = mapped_column(String, default="blue", nullable=False)
     order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     created_at: Mapped[datetime] = mapped_column(

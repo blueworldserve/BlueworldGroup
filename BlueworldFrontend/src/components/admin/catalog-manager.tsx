@@ -656,6 +656,37 @@ function FieldControl<T>({ field, draft, onChange }: { field: CatalogField<T>; d
         {field.preview?.(draft)}
       </div>
     );
+  } else if (type === "link") {
+    // Pick a built-in page, or choose "Custom link…" and type any path (/new-page) or full URL.
+    const current = String(value ?? "");
+    const options = field.options ?? [];
+    const isCustom = current !== "" && !options.includes(current);
+    control = (
+      <div className="space-y-2">
+        <select
+          id={id}
+          value={isCustom ? "__custom" : current}
+          onChange={(e) => onChange(e.target.value === "__custom" ? "/" : e.target.value)}
+          className={inputClass}
+        >
+          <option value="">Choose…</option>
+          {options.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+          <option value="__custom">Custom link…</option>
+        </select>
+        {isCustom && (
+          <input
+            value={current}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="/my-new-page or https://example.com"
+            className={inputClass}
+          />
+        )}
+      </div>
+    );
   } else if (type === "multiselect") {
     const selected = String(value ?? "")
       .split(",")

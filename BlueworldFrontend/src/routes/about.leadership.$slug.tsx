@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
 import { AppLink } from "@/components/site/app-link";
 import { CmsImage, EmptyBlock, LoadingBlock, Section } from "@/components/site/primitives";
 import { useTeamMembers } from "@/hooks/use-cms";
@@ -28,7 +29,7 @@ function LeaderProfilePage() {
       <Section>
         <EmptyBlock label="This profile isn't published, or the link is out of date." />
         <div className="mt-6 text-center">
-          <AppLink href="/about/leadership" className="btn-corporate-outline">← Back to Leadership</AppLink>
+          <AppLink href="/about/leadership" className="btn-corporate-outline"><ArrowLeft className="h-4 w-4" strokeWidth={3} /> Back to Leadership</AppLink>
         </div>
       </Section>
     );
@@ -69,7 +70,7 @@ function LeaderProfilePage() {
               ))}
             </div>
             <div className="mt-10">
-              <AppLink href="/about/leadership" className="btn-corporate">← Back to Leadership</AppLink>
+              <AppLink href="/about/leadership" className="btn-corporate"><ArrowLeft className="h-4 w-4" strokeWidth={3} /> Back to Leadership</AppLink>
             </div>
           </div>
         </motion.div>

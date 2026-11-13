@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
 import { ImagePicker } from "@/components/admin/catalog-manager";
 import { RichTextArea } from "@/components/admin/rich-text-area";
-import { BlockEditorRow, BLOCK_TYPE_LABELS } from "@/components/admin/page-block-editor";
+import { BlockEditorRow } from "@/components/admin/page-block-editor";
+import { BlockTypePicker } from "@/components/admin/block-type-picker";
 import { emptyPageBlock, type PageInput } from "@/lib/pages-admin";
 import type { BlockType } from "@/lib/types";
 
@@ -127,27 +127,9 @@ export function PageForm({
       </div>
 
       <div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="font-display text-lg font-bold text-primary-deep">Page content</h2>
-          <div className="flex items-center gap-2">
-            <select
-              value={newBlockType}
-              onChange={(e) => setNewBlockType(e.target.value as BlockType)}
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
-            >
-              {(Object.keys(BLOCK_TYPE_LABELS) as BlockType[]).map((t) => (
-                <option key={t} value={t}>{BLOCK_TYPE_LABELS[t]}</option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={addBlock}
-              className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-bold text-accent-foreground"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Add section
-            </button>
-          </div>
+        <h2 className="font-display text-lg font-bold text-primary-deep">Page content</h2>
+        <div className="mt-4">
+          <BlockTypePicker value={newBlockType} onChange={setNewBlockType} onAdd={addBlock} />
         </div>
 
         <div className="mt-5 space-y-5">

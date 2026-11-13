@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { AnimatePresence } from "framer-motion";
+import { ArrowRight } from "lucide-react";
+import { AppLink } from "@/components/site/app-link";
 import {
   CmsImage,
   EmptyBlock,
@@ -82,6 +84,14 @@ function BusinessUnitPage() {
               title={<>Inside <span className="rt-mark">{unit.name}</span></>}
             />
             <RichParagraphs className="mt-8" paragraphs={splitParagraphs(unit.story)} />
+            {unit.readMoreUrl && (
+              <AppLink
+                href={unit.readMoreUrl}
+                className="mt-8 inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3 text-xs font-bold uppercase tracking-[0.16em] text-accent-foreground transition-colors hover:bg-primary-deep hover:text-primary-foreground"
+              >
+                Read More <ArrowRight className="h-3.5 w-3.5" strokeWidth={3} />
+              </AppLink>
+            )}
           </div>
           <div className="overflow-hidden rounded-2xl border border-border shadow-card lg:sticky lg:top-28">
             {unit.mobileHeroImage ? (

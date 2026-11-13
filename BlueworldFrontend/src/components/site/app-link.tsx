@@ -17,6 +17,13 @@ export function AppLink({
   children: ReactNode;
   onClick?: () => void;
 }) {
+  if (/^(https?:)?\/\/|^(mailto|tel):/i.test(href)) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className} onClick={onClick}>
+        {children}
+      </a>
+    );
+  }
   const [path, query] = href.split("?");
   const search = query
     ? Object.fromEntries(new URLSearchParams(query).entries())

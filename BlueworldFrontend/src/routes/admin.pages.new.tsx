@@ -16,7 +16,7 @@ function NewPage() {
   const [busy, setBusy] = useState(false);
 
   return (
-    <AdminShell title="New page" description="Build a new About-section page from reusable content blocks.">
+    <AdminShell title="New page" description="Build a new page from reusable content sections.">
       <PageForm
         initial={emptyPage()}
         submitLabel="Create page"

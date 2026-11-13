@@ -38,7 +38,7 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     label: "Business",
-    to: "/business/vivon",
+    to: "/business",
     blurb: "Five brands, one manufacturing house. Pick a brand to see what it makes.",
     children: [
       { label: "Vivon", to: "/business/vivon" },
@@ -355,6 +355,15 @@ export function SiteHeader() {
                               className="overflow-hidden"
                             >
                               <div className="mb-3 ml-1 border-l-2 border-accent pl-4">
+                                {item.label === "Business" && (
+                                  <AppLink
+                                    href="/business"
+                                    onClick={() => setOpenMobile(false)}
+                                    className="block py-2.5 text-base font-bold text-accent"
+                                  >
+                                    View Businesses
+                                  </AppLink>
+                                )}
                                 {item.children.map((child) => (
                                   <AppLink
                                     key={child.label}
@@ -437,8 +446,8 @@ function MegaPanel({
             onClick={onNavigate}
             className="mt-6 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-primary-deep transition-colors hover:text-accent"
           >
-            Explore {item.label}
-            <ArrowRight className="h-3.5 w-3.5" />
+            View Businesses
+            <ArrowRight className="h-3.5 w-3.5" strokeWidth={3} />
           </AppLink>
         </div>
 

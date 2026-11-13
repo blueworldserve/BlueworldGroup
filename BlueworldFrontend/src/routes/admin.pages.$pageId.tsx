@@ -85,7 +85,7 @@ function EditPage() {
   return (
     <AdminShell
       title={`Edit: ${page.title}`}
-      description="Editing an About-section page."
+      description="Edit this page's details, banner photo and content sections."
       actions={
         <>
           <button
