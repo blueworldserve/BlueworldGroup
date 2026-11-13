@@ -35,6 +35,25 @@ SALES_NOTIFY_EMAILS = [e.strip() for e in os.getenv("SALES_NOTIFY_EMAILS", "").s
 RESEND_SEGMENT_ID = os.getenv("RESEND_SEGMENT_ID")
 RESEND_AUDIENCE_ID = os.getenv("RESEND_AUDIENCE_ID")
 
+# Display name used with any sender address picked in the CMS ("Blue World Cosmetics <hr@...>")
+MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "Blue World Cosmetics")
+# Extra addresses to suggest in the CMS "Send from" box (comma-separated). Staff can still type any address.
+MAIL_SENDERS = [e.strip() for e in os.getenv("MAIL_SENDERS", "").split(",") if e.strip()]
+
+# Sending from a mailbox that is NOT on a domain verified in Resend (e.g. blueworldserve@gmail.com):
+# SMTP with an app password. When the chosen sender equals SMTP_USER, the mail goes out through SMTP.
+SMTP_HOST = os.getenv("SMTP_HOST")  # Gmail: smtp.gmail.com
+SMTP_PORT = int(os.getenv("SMTP_PORT", "465"))  # 465 = SSL, 587 = STARTTLS
+SMTP_USER = os.getenv("SMTP_USER")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+
+# Mailbox the CMS reads to collect applicants' replies (IMAP). Applicant emails use it as Reply-To.
+IMAP_HOST = os.getenv("IMAP_HOST", "imap.gmail.com")
+IMAP_USER = os.getenv("IMAP_USER") or SMTP_USER
+IMAP_PASSWORD = os.getenv("IMAP_PASSWORD") or SMTP_PASSWORD
+IMAP_FOLDER = os.getenv("IMAP_FOLDER", "INBOX")
+IMAP_POLL_SECONDS = int(os.getenv("IMAP_POLL_SECONDS", "180"))
+
 # --- Email branding ---------------------------------------------------------
 # Public address of the website, e.g. https://blueworldcosmetics.org (no trailing slash).
 # Used for the logo (SITE_URL/blueworld.png) and the buttons inside emails.

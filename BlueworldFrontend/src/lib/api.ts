@@ -20,6 +20,8 @@ export const ENDPOINTS = {
   adminContactMessages: "/admin/submissions/contact",
   adminNewsletter: "/admin/submissions/newsletter",
   adminApplications: "/admin/submissions/applications",
+  adminResponses: "/admin/submissions/responses",
+  adminSenders: "/admin/submissions/senders",
   authLogin: "/auth/login",
   authRefresh: "/auth/refresh",
   authMe: "/auth/me",

@@ -142,11 +142,15 @@ function InboxPage() {
   async function syncNewsletter() {
     setSyncing(true);
     try {
-      const r = await apiFetch<{ synced: number; failed: number; remaining: number }>(
+      const r = await apiFetch<{ synced: number; failed: number; remaining: number; error?: string | null }>(
         `${ENDPOINTS.adminNewsletter}/sync`,
         { method: "POST" },
         120_000, // up to 50 contacts, paced to respect Resend's rate limit
       );
+      if (r.synced === 0 && r.failed > 0) {
+        toast.error("Resend rejected the sync", { description: r.error ?? "Check RESEND_API_KEY (it needs full access) and the segment / audience id." });
+        return;
+      }
       toast.success(`Synced ${r.synced} subscriber${r.synced === 1 ? "" : "s"} to Resend`, {
         description:
           r.failed || r.remaining

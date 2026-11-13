@@ -24,6 +24,7 @@ MessageText = Annotated[
     str, StringConstraints(strip_whitespace=True, min_length=5, max_length=MESSAGE_MAX_LENGTH)
 ]
 ShortOptional = Annotated[str, StringConstraints(strip_whitespace=True, max_length=40)]
+SenderAddress = Annotated[str, StringConstraints(strip_whitespace=True, max_length=254)]
 
 
 class ContactSubmissionIn(CamelModel):
@@ -43,6 +44,7 @@ class ContactReplyOut(CamelModel):
     subject: str
     body: str
     sent_by: str | None = None
+    from_email: str | None = None
     sent_at: datetime
 
 
@@ -66,6 +68,7 @@ class ContactSubmissionDetailOut(ContactSubmissionOut):
 class ContactReplyIn(CamelModel):
     subject: Text_2_200
     body: Text_2_5000
+    from_email: SenderAddress | None = None  # None = the default sender
 
 
 class CareerApplicationIn(CamelModel):
@@ -93,6 +96,7 @@ class CareerApplicationOut(CamelModel):
     decided_by: str | None = None
     decision_subject: str | None = None
     decision_body: str | None = None
+    decision_from: str | None = None
 
 
 class ApplicationDecisionIn(CamelModel):
@@ -103,6 +107,27 @@ class ApplicationDecisionIn(CamelModel):
     body: Text_20_5000
     interview_date: date | None = None
     interview_time: ShortOptional | None = None
+    from_email: SenderAddress | None = None  # None = the default sender
+
+
+class ApplicantResponseOut(CamelModel):
+    id: uuid.UUID
+    application_id: uuid.UUID
+    full_name: str
+    email: str
+    role_title: str | None = None
+    decision: str  # approved / declined
+    interview_date: date | None = None
+    from_email: str
+    subject: str
+    body: str
+    received_at: datetime
+    is_read: bool
+
+
+class SendersOut(CamelModel):
+    senders: list[str]
+    default: str | None = None
 
 
 class NewsletterSignupIn(CamelModel):

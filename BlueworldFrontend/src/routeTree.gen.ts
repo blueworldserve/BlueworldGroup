@@ -30,6 +30,7 @@ import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminMediaRouteImport } from './routes/admin.media'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminRequestAccessRouteImport } from './routes/admin.request-access'
+import { Route as AdminResponsesRouteImport } from './routes/admin.responses'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminTeamRouteImport } from './routes/admin.team'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
@@ -150,6 +151,11 @@ const AdminRequestAccessRoute = AdminRequestAccessRouteImport.update({
   path: '/admin/request-access',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminResponsesRoute = AdminResponsesRouteImport.update({
+  id: '/admin/responses',
+  path: '/admin/responses',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/admin/settings',
   path: '/admin/settings',
@@ -242,6 +248,7 @@ export interface FileRoutesByFullPath {
   '/admin/media': typeof AdminMediaRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/request-access': typeof AdminRequestAccessRoute
+  '/admin/responses': typeof AdminResponsesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/team': typeof AdminTeamRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -279,6 +286,7 @@ export interface FileRoutesByTo {
   '/admin/media': typeof AdminMediaRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/request-access': typeof AdminRequestAccessRoute
+  '/admin/responses': typeof AdminResponsesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/team': typeof AdminTeamRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -317,6 +325,7 @@ export interface FileRoutesById {
   '/admin/media': typeof AdminMediaRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/request-access': typeof AdminRequestAccessRoute
+  '/admin/responses': typeof AdminResponsesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/team': typeof AdminTeamRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -356,6 +365,7 @@ export interface FileRouteTypes {
     | '/admin/media'
     | '/admin/products'
     | '/admin/request-access'
+    | '/admin/responses'
     | '/admin/settings'
     | '/admin/team'
     | '/blog/$slug'
@@ -393,6 +403,7 @@ export interface FileRouteTypes {
     | '/admin/media'
     | '/admin/products'
     | '/admin/request-access'
+    | '/admin/responses'
     | '/admin/settings'
     | '/admin/team'
     | '/blog/$slug'
@@ -430,6 +441,7 @@ export interface FileRouteTypes {
     | '/admin/media'
     | '/admin/products'
     | '/admin/request-access'
+    | '/admin/responses'
     | '/admin/settings'
     | '/admin/team'
     | '/blog/$slug'
@@ -468,6 +480,7 @@ export interface RootRouteChildren {
   AdminMediaRoute: typeof AdminMediaRoute
   AdminProductsRoute: typeof AdminProductsRoute
   AdminRequestAccessRoute: typeof AdminRequestAccessRoute
+  AdminResponsesRoute: typeof AdminResponsesRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTeamRoute: typeof AdminTeamRoute
   BlogSlugRoute: typeof BlogSlugRoute
@@ -635,6 +648,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRequestAccessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/responses': {
+      id: '/admin/responses'
+      path: '/admin/responses'
+      fullPath: '/admin/responses'
+      preLoaderRoute: typeof AdminResponsesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/settings': {
       id: '/admin/settings'
       path: '/admin/settings'
@@ -756,6 +776,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminMediaRoute: AdminMediaRoute,
   AdminProductsRoute: AdminProductsRoute,
   AdminRequestAccessRoute: AdminRequestAccessRoute,
+  AdminResponsesRoute: AdminResponsesRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTeamRoute: AdminTeamRoute,
   BlogSlugRoute: BlogSlugRoute,

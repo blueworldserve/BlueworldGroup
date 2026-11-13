@@ -10,6 +10,7 @@ import {
   firstName,
   fullWhen,
 } from "@/components/admin/inbox-parts";
+import { SenderField } from "@/components/admin/sender-field";
 import { getAdminUser } from "@/hooks/use-admin-auth";
 import { apiErrorDetail, apiFetch, ApiError, ENDPOINTS } from "@/lib/api";
 import type { InboxMessageDetail } from "@/lib/types";
@@ -42,6 +43,7 @@ function ReplyPage() {
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
+  const [fromEmail, setFromEmail] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -81,7 +83,7 @@ function ReplyPage() {
     try {
       await apiFetch(
         `${ENDPOINTS.adminContactMessages}/${detail.id}/reply`,
-        { method: "POST", body: JSON.stringify({ subject: subject.trim(), body: body.trim() }) },
+        { method: "POST", body: JSON.stringify({ subject: subject.trim(), body: body.trim(), fromEmail: fromEmail.trim() || null }) },
         30_000,
       );
       toast.success(`Reply sent to ${detail.fullName}`, { description: `Delivered to ${detail.email}` });
@@ -138,11 +140,9 @@ function ReplyPage() {
                 </div>
               )}
 
+              <SenderField value={fromEmail} onChange={setFromEmail} disabled={!canSend || sending} />
+
               <dl className="divide-y divide-border rounded-xl border border-border bg-secondary/50 px-4 text-sm">
-                <div className="grid grid-cols-[70px_1fr] gap-3 py-2.5">
-                  <dt className="text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">From</dt>
-                  <dd className="text-foreground">Blue World Cosmetics (official email)</dd>
-                </div>
                 <div className="grid grid-cols-[70px_1fr] gap-3 py-2.5">
                   <dt className="text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">To</dt>
                   <dd className="min-w-0 break-words text-foreground">
@@ -226,7 +226,7 @@ function ReplyPage() {
                   {detail.replies.map((r) => (
                     <div key={r.id}>
                       <p className="mb-1.5 text-xs text-muted-foreground">
-                        {r.sentBy ?? "Team"} · {fullWhen(r.sentAt)}
+                        {r.sentBy ?? "Team"}{r.fromEmail ? ` (from ${r.fromEmail})` : ""} · {fullWhen(r.sentAt)}
                       </p>
                       <MessageBubble tone="team">{r.body}</MessageBubble>
                     </div>

@@ -148,6 +148,7 @@ export interface InboxReply {
   subject: string;
   body: string;
   sentBy: string | null;
+  fromEmail?: string | null;
   sentAt: string;
 }
 

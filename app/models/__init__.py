@@ -14,7 +14,7 @@ from models.blog_post import BlogPost
 from models.job_posting import JobPosting, EmploymentType
 from models.media_asset import MediaAsset
 from models.site_settings import SiteSettings
-from models.submission import ContactSubmission, ContactReply, CareerApplication, NewsletterSignup
+from models.submission import ContactSubmission, ContactReply, CareerApplication, ApplicationResponse, NewsletterSignup
 from models.page import Page, PageBlock, BlockType, PageStatus
 from models.country_showcase import CountryShowcase
 

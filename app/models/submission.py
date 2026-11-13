@@ -1,6 +1,6 @@
 import uuid
 from datetime import date, datetime, timezone
-from sqlalchemy import Date, Integer, LargeBinary, String, Text, DateTime, ForeignKey
+from sqlalchemy import Boolean, Date, Integer, LargeBinary, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -38,6 +38,7 @@ class ContactReply(Base):
     subject: Mapped[str] = mapped_column(String, nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     sent_by: Mapped[str] = mapped_column(String, nullable=True)  # CMS user's email
+    from_email: Mapped[str | None] = mapped_column(String, nullable=True)  # the address it was sent from
     sent_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
@@ -64,6 +65,7 @@ class CareerApplication(Base):
     decided_by: Mapped[str | None] = mapped_column(String, nullable=True)  # the staff member's email
     decision_subject: Mapped[str | None] = mapped_column(String, nullable=True)
     decision_body: Mapped[str | None] = mapped_column(Text, nullable=True)  # exactly what was emailed
+    decision_from: Mapped[str | None] = mapped_column(String, nullable=True)  # the address it was sent from
 
     # Set when admins/HR were told about this application (threshold alert or daily digest).
     notified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -102,6 +104,23 @@ class CareerApplicationFile(Base):
     )
 
     application: Mapped["CareerApplication"] = relationship(back_populates="resume")
+
+
+class ApplicationResponse(Base):
+    """An applicant's email reply to their approval / decline letter, collected from the HR mailbox."""
+
+    __tablename__ = "application_responses"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    application_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("career_applications.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    from_email: Mapped[str] = mapped_column(String, nullable=False)
+    subject: Mapped[str] = mapped_column(String, nullable=False, default="", server_default="")
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    message_id: Mapped[str] = mapped_column(String, nullable=False, unique=True)  # stops the same email being stored twice
+    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
 
 
 class NewsletterSignup(Base):

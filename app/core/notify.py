@@ -16,6 +16,10 @@ import time
 import urllib.error
 import urllib.request
 import uuid
+import smtplib
+import ssl
+from email.message import EmailMessage
+from email.utils import formataddr, parseaddr
 from datetime import datetime, timedelta, timezone
 
 from core import config
@@ -74,6 +78,60 @@ def email_configured() -> bool:
     return bool(config.RESEND_API_KEY and config.MAIL_FROM)
 
 
+_EMAIL_RE = re.compile(r"^[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+$")
+# Free mailbox providers can't be verified in Resend, so they can only send through SMTP.
+FREE_MAIL_DOMAINS = {"gmail.com", "googlemail.com", "yahoo.com", "outlook.com", "hotmail.com", "live.com", "icloud.com"}
+
+
+def normalize_sender(value: str | None) -> str | None:
+    """'' / None -> None (use the default). Otherwise the bare address, or ValueError if it isn't one."""
+    if not value or not value.strip():
+        return None
+    addr = parseaddr(value.strip())[1].strip()
+    if not _EMAIL_RE.match(addr) or len(addr) > 254:
+        raise ValueError(f"'{value.strip()}' isn't a valid email address.")
+    return addr
+
+
+def smtp_configured() -> bool:
+    return bool(config.SMTP_HOST and config.SMTP_USER and config.SMTP_PASSWORD)
+
+
+def available_senders() -> tuple[list[str], str | None]:
+    """Addresses to suggest in the CMS, and the default one (what MAIL_FROM sends as)."""
+    default = parseaddr(config.MAIL_FROM or "")[1] or None
+    seen: list[str] = []
+    for a in [default, config.SMTP_USER, config.IMAP_USER, *config.MAIL_SENDERS]:
+        a = (a or "").strip()
+        if a and a.lower() not in [x.lower() for x in seen]:
+            seen.append(a)
+    return seen, default
+
+
+def _send_smtp(*, addr: str, to: list[str], subject: str, text: str, html_body: str | None, reply_to: str | None) -> dict:
+    msg = EmailMessage()
+    msg["From"] = formataddr((config.MAIL_FROM_NAME, addr))
+    msg["To"] = ", ".join(to)
+    msg["Subject"] = _one_line(subject, 200)
+    if reply_to:
+        msg["Reply-To"] = reply_to
+    msg.set_content(text)
+    if html_body:
+        msg.add_alternative(html_body, subtype="html")
+    try:
+        if config.SMTP_PORT == 465:
+            server = smtplib.SMTP_SSL(config.SMTP_HOST, config.SMTP_PORT, timeout=20, context=ssl.create_default_context())
+        else:
+            server = smtplib.SMTP(config.SMTP_HOST, config.SMTP_PORT, timeout=20)
+            server.starttls(context=ssl.create_default_context())
+        with server:
+            server.login(config.SMTP_USER, config.SMTP_PASSWORD)
+            server.send_message(msg)
+    except (smtplib.SMTPException, OSError) as e:
+        raise NotifyError(f"SMTP send from {addr} failed: {e}") from e
+    return {"provider": "smtp"}
+
+
 def send_email(
     *,
     to: list[str],
@@ -81,13 +139,24 @@ def send_email(
     text: str,
     html_body: str | None = None,
     reply_to: str | None = None,
+    from_email: str | None = None,
 ) -> dict:
-    if not email_configured():
+    """Sends one email. `from_email` picks the sender (any address); None = the default MAIL_FROM.
+    The sender goes out through SMTP when it is the SMTP_USER mailbox, otherwise through Resend."""
+    addr = normalize_sender(from_email)
+    if addr and smtp_configured() and addr.lower() == config.SMTP_USER.lower():
+        return _send_smtp(addr=addr, to=to, subject=subject, text=text, html_body=html_body, reply_to=reply_to)
+    if addr and addr.rsplit("@", 1)[-1].lower() in FREE_MAIL_DOMAINS:
+        raise NotConfigured(
+            f"{addr} can't send through Resend. To send from it, set SMTP_HOST, SMTP_USER={addr} and "
+            "SMTP_PASSWORD (an app password) on the server, or pick an address on your own domain."
+        )
+    if not (config.RESEND_API_KEY and (addr or config.MAIL_FROM)):
         raise NotConfigured(
             "Email sending isn't configured yet — set RESEND_API_KEY and MAIL_FROM on the server."
         )
     payload: dict = {
-        "from": config.MAIL_FROM,
+        "from": formataddr((config.MAIL_FROM_NAME, addr)) if addr else config.MAIL_FROM,
         "to": to,
         "subject": _one_line(subject, 200),
         "text": text,
@@ -397,16 +466,28 @@ def notify_new_contact(submission_id: uuid.UUID) -> None:
 def _resend_add_contact(email: str) -> None:
     if not config.RESEND_API_KEY:
         raise NotConfigured("RESEND_API_KEY is not set.")
-    payload: dict = {"email": email, "unsubscribed": False}
-    if config.RESEND_SEGMENT_ID:
-        payload["segments"] = [config.RESEND_SEGMENT_ID]
-    if config.RESEND_AUDIENCE_ID:
-        payload["audience_id"] = config.RESEND_AUDIENCE_ID
-    _post_json(f"{RESEND_BASE}/contacts", payload, {"Authorization": f"Bearer {config.RESEND_API_KEY}"})
+    auth = {"Authorization": f"Bearer {config.RESEND_API_KEY}"}
+    try:
+        if config.RESEND_AUDIENCE_ID and not config.RESEND_SEGMENT_ID:
+            # Older Resend accounts: contacts live inside an audience.
+            _post_json(
+                f"{RESEND_BASE}/audiences/{config.RESEND_AUDIENCE_ID}/contacts",
+                {"email": email, "unsubscribed": False},
+                auth,
+            )
+            return
+        payload: dict = {"email": email, "unsubscribed": False}
+        if config.RESEND_SEGMENT_ID:
+            payload["segments"] = [{"id": config.RESEND_SEGMENT_ID}]  # objects, not bare ids
+        _post_json(f"{RESEND_BASE}/contacts", payload, auth)
+    except NotifyError as e:
+        if "already exist" in str(e).lower():
+            return  # already on the list: that's a success for us
+        raise
 
 
 def sync_pending_signups(db, limit: int = 50) -> dict:
-    """Pushes signups that haven't reached Resend yet. Returns counts for the admin UI."""
+    """Pushes signups that haven't reached Resend yet. Returns counts (and the first error) for the admin UI."""
     from models.submission import NewsletterSignup
 
     if not config.RESEND_API_KEY:
@@ -419,6 +500,7 @@ def sync_pending_signups(db, limit: int = 50) -> dict:
         .all()
     )
     synced = failed = 0
+    error: str | None = None
     for i, row in enumerate(pending):
         if i:
             time.sleep(0.6)  # stay under Resend's default 2 requests/second
@@ -427,12 +509,13 @@ def sync_pending_signups(db, limit: int = 50) -> dict:
             row.synced_at = datetime.now(timezone.utc)
             db.commit()
             synced += 1
-        except Exception:
+        except Exception as e:
             db.rollback()
             logger.exception("Resend contact sync failed for %s", row.email)
             failed += 1
+            error = error or str(e)
     remaining = db.query(NewsletterSignup).filter(NewsletterSignup.synced_at.is_(None)).count()
-    return {"synced": synced, "failed": failed, "remaining": remaining}
+    return {"synced": synced, "failed": failed, "remaining": remaining, "error": error}
 
 
 def sync_newsletter_signup(signup_id: uuid.UUID) -> None:

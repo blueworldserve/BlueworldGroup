@@ -31,9 +31,23 @@ def _loop() -> None:
         time.sleep(60)
 
 
+def _mailbox_loop() -> None:
+    from core import mailbox
+
+    time.sleep(20)  # let the app finish starting
+    while True:
+        mailbox.poll_in_background()
+        time.sleep(max(60, config.IMAP_POLL_SECONDS))
+
+
 def start_scheduler() -> None:
     if config.DISABLE_SCHEDULER:
         logger.info("Scheduler disabled (DISABLE_SCHEDULER=true).")
         return
     threading.Thread(target=_loop, name="digest-scheduler", daemon=True).start()
+    from core import mailbox
+
+    if mailbox.configured():
+        threading.Thread(target=_mailbox_loop, name="mailbox-poller", daemon=True).start()
+        logger.info("Mailbox poller started: checking for applicant replies every %ds.", config.IMAP_POLL_SECONDS)
     logger.info("Scheduler started: applications roundup daily at %02d:00 Lagos time.", config.APPLICATION_DIGEST_HOUR)

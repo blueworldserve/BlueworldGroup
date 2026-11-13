@@ -21,6 +21,7 @@ import {
   ScrollText,
   ClipboardList,
   BarChart3,
+  Reply,
 } from "lucide-react";
 import { getAdminUser, logout, useAdminUser } from "@/hooks/use-admin-auth";
 import { apiFetch } from "@/lib/api";
@@ -42,6 +43,7 @@ export const ADMIN_NAV = [
   { label: "Blog Posts", to: "/admin/blog", icon: Newspaper },
   { label: "Jobs", to: "/admin/jobs", icon: Briefcase },
   { label: "Applications", to: "/admin/applications", icon: ClipboardList },
+  { label: "Responses", to: "/admin/responses", icon: Reply },
   { label: "Media", to: "/admin/media", icon: Images },
   { label: "Access Requests", to: "/admin/access-requests", icon: UserCheck },
   { label: "Analytics", to: "/admin/analytics", icon: BarChart3 },
@@ -135,7 +137,7 @@ export function AdminShell({
   const canSeeApplications = canManageAccess || session.role === "editor" || session.role === "hr";
   const navItems = ADMIN_NAV.filter((item) => {
     if (item.to === "/admin/access-requests" || item.to === "/admin/audit") return canManageAccess;
-    if (item.to === "/admin/applications") return canSeeApplications;
+    if (item.to === "/admin/applications" || item.to === "/admin/responses") return canSeeApplications;
     return true;
   });
 

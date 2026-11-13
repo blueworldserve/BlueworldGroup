@@ -14,6 +14,7 @@ import {
   todayIso,
 } from "@/lib/application-emails";
 import { useCmsState } from "@/lib/cms-store";
+import { SenderField } from "@/components/admin/sender-field";
 
 export interface DecidableApplication {
   id: string;
@@ -51,6 +52,7 @@ export function DecisionDialog<T extends DecidableApplication>({
   const [body, setBody] = useState(() => (approving ? approvalEmail({ ...base, date, time, venue }) : declineEmail(base)).body);
   const [edited, setEdited] = useState(false);
   const [sending, setSending] = useState(false);
+  const [fromEmail, setFromEmail] = useState("");
 
   // Until HR types into the message themselves, the date / time / venue fields keep it up to date.
   useEffect(() => {
@@ -85,6 +87,7 @@ export function DecisionDialog<T extends DecidableApplication>({
             body: body.trim(),
             interviewDate: approving ? date : null,
             interviewTime: approving && time ? formatInterviewTime(time) : null,
+            fromEmail: fromEmail.trim() || null,
           }),
         },
         30_000,
@@ -125,6 +128,8 @@ export function DecisionDialog<T extends DecidableApplication>({
             </label>
           </div>
         )}
+
+        <SenderField value={fromEmail} onChange={setFromEmail} disabled={sending} />
 
         <div className="overflow-hidden rounded-xl border border-border">
           <div className="flex items-center gap-2 border-b border-border bg-secondary px-4 py-2.5 text-xs text-muted-foreground">

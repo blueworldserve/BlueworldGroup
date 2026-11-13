@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { EmptyBlock, PageHero, Section, SectionHeading } from "@/components/site/primitives";
-import { ProductCard } from "@/components/site/product-card";
+import { ProductBrowser } from "@/components/site/product-browser";
 import { useBusinessUnits, useProducts } from "@/hooks/use-cms";
 import { BUSINESS_UNITS } from "@/data/placeholder-content";
 
@@ -71,11 +71,7 @@ function SubLinePage() {
           {lineProducts.length === 0 ? (
             <EmptyBlock label="No products published in this range yet." />
           ) : (
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {lineProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            <ProductBrowser products={lineProducts} label={line.name} />
           )}
         </div>
       </Section>
