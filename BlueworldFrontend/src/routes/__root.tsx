@@ -17,6 +17,7 @@ import { Toaster } from "../components/ui/sonner";
 import appCss from "../styles.css?url";
 import { reportError } from "../lib/error-reporting";
 import { useAnalytics } from "../lib/analytics";
+import { usePrefetchSite } from "../hooks/use-prefetch";
 
 import { HeroProvider, useHasHero } from "../components/site/hero-context";
 import { cn } from "../lib/utils";
@@ -195,6 +196,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const isAdmin = useRouterState({ select: (s) => s.location.pathname.startsWith("/admin") });
   useAnalytics();
+  usePrefetchSite(!isAdmin);
 
   return (
     <QueryClientProvider client={queryClient}>

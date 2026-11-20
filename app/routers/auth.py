@@ -5,8 +5,8 @@ from core.audit import CRITICAL, record, record_safe
 from core.deps import get_db, get_current_user, require_role
 from core.permissions import require_admin
 from core.security import verify_password, hash_password, create_access_token, create_refresh_token, decode_token
-from core.limiter import limiter
-from core import config
+from core.limiter import limiter, client_ip
+from core import config, login_guard
 from models.admin_user import AdminUser, AdminRole, AdminStatus
 from schemas.auth import (
     LoginRequest, LoginResponse, AuthTokens, AdminUserOut,
@@ -16,15 +16,25 @@ from schemas.auth import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 EXPIRES_IN = config.ACCESS_TOKEN_EXPIRE_MINUTES * 60
 
+# Checked when the email does not exist, so "no such user" costs the same time as "wrong password".
+# Without it, a fast 401 tells an attacker which emails are real admin accounts.
+_DUMMY_HASH = hash_password("this-is-not-a-real-password")
+
 
 @router.post("/login", response_model=LoginResponse)
 @limiter.limit("10/minute")
 def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)):
+    ip = client_ip(request)
+    if login_guard.is_locked(ip, payload.email):
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Too many failed attempts. Please wait 15 minutes and try again.")
     user = db.query(AdminUser).filter(AdminUser.email == payload.email).first()
-    if not user or not verify_password(payload.password, user.hashed_password):
+    password_ok = verify_password(payload.password, user.hashed_password if user else _DUMMY_HASH)
+    if not user or not password_ok:
+        login_guard.register_failure(ip, payload.email)
         record_safe(db, request, None, category=CRITICAL, action="login_failed", resource="auth",
                     summary=f"Failed sign-in attempt for {payload.email}", actor_email=payload.email)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid email or password")
+    login_guard.clear(ip, payload.email)
     if not user.is_active:
         record_safe(db, request, user, category=CRITICAL, action="login_blocked", resource="auth",
                     summary=f"{user.email} tried to sign in but the account is {user.status.value}")
@@ -45,7 +55,8 @@ def logout(request: Request, db: Session = Depends(get_db), current_user: AdminU
 
 
 @router.post("/refresh", response_model=AuthTokens)
-def refresh(payload: RefreshRequest, db: Session = Depends(get_db)):
+@limiter.limit("30/minute")
+def refresh(request: Request, payload: RefreshRequest, db: Session = Depends(get_db)):
     decoded = decode_token(payload.refresh_token)
     if decoded is None or decoded.get("type") != "refresh":
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid refresh token")

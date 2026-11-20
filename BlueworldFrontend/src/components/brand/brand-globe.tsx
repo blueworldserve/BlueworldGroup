@@ -202,7 +202,7 @@ export function BrandGlobe({
         style={{
           opacity: showcase ? 1 : 0,
           backgroundImage: showcase
-            ? `linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.6) 100%), url(${showcase.image})`
+            ? `linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.6) 100%), url("${showcase.image.replace(/["\\\n\r]/g, encodeURIComponent)}")`
             : undefined,
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -239,8 +239,9 @@ export function BrandGlobe({
           {/* Curved wordmark — classic serif per brand direction: Times New
               Roman, bold. `fill` uses resolvedWordmarkColor so it stays
               legible against whatever panel this sits on (white on any dark
-              preset, theme-aware when background="none"). `side="right"` on
-              textPath makes the glyphs lean inward toward the globe. Hidden
+              preset, theme-aware when background="none"). The path runs left to right
+              along the bottom, so letters always stand upright. (`side="right"` used to be set here;
+              browsers disagree on that attribute and some drew the motto upside down.) Hidden
               while a country backdrop is showing, since the label below
               replaces it. */}
           {wordmark && !showcase && (
@@ -253,12 +254,7 @@ export function BrandGlobe({
                 fill={resolvedWordmarkColor}
                 letterSpacing="0.08"
               >
-                <textPath
-                  href="#brand-globe-arc"
-                  startOffset="50%"
-                  textAnchor="middle"
-                  {...({ side: "right" } as React.SVGProps<SVGTextPathElement>)}
-                >
+                <textPath href="#brand-globe-arc" startOffset="50%" textAnchor="middle">
                   GOD IS OUR STRENGTH
                 </textPath>
               </text>
