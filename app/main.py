@@ -53,6 +53,7 @@ _BODY_LIMITS = {
     "/auth/login": 64 * 1024,
     "/auth/request-access": 64 * 1024,
     "/analytics/collect": 32 * 1024,
+    "/admin/media/upload": 25 * 1024 * 1024,
 }
 
 

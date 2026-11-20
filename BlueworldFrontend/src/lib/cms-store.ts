@@ -2,7 +2,7 @@
  * Client-side CMS store — backed by the real FastAPI backend.
  *
  * Reads hit the public /cms/* endpoints (falling back to placeholder content
- * if the backend is unreachable, via fetchWithFallback). Writes hit the
+ * if the backend is unreachable, via fetchWithSource). Writes hit the
  * authenticated /admin/* endpoints and require a signed-in admin/editor
  * session with the JWT already attached via api.ts's authHeader().
  *
@@ -12,7 +12,7 @@
  */
 import { useSyncExternalStore } from "react";
 import { toast } from "sonner";
-import { apiFetch, fetchWithFallback, fetchWithSource } from "@/lib/api";
+import { apiFetch, fetchWithSource } from "@/lib/api";
 import {
   BLOG_POSTS,
   BUSINESS_UNITS,
@@ -94,10 +94,28 @@ const RESOURCE_PATHS: Record<CollectionKey, { public: string; admin: string }> =
 
 const SETTINGS_PATHS = { public: "/cms/settings", admin: "/admin/settings" };
 
+/* --------------------------------- caching --------------------------------- */
+
+/** How often public content is re-read from the server. Everything in between comes from memory. */
+const REFRESH_MS = 5 * 60_000;
+/** A saved copy older than this is ignored (visitors see a normal first-load instead). */
+const MAX_CACHE_AGE_MS = 24 * 60 * 60_000;
+const CACHE_KEY = "bwc.cms.cache.v1";
+
+/**
+ * pending = nothing to show yet (first visit, still loading)
+ * cached  = showing the copy saved from the last visit while a fresh one loads in the background
+ * ready   = the first load has finished (live data, or placeholder if the API was unreachable)
+ */
+export type CmsPhase = "pending" | "cached" | "ready";
+
 let state: CmsState = INITIAL;
 let dataSources: Record<CollectionKey, DataSource> = INITIAL_SOURCES;
-let hydrating = false;
-let hydrated = false;
+let phase: CmsPhase = "pending";
+let started = false;
+let inflight: Promise<void> | null = null;
+let lastFetched = 0; // last time the server actually answered
+let lastAttempt = 0; // last time we tried (so a down API is retried every 5 min, not every 30 s)
 let revision = 0;
 const listeners = new Set<() => void>();
 
@@ -106,62 +124,142 @@ function emit() {
   listeners.forEach((l) => l());
 }
 
-async function hydrate() {
-  if (hydrated || hydrating || typeof window === "undefined") return;
-  hydrating = true;
+type CachedCms = { savedAt: number; state: CmsState; sources: Record<CollectionKey, DataSource> };
+
+function readCache(): CachedCms | null {
+  if (typeof window === "undefined") return null;
   try {
-    const [
-      heroSlides,
-      businessUnits,
-      products,
-      teamMembers,
-      blogPosts,
-      jobPostings,
-      countryShowcases,
-      mediaLibrary,
-      settings,
-    ] = await Promise.all([
-      fetchWithSource(RESOURCE_PATHS.heroSlides.public, INITIAL.heroSlides),
-      fetchWithSource(RESOURCE_PATHS.businessUnits.public, INITIAL.businessUnits),
-      fetchWithSource(RESOURCE_PATHS.products.public, INITIAL.products),
-      fetchWithSource(RESOURCE_PATHS.teamMembers.public, INITIAL.teamMembers),
-      fetchWithSource(RESOURCE_PATHS.blogPosts.public, INITIAL.blogPosts),
-      fetchWithSource(RESOURCE_PATHS.jobPostings.public, INITIAL.jobPostings),
-      fetchWithSource(RESOURCE_PATHS.countryShowcases.public, INITIAL.countryShowcases),
-      fetchWithSource(RESOURCE_PATHS.mediaLibrary.public, INITIAL.mediaLibrary),
-      fetchWithFallback(SETTINGS_PATHS.public, INITIAL.settings),
-    ]);
-    state = {
-      heroSlides: heroSlides.data,
-      businessUnits: businessUnits.data,
-      products: products.data,
-      teamMembers: teamMembers.data,
-      blogPosts: blogPosts.data,
-      jobPostings: jobPostings.data,
-      countryShowcases: countryShowcases.data,
-      mediaLibrary: mediaLibrary.data,
-      settings,
-    };
-    dataSources = {
-      heroSlides: heroSlides.isLive ? "live" : "placeholder",
-      businessUnits: businessUnits.isLive ? "live" : "placeholder",
-      products: products.isLive ? "live" : "placeholder",
-      teamMembers: teamMembers.isLive ? "live" : "placeholder",
-      blogPosts: blogPosts.isLive ? "live" : "placeholder",
-      jobPostings: jobPostings.isLive ? "live" : "placeholder",
-      countryShowcases: countryShowcases.isLive ? "live" : "placeholder",
-      mediaLibrary: mediaLibrary.isLive ? "live" : "placeholder",
-    };
-  } finally {
-    hydrated = true;
-    hydrating = false;
-    emit();
+    const raw = window.localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as CachedCms;
+    const keys = Object.keys(RESOURCE_PATHS) as CollectionKey[];
+    const looksRight =
+      typeof parsed.savedAt === "number" &&
+      parsed.state &&
+      parsed.sources &&
+      parsed.state.settings &&
+      keys.every((k) => Array.isArray(parsed.state[k]));
+    return looksRight ? parsed : null;
+  } catch {
+    return null; // storage blocked or the saved copy is damaged: behave like a first visit
   }
 }
 
+function persist() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: lastFetched, state, sources: dataSources }));
+  } catch {
+    /* storage full or blocked: caching is an extra, never required */
+  }
+}
+
+async function loadAll() {
+  const keys = Object.keys(RESOURCE_PATHS) as CollectionKey[];
+  // The current copy is the fallback, so a failed refresh keeps what the visitor already sees
+  // instead of swapping it for placeholder content.
+  const [settings, ...lists] = await Promise.all([
+    fetchWithSource(SETTINGS_PATHS.public, state.settings),
+    ...keys.map((k) => fetchWithSource(RESOURCE_PATHS[k].public, state[k])),
+  ]);
+  return { keys, settings, lists };
+}
+
+/** Reads every public collection once. Only replaces what really changed, so unchanged screens never re-render. */
+function refreshAll(): Promise<void> {
+  if (inflight) return inflight;
+  inflight = (async () => {
+    let changed = false;
+    try {
+      const { keys, settings, lists } = await loadAll();
+      const nextState: Record<string, unknown> = { ...state };
+      const nextSources = { ...dataSources };
+      let anyLive = false;
+
+      keys.forEach((key, i) => {
+        const result = lists[i]!;
+        if (!result.isLive) return; // keep the previous copy and its label
+        anyLive = true;
+        if (JSON.stringify(result.data) !== JSON.stringify(state[key])) {
+          nextState[key] = result.data;
+          changed = true;
+        }
+        if (dataSources[key] !== "live") {
+          nextSources[key] = "live";
+          changed = true;
+        }
+      });
+      if (settings.isLive) {
+        anyLive = true;
+        if (JSON.stringify(settings.data) !== JSON.stringify(state.settings)) {
+          nextState["settings"] = settings.data;
+          changed = true;
+        }
+      }
+
+      lastAttempt = Date.now();
+      if (anyLive) {
+        lastFetched = lastAttempt;
+        if (changed) {
+          state = nextState as unknown as CmsState;
+          dataSources = nextSources;
+        }
+        persist();
+      }
+    } finally {
+      const wasPending = phase !== "ready";
+      phase = "ready";
+      inflight = null;
+      if (changed || wasPending) emit();
+    }
+  })();
+  return inflight;
+}
+
+let timer: ReturnType<typeof setInterval> | undefined;
+
+/** Re-reads the server about every 5 minutes while the tab is open and visible (also when the tab is brought back). */
+function startAutoRefresh() {
+  if (timer || typeof window === "undefined") return;
+  const tick = () => {
+    if (document.visibilityState !== "visible") return;
+    if (Date.now() - Math.max(lastFetched, lastAttempt) >= REFRESH_MS) void refreshAll();
+  };
+  timer = setInterval(tick, 30_000);
+  document.addEventListener("visibilitychange", tick);
+}
+
+async function hydrate() {
+  if (started || typeof window === "undefined") return;
+  started = true;
+
+  const adminArea = window.location.pathname.startsWith("/admin");
+  const cached = readCache();
+  const usable = cached !== null && Date.now() - cached.savedAt < MAX_CACHE_AGE_MS;
+
+  if (usable) {
+    // Show the last copy straight away: a browser reload no longer starts from a blank skeleton.
+    state = cached.state;
+    dataSources = cached.sources;
+    lastFetched = cached.savedAt;
+    // Fresh enough? Then do not call the server at all. The admin panel always checks, so editors never see old data.
+    if (!adminArea && Date.now() - cached.savedAt < REFRESH_MS) {
+      phase = "ready";
+      emit();
+      startAutoRefresh();
+      return;
+    }
+    phase = "cached";
+    emit();
+  }
+
+  await refreshAll();
+  startAutoRefresh();
+}
+
 function subscribe(listener: () => void) {
-  void hydrate();
   listeners.add(listener);
+  void hydrate();
   return () => listeners.delete(listener);
 }
 
@@ -169,9 +267,14 @@ export function useCmsState(): CmsState {
   return useSyncExternalStore(subscribe, () => state, () => INITIAL);
 }
 
-/** Increments on every fetch/create/update/delete — use to bust dependent caches. */
+/** Increments whenever stored content changes. */
 export function useCmsRevision(): number {
   return useSyncExternalStore(subscribe, () => revision, () => 0);
+}
+
+/** Where the first load stands. Public pages show a skeleton only while this is "pending". */
+export function useCmsPhase(): CmsPhase {
+  return useSyncExternalStore(subscribe, () => phase, () => "pending" as CmsPhase);
 }
 
 export function useCollection<K extends CollectionKey>(key: K): CmsState[K] {
@@ -194,6 +297,7 @@ async function refetch<K extends CollectionKey>(key: K) {
   const { data, isLive } = await fetchWithSource(RESOURCE_PATHS[key].public, state[key]);
   state = { ...state, [key]: data } as CmsState;
   dataSources = { ...dataSources, [key]: isLive ? "live" : "placeholder" };
+  persist();
   emit();
 }
 
@@ -238,6 +342,7 @@ export async function deleteItem(key: CollectionKey, id: string) {
 export function addUploadedMedia(asset: MediaAsset) {
   state = { ...state, mediaLibrary: [asset, ...state.mediaLibrary] };
   dataSources = { ...dataSources, mediaLibrary: "live" };
+  persist();
   emit();
 }
 
@@ -248,6 +353,7 @@ export async function updateSettings(settings: SiteSettings) {
       body: JSON.stringify(settings),
     });
     state = { ...state, settings: updated };
+    persist();
     emit();
   } catch (error) {
     toast.error("Could not save settings — check your connection or permissions.");

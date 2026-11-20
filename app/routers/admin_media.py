@@ -1,5 +1,6 @@
 import io
 import uuid
+from urllib.parse import urlparse
 
 import cloudinary
 import cloudinary.uploader
@@ -24,7 +25,10 @@ cloudinary.config(
 router = APIRouter(prefix="/admin/media", tags=["admin-media"])
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # Cloudinary's plan limit
+MAX_RAW_UPLOAD_BYTES = 25 * 1024 * 1024  # what we accept BEFORE compressing
 MAX_DIMENSION = 2400  # longest edge, in pixels — plenty sharp for web use
+# Refuse "decompression bomb" images (a tiny file that expands to gigabytes of pixels in memory).
+Image.MAX_IMAGE_PIXELS = 60_000_000
 
 
 def compress_image(raw: bytes) -> tuple[bytes, str]:
@@ -62,6 +66,14 @@ def compress_image(raw: bytes) -> tuple[bytes, str]:
     return buffer.getvalue(), content_type
 
 
+def _is_safe_image_url(url: str) -> bool:
+    """https only, and none of the characters that could break out of an HTML attribute or a CSS url(...)."""
+    parsed = urlparse(url or "")
+    if parsed.scheme != "https" or not parsed.hostname:
+        return False
+    return not any(ch in url for ch in "\"'()<>\\ \t\r\n")
+
+
 @router.get("", response_model=list[MediaAssetOut])
 def list_media(
     db: Session = Depends(get_db),
@@ -77,7 +89,9 @@ def upload_media(
     db: Session = Depends(get_db),
     user: AdminUser = Depends(require_write("media-upload")),
 ):
-    raw = file.file.read()
+    raw = file.file.read(MAX_RAW_UPLOAD_BYTES + 1)
+    if len(raw) > MAX_RAW_UPLOAD_BYTES:
+        raise HTTPException(413, "That image is larger than 25 MB. Please upload a smaller photo.")
     try:
         compressed, _content_type = compress_image(raw)
     except Exception:
@@ -160,6 +174,8 @@ def register_existing_media(
     after its database row was deleted) — no re-upload, just a new tracking
     record. Does not verify the URL is reachable or actually an image.
     """
+    if not _is_safe_image_url(payload.url):
+        raise HTTPException(400, "The image address must be a plain https:// link.")
     asset = MediaAsset(
         filename=payload.filename or payload.url.rsplit("/", 1)[-1],
         url=payload.url,

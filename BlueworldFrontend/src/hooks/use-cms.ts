@@ -1,46 +1,46 @@
 /**
- * Data-fetching hooks. Each one hits the FastAPI endpoint and falls back to the
- * local placeholder dataset in `src/data/placeholder-content.ts`.
+ * Data hooks for the public site.
+ *
+ * The lists (hero slides, products, team, ...) are read from the CMS store in
+ * `lib/cms-store.ts`, which loads everything ONCE, keeps a saved copy in the
+ * browser, and re-reads the server about every 5 minutes. So:
+ *   - moving between pages never shows a loading state again,
+ *   - a browser reload shows the last copy straight away instead of a skeleton,
+ *   - each hook below is only a view onto that shared copy (no extra requests).
+ *
+ * `data` stays undefined until there is something real to show, so a component
+ * never flashes the demo placeholder content while it waits.
  */
 import { useQuery } from "@tanstack/react-query";
 import { ENDPOINTS, fetchWithFallback, apiFetch } from "@/lib/api";
-import { useCmsRevision, useCmsState } from "@/lib/cms-store";
-import type {
-  BlogPost,
-  BusinessUnit,
-  HeroSlide,
-  JobPosting,
-  MediaAsset,
-  Product,
-  SiteSettings,
-  TeamMember,
-} from "@/lib/types";
+import { useCmsPhase, useCmsState, type CmsState, type CollectionKey } from "@/lib/cms-store";
+import type { SiteSettings } from "@/lib/types";
 import type { CmsPage } from "@/lib/types";
 
+export interface CollectionResult<T> {
+  data: T | undefined;
+  isLoading: boolean;
+  isPending: boolean;
+  isFetching: false;
+  isError: false;
+}
 
+function result<T>(value: T, loading: boolean): CollectionResult<T> {
+  return { data: loading ? undefined : value, isLoading: loading, isPending: loading, isFetching: false, isError: false };
+}
 
-
-
-const COMMON = { staleTime: 5 * 60_000, retry: 0 } as const;
+function useCollectionResult<K extends CollectionKey>(key: K): CollectionResult<CmsState[K]> {
+  const state = useCmsState();
+  const phase = useCmsPhase();
+  return result(state[key], phase === "pending");
+}
 
 export function useHeroSlides() {
-  const cms = useCmsState();
-  const rev = useCmsRevision();
-  return useQuery({
-    queryKey: ["cms", "hero-slides", rev],
-    queryFn: () => fetchWithFallback<HeroSlide[]>(ENDPOINTS.heroSlides, cms.heroSlides),
-    ...COMMON,
-  });
+  return useCollectionResult("heroSlides");
 }
 
 export function useBusinessUnits() {
-  const cms = useCmsState();
-  const rev = useCmsRevision();
-  return useQuery({
-    queryKey: ["cms", "business-units", rev],
-    queryFn: () => fetchWithFallback<BusinessUnit[]>(ENDPOINTS.businessUnits, cms.businessUnits),
-    ...COMMON,
-  });
+  return useCollectionResult("businessUnits");
 }
 
 export function useBusinessUnit(slug: string) {
@@ -49,65 +49,30 @@ export function useBusinessUnit(slug: string) {
 }
 
 export function useProducts() {
-  const cms = useCmsState();
-  const rev = useCmsRevision();
-  return useQuery({
-    queryKey: ["cms", "products", rev],
-    queryFn: () => fetchWithFallback<Product[]>(ENDPOINTS.products, cms.products),
-    ...COMMON,
-  });
+  return useCollectionResult("products");
 }
 
 export function useTeamMembers() {
-  const cms = useCmsState();
-  const rev = useCmsRevision();
-  return useQuery({
-    queryKey: ["cms", "team", rev],
-    queryFn: () => fetchWithFallback<TeamMember[]>(ENDPOINTS.teamMembers, cms.teamMembers),
-    ...COMMON,
-  });
+  return useCollectionResult("teamMembers");
 }
 
 export function useBlogPosts() {
-  const cms = useCmsState();
-  const rev = useCmsRevision();
-  return useQuery({
-    queryKey: ["cms", "blog-posts", rev],
-    queryFn: () => fetchWithFallback<BlogPost[]>(ENDPOINTS.blogPosts, cms.blogPosts),
-    ...COMMON,
-  });
+  return useCollectionResult("blogPosts");
 }
 
 export function useJobPostings() {
-  const cms = useCmsState();
-  const rev = useCmsRevision();
-  return useQuery({
-    queryKey: ["cms", "jobs", rev],
-    queryFn: () => fetchWithFallback<JobPosting[]>(ENDPOINTS.jobPostings, cms.jobPostings),
-    ...COMMON,
-  });
-}
-
-export function useSiteSettings() {
-  const cms = useCmsState();
-  const rev = useCmsRevision();
-  return useQuery({
-    queryKey: ["cms", "settings", rev],
-    queryFn: () => fetchWithFallback<SiteSettings>(ENDPOINTS.settings, cms.settings),
-    ...COMMON,
-  });
+  return useCollectionResult("jobPostings");
 }
 
 export function useMediaLibrary() {
-  const cms = useCmsState();
-  const rev = useCmsRevision();
-  return useQuery({
-    queryKey: ["cms", "media", rev],
-    queryFn: () => fetchWithFallback<MediaAsset[]>(ENDPOINTS.media, cms.mediaLibrary),
-    ...COMMON,
-  });
+  return useCollectionResult("mediaLibrary");
 }
 
+export function useSiteSettings(): CollectionResult<SiteSettings> {
+  const state = useCmsState();
+  const phase = useCmsPhase();
+  return result(state.settings, phase === "pending");
+}
 
 import { GLOBE_SETTINGS_DEFAULT, type GlobeSettings } from "@/data/globe-content";
 
@@ -118,13 +83,15 @@ export function useGlobeSettings() {
   });
 }
 
-
-
+/** One CMS page (about, leadership, ...). Kept for 5 minutes, so going back to a page it already loaded is instant. */
 export function usePage(slug: string) {
   return useQuery({
     queryKey: ["cms", "page", slug],
     queryFn: () => apiFetch<CmsPage>(`${ENDPOINTS.pages}/${slug}`),
-    staleTime: 0,
+    staleTime: 5 * 60_000,
+    refetchInterval: 5 * 60_000,
+    refetchIntervalInBackground: false,
+    placeholderData: (previous) => previous,
     retry: 0,
   });
 }

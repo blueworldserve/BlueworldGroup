@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Play, X } from "lucide-react";
 import { AppLink } from "@/components/site/app-link";
@@ -9,6 +9,8 @@ import type { HeroSlide } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const SLIDE_MS = 7000;
+/** A finger must travel at least this many pixels sideways, and mostly sideways, to count as a swipe. */
+const SWIPE_MIN_PX = 45;
 
 export type HeroCard = { title: string; image: string; href: string };
 export type HeroStat = { k: string; v: string };
@@ -45,11 +47,39 @@ export function HeroSlider({
   const reduceMotion = useReducedMotion();
   const isWide = useIsWide();
 
+  // Swipe to change slide (phones and tablets). `direction` makes the new slide arrive from the side the finger moved toward.
+  const direction = useRef<1 | -1>(1);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const go = useCallback(
+    (step: 1 | -1) => {
+      direction.current = step;
+      setIndex((i) => (i + step + count) % count);
+    },
+    [count],
+  );
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touchStart.current = t ? { x: t.clientX, y: t.clientY } : null;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const start = touchStart.current;
+    touchStart.current = null;
+    const t = e.changedTouches[0];
+    if (!start || !t || count < 2 || igOpen) return;
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    // Mostly sideways only, so scrolling the page up and down never flips the slide.
+    if (Math.abs(dx) >= SWIPE_MIN_PX && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? 1 : -1);
+  };
+
   // A timeout keyed on `index` (not an interval) so clicking a dot restarts
   // the countdown instead of the next auto-advance firing a moment later.
   useEffect(() => {
     if (count < 2 || igOpen) return; // hold the slide while an Instagram video is open
-    const t = setTimeout(() => setIndex((i) => (i + 1) % count), SLIDE_MS);
+    const t = setTimeout(() => {
+      direction.current = 1;
+      setIndex((i) => (i + 1) % count);
+    }, SLIDE_MS);
     return () => clearTimeout(t);
   }, [index, count, igOpen]);
 
@@ -85,12 +115,17 @@ export function HeroSlider({
   const showSlideCta = Boolean(slide.ctaLabel && slide.ctaHref && slide.ctaHref !== "/products");
 
   return (
-    <section className="relative aspect-[9/16] max-h-[88svh] w-full overflow-hidden bg-primary-deep md:aspect-auto md:h-[94vh] md:max-h-none">
+    <section
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+      onTouchCancel={() => (touchStart.current = null)}
+      className="relative aspect-[9/16] max-h-[88svh] w-full touch-pan-y overflow-hidden bg-primary-deep md:aspect-auto md:h-[94vh] md:max-h-none"
+    >
       <AnimatePresence mode="sync">
         <motion.div
           key={slide.id}
-          initial={{ opacity: 0, scale: 1.04 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, scale: 1.04, x: reduceMotion ? 0 : direction.current * 36 }}
+          animate={{ opacity: 1, scale: 1, x: 0 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1.2, ease: "easeInOut" }}
           className="absolute inset-0"
@@ -289,7 +324,10 @@ export function HeroSlider({
               key={s.id}
               type="button"
               aria-label={`Show slide ${i + 1}`}
-              onClick={() => setIndex(i)}
+              onClick={() => {
+                direction.current = i >= active ? 1 : -1;
+                setIndex(i);
+              }}
               className={cn(
                 "h-1.5 rounded-full transition-all",
                 i === active ? "w-8 bg-white" : "w-4 bg-white/40 hover:bg-white/70",

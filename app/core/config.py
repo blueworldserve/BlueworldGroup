@@ -117,5 +117,10 @@ if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not set — check that app/.env exists and is being loaded.")
 if not JWT_SECRET:
     raise RuntimeError("JWT_SECRET is not set — check that app/.env exists and is being loaded.")
+if len(JWT_SECRET) < 32:
+    # Anyone who can guess this value can forge an admin login token. Generate one with:
+    #   python -c "import secrets; print(secrets.token_hex(32))"
+    import logging
+    logging.getLogger("startup").warning("JWT_SECRET is shorter than 32 characters. Replace it with a long random value.")
 if not (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET):
     raise RuntimeError("Cloudinary credentials are incomplete — check CLOUDINARY_* vars in app/.env.")
