@@ -22,6 +22,8 @@ export const ENDPOINTS = {
   adminApplications: "/admin/submissions/applications",
   adminResponses: "/admin/submissions/responses",
   adminSenders: "/admin/submissions/senders",
+  adminMailboxStatus: "/admin/submissions/mailbox/status",
+  adminMailboxCheck: "/admin/submissions/mailbox/check",
   authLogin: "/auth/login",
   authRefresh: "/auth/refresh",
   authMe: "/auth/me",

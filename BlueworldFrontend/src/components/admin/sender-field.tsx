@@ -10,10 +10,13 @@ export function SenderField({
   value,
   onChange,
   disabled,
+  preferred,
 }: {
   value: string;
   onChange: (v: string) => void;
   disabled?: boolean;
+  /** Pre-select this address when it is one of ours (e.g. the mailbox a customer's email arrived at). */
+  preferred?: string | null | undefined;
 }) {
   const [options, setOptions] = useState<string[]>([]);
 
@@ -23,7 +26,9 @@ export function SenderField({
       .then((r) => {
         if (cancelled) return;
         setOptions(r.senders);
-        if (r.default) onChange(r.default);
+        const wanted = preferred && r.senders.find((s) => s.toLowerCase() === preferred.toLowerCase());
+        if (wanted) onChange(wanted);
+        else if (r.default) onChange(r.default);
       })
       .catch(() => {});
     return () => {

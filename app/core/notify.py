@@ -101,7 +101,7 @@ def available_senders() -> tuple[list[str], str | None]:
     """Addresses to suggest in the CMS, and the default one (what MAIL_FROM sends as)."""
     default = parseaddr(config.MAIL_FROM or "")[1] or None
     seen: list[str] = []
-    for a in [default, config.SMTP_USER, config.IMAP_USER, *config.MAIL_SENDERS]:
+    for a in [default, config.SMTP_USER, *(m["user"] for m in config.IMAP_ACCOUNTS), *config.MAIL_SENDERS]:
         a = (a or "").strip()
         if a and a.lower() not in [x.lower() for x in seen]:
             seen.append(a)
