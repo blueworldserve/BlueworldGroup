@@ -37,6 +37,7 @@ from schemas.submission import (
     ContactReplyOut,
     ContactSubmissionDetailOut,
     ContactSubmissionOut,
+    MailboxStatusOut,
     NewsletterSignupOut,
     SendersOut,
 )
@@ -60,6 +61,23 @@ def list_senders(_=Depends(_can_view)):
     """Addresses suggested in the CMS 'Send from' box. Staff can also type any other address."""
     senders, default = available_senders()
     return SendersOut(senders=senders, default=default)
+
+
+@router.get("/mailbox/status", response_model=list[MailboxStatusOut])
+def mailbox_status(_=Depends(_can_view)):
+    """Is each mailbox the CMS reads (IMAP) logging in OK? Shows the reason when it isn't."""
+    return [MailboxStatusOut(**m) for m in mailbox.status()]
+
+
+@router.post("/mailbox/check")
+def check_mailbox(db: Session = Depends(get_db), _=Depends(_can_manage)):
+    """Reads the mailboxes right now (customer replies and mail sent straight to sales@) instead of waiting."""
+    try:
+        return mailbox.poll_replies(db)
+    except NotConfigured as e:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(e))
+    except NotifyError as e:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(e))
 
 
 def _get_or_404(db: Session, message_id: uuid.UUID) -> ContactSubmission:

@@ -140,7 +140,7 @@ function ReplyPage() {
                 </div>
               )}
 
-              <SenderField value={fromEmail} onChange={setFromEmail} disabled={!canSend || sending} />
+              <SenderField value={fromEmail} onChange={setFromEmail} disabled={!canSend || sending} preferred={detail.mailbox} />
 
               <dl className="divide-y divide-border rounded-xl border border-border bg-secondary/50 px-4 text-sm">
                 <div className="grid grid-cols-[70px_1fr] gap-3 py-2.5">
@@ -221,14 +221,17 @@ function ReplyPage() {
 
             {detail.replies.length > 0 && (
               <div>
-                <h3 className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-accent">Earlier replies</h3>
+                <h3 className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-accent">Conversation so far</h3>
                 <div className="space-y-3">
                   {detail.replies.map((r) => (
                     <div key={r.id}>
                       <p className="mb-1.5 text-xs text-muted-foreground">
-                        {r.sentBy ?? "Team"}{r.fromEmail ? ` (from ${r.fromEmail})` : ""} · {fullWhen(r.sentAt)}
+                        {r.direction === "in"
+                          ? `${detail.fullName} replied by email`
+                          : `${r.sentBy ?? "Team"}${r.fromEmail ? ` (from ${r.fromEmail})` : ""}`}{" "}
+                        · {fullWhen(r.sentAt)}
                       </p>
-                      <MessageBubble tone="team">{r.body}</MessageBubble>
+                      <MessageBubble tone={r.direction === "in" ? "customer" : "team"}>{r.body}</MessageBubble>
                     </div>
                   ))}
                 </div>

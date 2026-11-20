@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -30,6 +30,11 @@ import { cn } from "@/lib/utils";
 import { useCmsSourceAlerts } from "@/hooks/use-cms-source-alerts";
 import { ThemeToggle } from "@/components/admin/theme-toggle";
 import { useCmsThemeScope } from "@/hooks/use-cms-theme";
+
+// Every admin page mounts its own AdminShell, so the sidebar is rebuilt on each click. Remembering where its list was
+// scrolled keeps the menu looking static: it stays exactly where you left it instead of jumping back to the top.
+let sidebarScrollTop = 0;
+const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 export const ADMIN_NAV = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard },
@@ -122,6 +127,23 @@ export function AdminShell({
 
   const session = user ?? (hydrated ? getAdminUser() : null);
 
+  // Put the desktop sidebar back where it was, and make sure the current page's link is in view.
+  const sidebarNavRef = useRef<HTMLElement>(null);
+  const hasSession = !!session;
+  useIsoLayoutEffect(() => {
+    const nav = sidebarNavRef.current;
+    if (!nav) return;
+    nav.scrollTop = sidebarScrollTop;
+    const active = nav.querySelector<HTMLElement>('[data-active="true"]');
+    if (active) {
+      const top = active.offsetTop;
+      const bottom = top + active.offsetHeight;
+      if (top < nav.scrollTop) nav.scrollTop = Math.max(0, top - 8);
+      else if (bottom > nav.scrollTop + nav.clientHeight) nav.scrollTop = bottom - nav.clientHeight + 8;
+    }
+    sidebarScrollTop = nav.scrollTop;
+  }, [hasSession, pathname]);
+
   if (!session) {
     return (
       <div className="grid min-h-dvh place-items-center bg-secondary text-sm text-muted-foreground">
@@ -143,7 +165,8 @@ export function AdminShell({
 
   return (
     <div className="flex min-h-dvh bg-secondary">
-      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-border bg-card lg:flex">
+      {/* Fixed to the screen: it never scrolls, moves or resizes with the page. */}
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-card lg:flex">
         <a
           href="/"
           target="_blank"
@@ -157,13 +180,20 @@ export function AdminShell({
             <p className="text-[0.6rem] font-bold uppercase tracking-[0.22em] text-accent">CMS</p>
           </div>
         </a>
-        <nav className="flex-1 space-y-1 overflow-y-auto p-4">
+        <nav
+          ref={sidebarNavRef}
+          onScroll={(e) => {
+            sidebarScrollTop = e.currentTarget.scrollTop;
+          }}
+          className="relative flex-1 space-y-1 overflow-y-auto overscroll-contain p-4"
+        >
           {navItems.map((item) => {
             const active = item.to === "/admin" ? pathname === "/admin" : pathname.startsWith(item.to);
             return (
               <Link
                 key={item.to}
                 to={item.to}
+                data-active={active}
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors",
                   active
@@ -184,7 +214,7 @@ export function AdminShell({
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col lg:pl-64">
         <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-border bg-card pb-3 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-3 sm:px-6 sm:pb-4 sm:pt-4">
           <div className="flex min-w-0 items-center gap-3">
             {/* One hover zone around the button AND the panel, so moving from one to the other never counts as leaving. */}

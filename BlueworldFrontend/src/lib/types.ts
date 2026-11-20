@@ -140,6 +140,10 @@ export interface InboxMessage {
   status: "new" | "read" | "replied";
   repliedAt: string | null;
   createdAt: string;
+  /** "email" = someone emailed one of our mailboxes directly (not the contact form). */
+  source?: "website" | "email";
+  /** The address of ours it arrived at (email source only). */
+  mailbox?: string | null;
 }
 
 export interface InboxReply {
@@ -150,6 +154,15 @@ export interface InboxReply {
   sentBy: string | null;
   fromEmail?: string | null;
   sentAt: string;
+  /** "in" = the customer wrote back by email; "out" = our team replied from the CMS. */
+  direction?: "in" | "out";
+}
+
+export interface MailboxStatus {
+  address: string;
+  ok: boolean;
+  lastError: string | null;
+  lastCheckedAt: string | null;
 }
 
 export interface InboxMessageDetail extends InboxMessage {

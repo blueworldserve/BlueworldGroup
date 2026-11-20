@@ -47,12 +47,51 @@ SMTP_PORT = int(os.getenv("SMTP_PORT", "465"))  # 465 = SSL, 587 = STARTTLS
 SMTP_USER = os.getenv("SMTP_USER")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 
-# Mailbox the CMS reads to collect applicants' replies (IMAP). Applicant emails use it as Reply-To.
-IMAP_HOST = os.getenv("IMAP_HOST", "imap.gmail.com")
-IMAP_USER = os.getenv("IMAP_USER") or SMTP_USER
-IMAP_PASSWORD = os.getenv("IMAP_PASSWORD") or SMTP_PASSWORD
+# --- Mailboxes the CMS reads over IMAP (customer replies, applicant replies, mail sent straight to sales@) ---
+# Up to four mailboxes. The first uses IMAP_USER / IMAP_PASSWORD (falls back to SMTP_USER / SMTP_PASSWORD);
+# extra ones use the same names with a suffix:  IMAP_USER_2, IMAP_PASSWORD_2, IMAP_HOST_2 ... IMAP_USER_4.
+# IMAP_HOST is optional: gmail.com addresses use imap.gmail.com, any other address uses mail.<its domain>
+# (right for most cPanel hosts). Set it when your mail provider uses another server (Zoho: imap.zoho.com).
+_GMAIL_DOMAINS = {"gmail.com", "googlemail.com"}
+
+
+def _load_imap_accounts() -> list[dict]:
+    accounts: list[dict] = []
+    for suffix in ("", "_2", "_3", "_4"):
+        user = (os.getenv(f"IMAP_USER{suffix}") or (os.getenv("SMTP_USER") if not suffix else "") or "").strip().strip("\"'")
+        raw = os.getenv(f"IMAP_PASSWORD{suffix}") or (os.getenv("SMTP_PASSWORD") if not suffix else "") or ""
+        if not user or not raw.strip():
+            continue
+        domain = user.rsplit("@", 1)[-1].lower()
+        is_gmail = domain in _GMAIL_DOMAINS
+        host = (os.getenv(f"IMAP_HOST{suffix}") or ("imap.gmail.com" if is_gmail else f"mail.{domain}")).strip()
+        # Google shows app passwords as "abcd efgh ijkl mnop"; pasted env vars also tend to pick up quotes / newlines.
+        password = "".join(raw.split()) if (is_gmail or "gmail.com" in host) else raw.strip()
+        password = password.strip("\"'")
+        accounts.append(
+            {
+                "user": user,
+                "password": password,
+                "host": host,
+                "port": int(os.getenv(f"IMAP_PORT{suffix}", "993")),
+            }
+        )
+    return accounts
+
+
+IMAP_ACCOUNTS = _load_imap_accounts()
+# Kept for older code: the first mailbox.
+IMAP_HOST = IMAP_ACCOUNTS[0]["host"] if IMAP_ACCOUNTS else os.getenv("IMAP_HOST", "imap.gmail.com")
+IMAP_USER = IMAP_ACCOUNTS[0]["user"] if IMAP_ACCOUNTS else None
+IMAP_PASSWORD = IMAP_ACCOUNTS[0]["password"] if IMAP_ACCOUNTS else None
 IMAP_FOLDER = os.getenv("IMAP_FOLDER", "INBOX")
 IMAP_POLL_SECONDS = int(os.getenv("IMAP_POLL_SECONDS", "180"))
+# How far back each check looks (days), and how far back an email from someone NEW may be to open an inbox thread
+# (so the very first check doesn't dump two weeks of old mail into the CMS).
+IMAP_LOOKBACK_DAYS = int(os.getenv("IMAP_LOOKBACK_DAYS", "14"))
+IMAP_NEW_THREAD_DAYS = int(os.getenv("IMAP_NEW_THREAD_DAYS", "2"))
+# Set to "false" to only collect replies from people already in the CMS (contacts / applicants).
+IMAP_IMPORT_UNKNOWN = os.getenv("IMAP_IMPORT_UNKNOWN", "true").lower() != "false"
 
 # --- Email branding ---------------------------------------------------------
 # Public address of the website, e.g. https://blueworldcosmetics.org (no trailing slash).

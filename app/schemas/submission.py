@@ -46,6 +46,7 @@ class ContactReplyOut(CamelModel):
     sent_by: str | None = None
     from_email: str | None = None
     sent_at: datetime
+    direction: str = "out"  # "in" = the customer replied by email
 
 
 class ContactSubmissionOut(CamelModel):
@@ -59,6 +60,8 @@ class ContactSubmissionOut(CamelModel):
     status: str
     replied_at: datetime | None = None
     created_at: datetime
+    source: str = "website"  # "email" = arrived by email at one of our mailboxes
+    mailbox: str | None = None
 
 
 class ContactSubmissionDetailOut(ContactSubmissionOut):
@@ -123,6 +126,13 @@ class ApplicantResponseOut(CamelModel):
     body: str
     received_at: datetime
     is_read: bool
+
+
+class MailboxStatusOut(CamelModel):
+    address: str
+    ok: bool
+    last_error: str | None = None
+    last_checked_at: datetime | None = None
 
 
 class SendersOut(CamelModel):

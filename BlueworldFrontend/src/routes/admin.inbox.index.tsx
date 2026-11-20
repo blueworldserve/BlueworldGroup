@@ -26,7 +26,7 @@ import {
 } from "@/components/admin/inbox-parts";
 import { getAdminUser } from "@/hooks/use-admin-auth";
 import { apiErrorDetail, apiFetch, ENDPOINTS } from "@/lib/api";
-import type { InboxMessage, InboxMessageDetail, NewsletterSubscriber } from "@/lib/types";
+import type { InboxMessage, InboxMessageDetail, MailboxStatus, NewsletterSubscriber } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/inbox/")({
@@ -63,6 +63,16 @@ function InboxPage() {
   const [detail, setDetail] = useState<InboxMessageDetail | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [mailboxes, setMailboxes] = useState<MailboxStatus[]>([]);
+  const [checkingMail, setCheckingMail] = useState(false);
+
+  const loadMailboxes = useCallback(async () => {
+    try {
+      setMailboxes(await apiFetch<MailboxStatus[]>(ENDPOINTS.adminMailboxStatus));
+    } catch {
+      /* the banner is optional: the inbox still works without it */
+    }
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -73,16 +83,38 @@ function InboxPage() {
       ]);
       setMessages(m);
       setSubscribers(s);
+      void loadMailboxes();
     } catch (err) {
       toast.error("Could not load the inbox.", { description: apiErrorDetail(err, "Check that the API is running.") });
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loadMailboxes]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Reads the mailboxes (sales@, the Gmail test inbox…) right now instead of waiting for the automatic check.
+  async function checkMail() {
+    setCheckingMail(true);
+    try {
+      const r = await apiFetch<{ new: number; errors?: string[] }>(
+        ENDPOINTS.adminMailboxCheck,
+        { method: "POST" },
+        60_000,
+      );
+      toast.success(r.new ? `${r.new} new email${r.new === 1 ? "" : "s"}` : "No new emails", {
+        description: r.errors?.length ? r.errors.join(" ") : undefined,
+      });
+      await load();
+    } catch (err) {
+      toast.error("Could not read the mailbox", { description: apiErrorDetail(err, "Please try again.") });
+      void loadMailboxes();
+    } finally {
+      setCheckingMail(false);
+    }
+  }
 
   const unreadCount = messages.filter((m) => m.status === "new").length;
   const pendingSync = subscribers.filter((s) => !s.syncedAt).length;
@@ -184,17 +216,41 @@ function InboxPage() {
       title="Inbox"
       description="Messages from the contact form and newsletter signups."
       actions={
-        <button
-          type="button"
-          onClick={() => void load()}
-          disabled={loading}
-          className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-foreground/75 transition-colors hover:bg-primary-soft disabled:opacity-60"
-        >
-          <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
-          <span className="hidden sm:inline">Refresh</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {manage && mailboxes.length > 0 && (
+            <button
+              type="button"
+              onClick={() => void checkMail()}
+              disabled={checkingMail}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-foreground/75 transition-colors hover:bg-primary-soft disabled:opacity-60"
+            >
+              <Mail className={cn("h-4 w-4", checkingMail && "animate-pulse")} />
+              <span className="hidden sm:inline">{checkingMail ? "Checking…" : "Check mail"}</span>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => void load()}
+            disabled={loading}
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-foreground/75 transition-colors hover:bg-primary-soft disabled:opacity-60"
+          >
+            <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
+        </div>
       }
     >
+      {/* A mailbox the server cannot log in to: shows the reason right here instead of only in the server logs. */}
+      {mailboxes.filter((m) => !m.ok).map((m) => (
+        <div
+          key={m.address}
+          role="alert"
+          className="mb-4 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+        >
+          <p className="font-semibold">Can’t read {m.address}</p>
+          <p className="mt-1 break-words text-destructive/90">{m.lastError}</p>
+        </div>
+      ))}
       {/* Tabs */}
       <div className="mb-5 flex flex-wrap gap-2">
         <TabButton active={tab === "messages"} onClick={() => setTab("messages")} icon={<Mail className="h-4 w-4" />}>
@@ -370,15 +426,16 @@ function InboxPage() {
                   {detail.replies.length > 0 && (
                     <>
                       <h3 className="mb-2 mt-6 text-xs font-bold uppercase tracking-[0.16em] text-accent">
-                        Your replies
+                        Conversation
                       </h3>
                       <div className="space-y-3">
                         {detail.replies.map((r) => (
                           <div key={r.id}>
                             <p className="mb-1.5 text-xs text-muted-foreground">
-                              {r.sentBy ?? "Team"} · {fullWhen(r.sentAt)} · “{r.subject}”
+                              {r.direction === "in" ? `${detail.fullName} replied by email` : (r.sentBy ?? "Team")} ·{" "}
+                              {fullWhen(r.sentAt)} · “{r.subject}”
                             </p>
-                            <MessageBubble tone="team">{r.body}</MessageBubble>
+                            <MessageBubble tone={r.direction === "in" ? "customer" : "team"}>{r.body}</MessageBubble>
                           </div>
                         ))}
                       </div>

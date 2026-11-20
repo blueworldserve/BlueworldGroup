@@ -23,6 +23,10 @@ class ContactSubmission(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
+    # "website" = the contact form; "email" = someone emailed one of the mailboxes the CMS reads (IMAP).
+    source: Mapped[str] = mapped_column(String, nullable=False, default="website", server_default="website")
+    mailbox: Mapped[str | None] = mapped_column(String, nullable=True)  # which of our addresses it arrived at
+    message_id: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)  # stops an email being stored twice
 
 
 class ContactReply(Base):
@@ -42,6 +46,9 @@ class ContactReply(Base):
     sent_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
+    # "out" = we sent it from the CMS; "in" = the customer wrote back (collected over IMAP).
+    direction: Mapped[str] = mapped_column(String, nullable=False, default="out", server_default="out")
+    message_id: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
 
 
 class CareerApplication(Base):
