@@ -1,5 +1,5 @@
 /**
- * WebGL brand globe (react-three-fiber). Client-only — loaded lazily by
+ * WebGL brand globe (react-three-fiber). Client-only, loaded lazily by
  * <BrandGlobe /> so it never runs during SSR. Renders a photoreal Earth
  * (real day-map texture, not a dot-matrix) with a soft atmosphere rim,
  * a camera dolly-in on mount, a fast-spin-then-settle axial rotation, and
@@ -13,7 +13,7 @@
  * and `onSelect` to be notified when the user clicks a marker directly on
  * the globe itself (in addition to any external trigger, e.g. a chip list).
  *
- * Fully responsive: the <Canvas> has no hardcoded pixel size — it fills
+ * Fully responsive: the <Canvas> has no hardcoded pixel size, it fills
  * whatever box its parent gives it, and react-three-fiber's built-in
  * ResizeObserver keeps the camera/aspect in sync as that box resizes.
  */
@@ -37,18 +37,18 @@ export interface GlobeFocus {
 const GLOBE_RADIUS = 1.35;
 const ACCENT = "#f5a623";
 
-// Official three.js example asset — publicly hosted with CORS headers set,
+// Official three.js example asset, publicly hosted with CORS headers set,
 // so it loads fine as a WebGL texture from any origin. Swap this for your
 // own hosted Earth map later if you want a different look/resolution.
 const EARTH_TEXTURE_URL = "/textures/earth_atmos_2048.jpg";
 
-/** Resting spin speed once the entrance settles — rad/s. Deliberately well
+/** Resting spin speed once the entrance settles, rad/s. Deliberately well
  *  above the old 0.14 (which read as "boringly slow"); this completes a
  *  full turn roughly every 12-13s, a pace that stays legible for reading
  *  marker labels but is clearly, purposefully in motion. */
 const REST_SPIN_SPEED = 0.5;
 /** Angular velocity the globe starts at on mount, decaying down to
- *  REST_SPIN_SPEED — this is the "spins fast then settles" entrance. */
+ *  REST_SPIN_SPEED, this is the "spins fast then settles" entrance. */
 const INTRO_SPIN_SPEED = 5.5;
 /** Higher = faster decay from intro speed to resting speed. */
 const SPIN_DECAY = 1.8;
@@ -65,7 +65,7 @@ function latLngToVec3(lat: number, lng: number, radius: number) {
   );
 }
 
-/** The real Earth sphere, texture-mapped — replaces the old dot-matrix land mask. */
+/** The real Earth sphere, texture-mapped, replaces the old dot-matrix land mask. */
 function EarthMesh({ radius }: { radius: number }) {
   const texture = useLoader(THREE.TextureLoader, EARTH_TEXTURE_URL);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -78,7 +78,7 @@ function EarthMesh({ radius }: { radius: number }) {
   );
 }
 
-/** Soft blue-white rim glow — a slightly larger backside-only sphere, additive-ish via opacity. */
+/** Soft blue-white rim glow, a slightly larger backside-only sphere, additive-ish via opacity. */
 function AtmosphereGlow({ radius }: { radius: number }) {
   return (
     <mesh>
@@ -109,7 +109,7 @@ function Marker({
   const labelRef = useRef<HTMLDivElement>(null);
   const revealStart = useRef<number | null>(null);
 
-  // Surface dot + a short radial "spoke" out to a floating tip, where the label lives —
+  // Surface dot + a short radial "spoke" out to a floating tip, where the label lives -
   // a thin connector instead of a label sitting right on top of the dot.
   const { dotPos, tipPos } = useMemo(() => {
     const surface = latLngToVec3(marker.lat, marker.lng, radius * 1.01);
@@ -119,14 +119,14 @@ function Marker({
   }, [marker.lat, marker.lng, radius]);
 
   useFrame(({ clock }) => {
-    // Idle pulse ring on the surface dot — a touch bigger/brighter while selected.
+    // Idle pulse ring on the surface dot, a touch bigger/brighter while selected.
     if (pulseRef.current) {
       const t = (clock.getElapsedTime() * 0.9) % 1;
       pulseRef.current.scale.setScalar(1 + t * (selected ? 2.4 : 1.8));
       (pulseRef.current.material as THREE.MeshBasicMaterial).opacity = (1 - t) * (selected ? 0.55 : 0.35);
     }
 
-    // Staggered "line, then label" reveal — each marker starts fading in
+    // Staggered "line, then label" reveal, each marker starts fading in
     // index * 0.25s after the last, so they read as a sequence rather than
     // popping in all at once.
     if (revealStart.current === null) {
@@ -157,7 +157,7 @@ function Marker({
         lineWidth={1}
       />
 
-      {/* Camera-facing flat disc — always reads as a perfect circle, never foreshortens into an
+      {/* Camera-facing flat disc, always reads as a perfect circle, never foreshortens into an
           oval near the globe's limb the way a 3D sphere marker would. Clickable: fires onSelect. */}
       <Billboard position={dotPos}>
         <mesh
@@ -180,9 +180,9 @@ function Marker({
         </mesh>
       </Billboard>
 
-      {/* Label floats at the spoke's tip, not on the dot — `occlude` hides it once the marker
+      {/* Label floats at the spoke's tip, not on the dot, `occlude` hides it once the marker
           rotates to the far side of the globe. Starts invisible; useFrame above fades it in.
-          Also clickable — a bigger, easier target than the pin itself on touch devices. */}
+          Also clickable, a bigger, easier target than the pin itself on touch devices. */}
       <Html position={tipPos} center occlude zIndexRange={[10, 0]}>
         <div
           ref={labelRef}
@@ -203,7 +203,7 @@ function Marker({
 }
 
 /**
- * Axial spin with a "fast on entry, settles into a nice steady rate" feel —
+ * Axial spin with a "fast on entry, settles into a nice steady rate" feel -
  * mirrors CameraIntro's damp-based decay below, so both entrance motions
  * (zoom + spin) read as one coordinated intro rather than two unrelated
  * animations. `spinVelocity` starts at INTRO_SPIN_SPEED and exponentially
@@ -276,7 +276,7 @@ function GlobeBody({
   );
 }
 
-/** Dollies the camera in from far away to its resting position on mount — the "zooms forward" entrance. */
+/** Dollies the camera in from far away to its resting position on mount, the "zooms forward" entrance. */
 const SETTLE_EPSILON = 0.01;
 
 function CameraIntro({ restZ = 4.6 }: { restZ?: number }) {

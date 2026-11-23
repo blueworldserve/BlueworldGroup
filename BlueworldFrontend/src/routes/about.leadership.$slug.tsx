@@ -10,7 +10,7 @@ import { memberSlug } from "@/lib/team-slug";
 export const Route = createFileRoute("/about/leadership/$slug")({
   head: ({ params }) => ({
     meta: [
-      { title: `${params.slug.replace(/-/g, " ")} — Blue World Cosmetics` },
+      { title: `${params.slug.replace(/-/g, " ")} | Blueworld Cosmetics` },
       { name: "robots", content: "noindex, follow" },
     ],
   }),

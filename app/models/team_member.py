@@ -12,7 +12,7 @@ class TeamMember(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String, nullable=False)
-    # Nullable deliberately — existing rows won't have one yet. The admin
+    # Nullable deliberately, existing rows won't have one yet. The admin
     # panel auto-generates it from the name on save (same pattern as blog
     # posts and jobs), so re-saving each existing person once backfills it.
     slug: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)

@@ -12,13 +12,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/career")({
   head: () => ({
     meta: [
-      { title: "Careers — Blue World Cosmetics" },
+      { title: "Careers | Blueworld Cosmetics" },
       {
         name: "description",
         content:
           "Open roles in formulation, production, quality assurance and commercial at our Obadore, Igando, Lagos manufacturing organization.",
       },
-      { property: "og:title", content: "Careers — Blue World Cosmetics" },
+      { property: "og:title", content: "Careers | Blueworld Cosmetics" },
       {
         property: "og:description",
         content: "Build cosmetics that reach millions of African households. See our open roles.",
@@ -68,7 +68,7 @@ function CareerPage() {
         <div className="mt-12 space-y-4">
           {isLoading && <LoadingBlock label="Loading open roles…" />}
           {!isLoading && jobs.length === 0 && (
-            <EmptyBlock label="No open roles right now — check back soon." />
+            <EmptyBlock label="No open roles right now, check back soon." />
           )}
           {jobs.map((job) => {
             const open = openJob === job.slug;
@@ -199,7 +199,7 @@ function ApplyForm({ job, onClose }: { job: JobPosting; onClose: () => void }) {
     try {
       await submitFormData(ENDPOINTS.careersApply, body);
       toast.success("Application received", {
-        description: `Thanks ${payload.fullName.split(" ")[0]} — our people team will reach out by email.`,
+        description: `Thank you, ${payload.fullName.split(" ")[0]}. Our team will get back to you by email.`,
       });
       onClose();
     } catch (err) {

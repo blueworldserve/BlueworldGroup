@@ -94,7 +94,7 @@ class CareerApplication(Base):
 
 class CareerApplicationFile(Base):
     """A resume uploaded with a job application. Stored privately in the database and only
-    ever served to signed-in staff — there is no public link to it."""
+    ever served to signed-in staff, there is no public link to it."""
 
     __tablename__ = "career_application_files"
 

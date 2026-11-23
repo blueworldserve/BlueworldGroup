@@ -49,7 +49,7 @@ export function approvalEmail(input: TemplateInput & { date: string; time: strin
     .filter(Boolean)
     .join("\n");
   return {
-    subject: `Interview invitation — ${input.jobTitle} at ${input.company}`,
+    subject: `Interview invitation, ${input.jobTitle} at ${input.company}`,
     body: `Good day ${firstName(input.name)},
 
 Thank you for applying for the position of ${input.jobTitle} at ${input.company}. After reviewing your application, we are pleased to inform you that you have been shortlisted for an interview.
@@ -69,7 +69,7 @@ Human Resources, ${input.company}`,
 
 export function declineEmail(input: TemplateInput) {
   return {
-    subject: `Your application for ${input.jobTitle} — ${input.company}`,
+    subject: `Your application for ${input.jobTitle}, ${input.company}`,
     body: `Good day ${firstName(input.name)},
 
 Thank you for your interest in the ${input.jobTitle} position at ${input.company}, and for the time you took to apply.

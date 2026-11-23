@@ -22,10 +22,10 @@ def seed_superuser(db=None, email=None, password=None, full_name=None, interacti
         db = SessionLocal()
 
     try:
-        # Skip entirely if any superuser already exists — this is what makes it safe on every boot
+        # Skip entirely if any superuser already exists, this is what makes it safe on every boot
         existing_superuser = db.query(AdminUser).filter(AdminUser.is_superuser == True).first()
         if existing_superuser:
-            print(f"Superuser already exists ({existing_superuser.email}) — skipping seed.")
+            print(f"Superuser already exists ({existing_superuser.email}), skipping seed.")
             return
 
         # Need credentials to create one. On non-interactive startup, only proceed if env vars are set.
@@ -36,7 +36,7 @@ def seed_superuser(db=None, email=None, password=None, full_name=None, interacti
                     password = os.getenv("SUPERUSER_PASSWORD")
                     full_name = os.getenv("SUPERUSER_FULL_NAME")
                 else:
-                    print("No superuser exists and SUPERUSER_EMAIL/SUPERUSER_PASSWORD not set — skipping auto-seed.")
+                    print("No superuser exists and SUPERUSER_EMAIL/SUPERUSER_PASSWORD not set, skipping auto-seed.")
                     return
             else:
                 email, password, full_name = get_credentials()

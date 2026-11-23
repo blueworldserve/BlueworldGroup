@@ -10,10 +10,10 @@ import type { BlogPost } from "@/lib/types";
 export const Route = createFileRoute("/admin/blog")({
   head: () => ({
     meta: [
-      { title: "Blog Posts — Blue World CMS" },
-      { name: "description", content: "Write and edit articles published on the Blue World blog." },
+      { title: "Blog Posts | Blueworld CMS" },
+      { name: "description", content: "Write and edit articles published on the Blueworld blog." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Blog Posts — Blue World CMS" },
+      { property: "og:title", content: "Blog Posts | Blueworld CMS" },
       { property: "og:description", content: "Write and edit blog articles." },
     ],
   }),
@@ -91,7 +91,7 @@ function BlogAdmin() {
             readingMinutes: 4,
           })}
           onSave={(item) => {
-            // The web-address slug is generated automatically from the title —
+            // The web-address slug is generated automatically from the title -
             // only regenerate it for a brand-new post, so editing an existing
             // post's title never breaks a link someone already shared.
             const needsSlug = !item.slug || item.slug === DEFAULT_SLUG_PLACEHOLDER;

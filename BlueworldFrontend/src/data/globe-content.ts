@@ -13,7 +13,7 @@ export interface GlobeSettings {
 export const GLOBE_SETTINGS_DEFAULT: GlobeSettings = {
   mode: "animated",
   markers: [
-    { id: "lagos", label: "Lagos, Nigeria — HQ & factory", lat: 6.5244, lng: 3.3792 },
+    { id: "lagos", label: "Lagos, Nigeria, HQ & factory", lat: 6.5244, lng: 3.3792 },
     { id: "anambra", label: "Anambra, Nigeria", lat: 6.2209, lng: 6.9370 },
     { id: "nairobi", label: "Nairobi, Kenya", lat: -1.2921, lng: 36.8219 },
     { id: "beijing", label: "Beijing, China", lat: 39.9042, lng: 116.4074 },

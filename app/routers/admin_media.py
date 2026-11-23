@@ -26,7 +26,7 @@ router = APIRouter(prefix="/admin/media", tags=["admin-media"])
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # Cloudinary's plan limit
 MAX_RAW_UPLOAD_BYTES = 25 * 1024 * 1024  # what we accept BEFORE compressing
-MAX_DIMENSION = 2400  # longest edge, in pixels — plenty sharp for web use
+MAX_DIMENSION = 2400  # longest edge, in pixels, plenty sharp for web use
 # Refuse "decompression bomb" images (a tiny file that expands to gigabytes of pixels in memory).
 Image.MAX_IMAGE_PIXELS = 60_000_000
 
@@ -40,7 +40,7 @@ def compress_image(raw: bytes) -> tuple[bytes, str]:
     img = Image.open(io.BytesIO(raw))
     has_alpha = img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info)
 
-    # Shrink only if it's actually larger than our target — never upscale.
+    # Shrink only if it's actually larger than our target, never upscale.
     if max(img.size) > MAX_DIMENSION:
         img.thumbnail((MAX_DIMENSION, MAX_DIMENSION), Image.LANCZOS)
 
@@ -51,7 +51,7 @@ def compress_image(raw: bytes) -> tuple[bytes, str]:
         content_type = "image/png"
     else:
         img = img.convert("RGB")
-        # Step the JPEG quality down only as far as needed to clear the limit —
+        # Step the JPEG quality down only as far as needed to clear the limit -
         # starts high (92) so most images need no further reduction at all.
         quality = 92
         while True:
@@ -95,7 +95,7 @@ def upload_media(
     try:
         compressed, _content_type = compress_image(raw)
     except Exception:
-        raise HTTPException(400, "Could not process this image — please upload a valid JPEG, PNG or WebP file.")
+        raise HTTPException(400, "Could not process this image, please upload a valid JPEG, PNG or WebP file.")
 
     if len(compressed) > MAX_UPLOAD_BYTES:
         raise HTTPException(
@@ -171,7 +171,7 @@ def register_existing_media(
 ):
     """
     Registers an image that already exists at a URL (e.g. still on Cloudinary
-    after its database row was deleted) — no re-upload, just a new tracking
+    after its database row was deleted), no re-upload, just a new tracking
     record. Does not verify the URL is reachable or actually an image.
     """
     if not _is_safe_image_url(payload.url):

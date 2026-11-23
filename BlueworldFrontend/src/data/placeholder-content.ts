@@ -22,7 +22,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     eyebrow: "Since 1998 · Lagos, Nigeria",
     title: "Beauty formulated for African skin",
     subtitle:
-      "Blue World Cosmetics manufactures skincare, haircare and fragrance for millions of homes across Africa, Asia and beyond.",
+      "Blueworld Cosmetics manufactures skincare, haircare and fragrance for millions of homes across Africa, Asia and beyond.",
     ctaLabel: "Explore our brands",
     ctaHref: "/business/vivon",
     order: 1,
@@ -44,7 +44,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     eyebrow: "Five brands, one house",
     title: "Vivon. BlueCrystal. Blow Right. BlueFragrance.",
     subtitle:
-      "A multi-brand portfolio covering face, body, children, hygiene, hair and fine fragrance — from one manufacturing floor.",
+      "A multi-brand portfolio covering face, body, children, hygiene, hair and fine fragrance, from one manufacturing floor.",
     ctaLabel: "See the portfolio",
     ctaHref: "/business/blueworld-cosmetics",
     order: 3,
@@ -60,7 +60,7 @@ export const BUSINESS_UNITS: BusinessUnit[] = [
     summary:
       "Vivon is our flagship skincare brand: gentle, high-performing formulations for face, body and children, built around shea butter, glycerin and Nigerian botanical extracts.",
     story:
-      "Vivon began in 2004 as a single lightweight body lotion sold in Onitsha market. Today it is the widest line in the Blue World house, spanning three dedicated ranges.\n\nEvery Vivon formula is developed in our Ikeja laboratory and tested for tropical stability — a product that behaves in a 34°C Lagos afternoon is a product that behaves anywhere. We formulate without hydroquinone or mercury, and we publish a full ingredient deck on every carton.\n\nThe brand is built on three ranges: Vivon Face, Vivon Body and Vivon Children. Each has its own chemistry, its own testing protocol and its own audience.",
+      "Vivon began in 2004 as a single lightweight body lotion sold in Onitsha market. Today it is the widest line in the Blueworld house, spanning three dedicated ranges.\n\nEvery Vivon formula is developed in our Ikeja laboratory and tested for tropical stability, a product that behaves in a 34°C Lagos afternoon is a product that behaves anywhere. We formulate without hydroquinone or mercury, and we publish a full ingredient deck on every carton.\n\nThe brand is built on three ranges: Vivon Face, Vivon Body and Vivon Children. Each has its own chemistry, its own testing protocol and its own audience.",
     heroImage: "unit.vivon",
     accent: "orange",
     order: 1,
@@ -70,7 +70,7 @@ export const BUSINESS_UNITS: BusinessUnit[] = [
         name: "Vivon Face",
         tagline: "Clarity, tone and barrier repair",
         description:
-          "Serums, cleansers and moisturisers formulated for melanin-rich skin — niacinamide for tone, licorice root for dark spots, and a non-comedogenic base that holds up in humidity.",
+          "Serums, cleansers and moisturisers formulated for melanin-rich skin, niacinamide for tone, licorice root for dark spots, and a non-comedogenic base that holds up in humidity.",
         heroImage: "vivon.face",
       },
       {
@@ -97,7 +97,7 @@ export const BUSINESS_UNITS: BusinessUnit[] = [
     name: "BlueCrystal",
     tagline: "Hygiene and antiseptic care for the whole family",
     summary:
-      "BlueCrystal covers antiseptic liquids, medicated soaps and hand hygiene — the trusted blue bottle found in Nigerian bathrooms, clinics and schools.",
+      "BlueCrystal covers antiseptic liquids, medicated soaps and hand hygiene, the trusted blue bottle found in Nigerian bathrooms, clinics and schools.",
     story:
       "BlueCrystal was launched in 2011 in response to a simple gap: affordable, honestly-dosed antiseptic care manufactured locally instead of imported.\n\nThe range is anchored by our antiseptic liquid concentrate, produced under strict NAFDAC oversight, and extends into medicated bath soap, hand wash and surface care. Institutional volumes ship to hospitals, boarding schools and hospitality groups across the South-West.",
     heroImage: "unit.bluecrystal",
@@ -110,7 +110,7 @@ export const BUSINESS_UNITS: BusinessUnit[] = [
     name: "Blow Right",
     tagline: "Hair that behaves, from wash day to weekend",
     summary:
-      "Relaxers, styling creams, hair food and edge control built for African hair textures — salon-grade performance at market price.",
+      "Relaxers, styling creams, hair food and edge control built for African hair textures, salon-grade performance at market price.",
     story:
       "Blow Right is our haircare house, developed with salon professionals in Lagos and Aba. The range covers the full wash-day ritual: shampoo, conditioning treatment, no-lye relaxer, styling cream and finishing hair food.\n\nWe test every relaxer at three strength grades and publish processing times clearly on pack, because scalp safety is a formulation problem before it is a marketing one.",
     heroImage: "unit.blowright",
@@ -123,7 +123,7 @@ export const BUSINESS_UNITS: BusinessUnit[] = [
     name: "BlueFragrance",
     tagline: "Fine fragrance, made on the continent",
     summary:
-      "Eau de parfum, body sprays and roll-ons composed in-house — warm, resinous, unmistakably West African accords.",
+      "Eau de parfum, body sprays and roll-ons composed in-house, warm, resinous, unmistakably West African accords.",
     story:
       "BlueFragrance is our newest division, founded in 2019 to prove that a competitive fine fragrance can be composed and filled in Nigeria.\n\nOur perfumers work with oud, frankincense, shea flower and citrus, blending in small batches before scaling. The line spans 50ml eau de parfum for the premium tier down to deodorant body sprays for everyday wear.",
     heroImage: "unit.bluefragrance",
@@ -133,12 +133,12 @@ export const BUSINESS_UNITS: BusinessUnit[] = [
   {
     id: "bu-blueworld",
     slug: "blueworld-cosmetics",
-    name: "BlueWorld Cosmetics",
-    tagline: "The parent line — essentials for every home",
+    name: "Blueworld Cosmetics",
+    tagline: "The parent line, essentials for every home",
     summary:
       "Our flagship house line: petroleum jelly, body lotions, glycerin, bath soaps and the value essentials that built the company.",
     story:
-      "BlueWorld Cosmetics is where the company started, and it remains the volume backbone of the business. Petroleum jelly, glycerin, camphorated oil, bath soap and family body lotion — unglamorous products, made properly, at a price a Nigerian family can carry every month.\n\nThe line is also our contract-manufacturing showcase: many of the private-label products on West African shelves are filled on the same lines.",
+      "Blueworld Cosmetics is where the company started, and it remains the volume backbone of the business. Petroleum jelly, glycerin, camphorated oil, bath soap and family body lotion, unglamorous products, made properly, at a price a Nigerian family can carry every month.\n\nThe line is also our contract-manufacturing showcase: many of the private-label products on West African shelves are filled on the same lines.",
     heroImage: "unit.blueworld-cosmetics",
     accent: "blue",
     order: 5,
@@ -269,7 +269,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: "p-12",
-    name: "BlueWorld Petroleum Jelly",
+    name: "Blueworld Petroleum Jelly",
     unit: "blueworld-cosmetics",
     category: "Essentials",
     description: "Triple-filtered petroleum jelly, the household staple, in four sizes.",
@@ -285,7 +285,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     name: "Chukwuemeka Obi",
     slug: "chukwuemeka-obi",
     role: "Group Managing Director",
-    bio: "Founded Blue World in 1998 with two mixing vessels in Ikeja. Twenty-eight years later he still signs off every new formulation brief.",
+    bio: "Founded Blueworld in 1998 with two mixing vessels in Ikeja. Twenty-eight years later he still signs off every new formulation brief.",
     photo: "team.1",
     order: 1,
     isFeatured: true,
@@ -330,7 +330,7 @@ export const BLOG_POSTS: BlogPost[] = [
     excerpt:
       "Hyperpigmentation behaves differently on deeper skin tones. Our R&D lead explains how that reshapes an ingredient deck.",
     body:
-      "Most global skincare formulations are validated on lighter skin phototypes. When the same formula meets melanin-rich skin, the failure mode is rarely irritation — it is pigment.\n\nPost-inflammatory hyperpigmentation means any aggressive actives risk leaving a mark that outlives the blemish it treated. So our Vivon Face range is built on tone-evening actives with a wide safety margin: niacinamide, licorice root, azelaic derivatives. We do not use hydroquinone or mercury in any product, at any concentration.\n\nThe second change is the base. A tropical climate plus sebum-rich skin means an occlusive-heavy emulsion will feel like a mask by midday. We test every face formula at 34°C and 80% relative humidity before it leaves the lab.\n\nThe third is disclosure. Every Vivon carton carries the full INCI list and the active percentage on the front of pack. Customers deserve to know what strength they bought.",
+      "Most global skincare formulations are validated on lighter skin phototypes. When the same formula meets melanin-rich skin, the failure mode is rarely irritation, it is pigment.\n\nPost-inflammatory hyperpigmentation means any aggressive actives risk leaving a mark that outlives the blemish it treated. So our Vivon Face range is built on tone-evening actives with a wide safety margin: niacinamide, licorice root, azelaic derivatives. We do not use hydroquinone or mercury in any product, at any concentration.\n\nThe second change is the base. A tropical climate plus sebum-rich skin means an occlusive-heavy emulsion will feel like a mask by midday. We test every face formula at 34°C and 80% relative humidity before it leaves the lab.\n\nThe third is disclosure. Every Vivon carton carries the full INCI list and the active percentage on the front of pack. Customers deserve to know what strength they bought.",
     category: "Research & Development",
     author: "Dr. Ngozi Adeyemi",
     publishedAt: "2026-07-14",
@@ -340,7 +340,7 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     id: "b-2",
     slug: "blue-world-expands-export-to-east-africa",
-    title: "Blue World expands export volumes into East Africa",
+    title: "Blueworld expands export volumes into East Africa",
     excerpt:
       "Our first dedicated Nairobi distribution partnership takes the Vivon and BlueCrystal ranges into Kenyan retail at scale.",
     body:
@@ -358,7 +358,7 @@ export const BLOG_POSTS: BlogPost[] = [
     excerpt:
       "Viscosity, pH, microbial load and tropical stability. A walk through the eleven checks a batch clears before it ships.",
     body:
-      "No batch leaves the Ikeja plant without a signed certificate of analysis. That certificate is the output of eleven separate checks.\n\nWe start at raw material intake: every drum of shea, glycerin and surfactant is sampled and identity-tested before it enters the store. In-process checks cover pH, viscosity, appearance and odour at three points in the mixing cycle.\n\nFinished goods go to accelerated stability — 40°C for twelve weeks, plus a freeze-thaw cycle — and to microbial challenge testing. Retained samples from every batch are kept for the full shelf life, so a complaint from a customer two years out can be traced to a physical sample on our shelf.\n\nIt is unglamorous work. It is also the entire reason a family trusts the same blue bottle for a decade.",
+      "No batch leaves the Ikeja plant without a signed certificate of analysis. That certificate is the output of eleven separate checks.\n\nWe start at raw material intake: every drum of shea, glycerin and surfactant is sampled and identity-tested before it enters the store. In-process checks cover pH, viscosity, appearance and odour at three points in the mixing cycle.\n\nFinished goods go to accelerated stability, 40°C for twelve weeks, plus a freeze-thaw cycle, and to microbial challenge testing. Retained samples from every batch are kept for the full shelf life, so a complaint from a customer two years out can be traced to a physical sample on our shelf.\n\nIt is unglamorous work. It is also the entire reason a family trusts the same blue bottle for a decade.",
     category: "Manufacturing",
     author: "Tunde Alabi",
     publishedAt: "2026-04-21",
@@ -400,7 +400,7 @@ export const JOB_POSTINGS: JobPosting[] = [
   {
     id: "j-2",
     slug: "regional-sales-manager-south-east",
-    title: "Regional Sales Manager — South East",
+    title: "Regional Sales Manager | South East",
     department: "Sales & Distribution",
     location: "Onitsha, Anambra",
     employmentType: "Full-time",
@@ -472,7 +472,7 @@ export const JOB_POSTINGS: JobPosting[] = [
 ];
 
 export const SITE_SETTINGS: SiteSettings = {
-  companyName: "Blue World Cosmetics Limited",
+  companyName: "Blueworld Cosmetics Limited",
   tagline: "God Is Our Strength",
   addressLines: ["24 Oba Akran Avenue", "Ikeja Industrial Estate", "Lagos, Nigeria"],
   phones: ["+234 803 000 0000", "+234 701 000 0000"],
@@ -503,7 +503,7 @@ export const SITE_SETTINGS: SiteSettings = {
         { label: "BlueCrystal", href: "/business/bluecrystal" },
         { label: "Blow Right", href: "/business/blow-right" },
         { label: "BlueFragrance", href: "/business/bluefragrance" },
-        { label: "BlueWorld Cosmetics", href: "/business/blueworld-cosmetics" },
+        { label: "Blueworld Cosmetics", href: "/business/blueworld-cosmetics" },
       ],
     },
     {
@@ -525,7 +525,7 @@ export const MEDIA_LIBRARY: MediaAsset[] = [
     localPath: "src/assets/hero-beauty.jpg",
     width: 1920,
     height: 1080,
-    usedOn: "Homepage hero — slide 1",
+    usedOn: "Homepage hero, slide 1",
   },
   {
     id: "m-2",
@@ -534,7 +534,7 @@ export const MEDIA_LIBRARY: MediaAsset[] = [
     localPath: "src/assets/hero-factory.jpg",
     width: 1920,
     height: 1080,
-    usedOn: "Homepage hero — slide 2",
+    usedOn: "Homepage hero, slide 2",
   },
   {
     id: "m-3",
@@ -543,7 +543,7 @@ export const MEDIA_LIBRARY: MediaAsset[] = [
     localPath: "src/assets/hero-products.jpg",
     width: 1920,
     height: 1080,
-    usedOn: "Homepage hero — slide 3",
+    usedOn: "Homepage hero, slide 3",
   },
   {
     id: "m-4",
@@ -561,7 +561,7 @@ export const MEDIA_LIBRARY: MediaAsset[] = [
     localPath: "src/assets/about-story.jpg",
     width: 1600,
     height: 1100,
-    usedOn: "About Us — company story",
+    usedOn: "About Us, company story",
   },
 ];
 

@@ -109,11 +109,11 @@ __all__ = [
     "CareerApplicationIn",
     "CareerApplicationOut",
     "NewsletterSignupIn",
-    # pages — block payload items
+    # pages, block payload items
     "CardItem",
     "LinkCardItem",
     "FeatureItem",
-    # pages — block payloads
+    # pages, block payloads
     "ProsePayload",
     "ProseImagePayload",
     "CardGridPayload",
@@ -123,7 +123,7 @@ __all__ = [
     "TeamGridPayload",
     "GlobeReachPayload",
     "BlockPayload",
-    # pages — blocks and pages
+    # pages, blocks and pages
     "PageBlockIn",
     "PageBlockOut",
     "PageBase",

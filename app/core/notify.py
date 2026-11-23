@@ -1,7 +1,7 @@
 """Outbound notifications: email (Resend), job-application alerts, newsletter list sync.
 
 Everything here is OPTIONAL and driven by env vars (see core/config.py). Until the
-keys exist, every helper is a safe no-op that logs why it skipped — the contact form
+keys exist, every helper is a safe no-op that logs why it skipped, the contact form
 and newsletter signup still save to the database, so no lead is ever lost.
 
 Uses only the standard library (urllib) so no new dependency is needed.
@@ -93,6 +93,11 @@ def normalize_sender(value: str | None) -> str | None:
     return addr
 
 
+def hr_sender() -> str | None:
+    """The bare HR address (HR_MAIL_FROM), or None when HR mail should go out as the default sender."""
+    return parseaddr(config.HR_MAIL_FROM or "")[1].strip() or None
+
+
 def smtp_configured() -> bool:
     return bool(config.SMTP_HOST and config.SMTP_USER and config.SMTP_PASSWORD)
 
@@ -101,7 +106,7 @@ def available_senders() -> tuple[list[str], str | None]:
     """Addresses to suggest in the CMS, and the default one (what MAIL_FROM sends as)."""
     default = parseaddr(config.MAIL_FROM or "")[1] or None
     seen: list[str] = []
-    for a in [default, config.SMTP_USER, *(m["user"] for m in config.IMAP_ACCOUNTS), *config.MAIL_SENDERS]:
+    for a in [default, hr_sender(), config.SMTP_USER, *(m["user"] for m in config.IMAP_ACCOUNTS), *config.MAIL_SENDERS]:
         a = (a or "").strip()
         if a and a.lower() not in [x.lower() for x in seen]:
             seen.append(a)
@@ -153,7 +158,7 @@ def send_email(
         )
     if not (config.RESEND_API_KEY and (addr or config.MAIL_FROM)):
         raise NotConfigured(
-            "Email sending isn't configured yet — set RESEND_API_KEY and MAIL_FROM on the server."
+            "Email sending isn't configured yet, set RESEND_API_KEY and MAIL_FROM on the server."
         )
     payload: dict = {
         "from": formataddr((config.MAIL_FROM_NAME, addr)) if addr else config.MAIL_FROM,
@@ -197,19 +202,19 @@ def _button(label: str, href: str) -> str:
 
 
 def _brand_email(*, preheader: str, eyebrow: str, title: str, inner: str, cta: tuple[str, str] | None = None, note: str = "") -> str:
-    """The shared Blue World email shell: logo header, brand bar, content card, navy footer."""
+    """The shared Blueworld email shell: logo header, brand bar, content card, navy footer."""
     logo = ""
     if config.MAIL_LOGO_URL:
         logo = (
             f'<td width="66" valign="middle" style="padding-right:14px">'
-            f'<img src="{html.escape(config.MAIL_LOGO_URL)}" width="52" height="52" alt="Blue World Cosmetics" '
+            f'<img src="{html.escape(config.MAIL_LOGO_URL)}" width="52" height="52" alt="Blueworld Cosmetics" '
             'style="display:block;border:0;outline:none;border-radius:8px"></td>'
         )
     header = (
         '<table role="presentation" cellpadding="0" cellspacing="0"><tr>'
         f"{logo}"
         '<td valign="middle">'
-        f'<div style="font-family:{FONT};font-size:19px;font-weight:800;letter-spacing:.01em;color:{NAVY};line-height:1">BLUE WORLD</div>'
+        f'<div style="font-family:{FONT};font-size:19px;font-weight:800;letter-spacing:.01em;color:{NAVY};line-height:1">BLUEWORLD</div>'
         f'<div style="font-family:{FONT};font-size:10px;font-weight:bold;letter-spacing:.34em;color:{ORANGE};margin-top:6px;line-height:1">COSMETICS</div>'
         "</td></tr></table>"
     )
@@ -245,12 +250,12 @@ def _brand_email(*, preheader: str, eyebrow: str, title: str, inner: str, cta: t
 </td></tr>
 {cta_row}
 <tr><td style="background:{NAVY};padding:26px 40px">
-<div style="font-family:{FONT};font-size:14px;font-weight:bold;color:#ffffff">Blue World Cosmetics</div>
+<div style="font-family:{FONT};font-size:14px;font-weight:bold;color:#ffffff">Blueworld Cosmetics</div>
 <div style="font-family:{FONT};font-size:12px;line-height:1.6;color:#aab6d0;margin-top:4px">{site}</div>
 {note_html}
 </td></tr>
 </table>
-<div style="font-family:{FONT};font-size:11px;color:{MUTED};margin-top:16px">&copy; {datetime.now(timezone.utc).year} Blue World Cosmetics. All rights reserved.</div>
+<div style="font-family:{FONT};font-size:11px;color:{MUTED};margin-top:16px">&copy; {datetime.now(timezone.utc).year} Blueworld Cosmetics. All rights reserved.</div>
 </td></tr></table>
 </body></html>"""
 
@@ -286,7 +291,7 @@ def build_reply_email(*, body: str, original_name: str, original_message: str, o
         eyebrow="A reply from our team",
         title="Thank you for contacting us",
         inner=inner,
-        note="You received this email because you contacted Blue World Cosmetics through our website.",
+        note="You received this email because you contacted Blueworld Cosmetics through our website.",
     )
     return text, html_out
 
@@ -304,7 +309,7 @@ def build_applicant_email(
     interview_time: str | None = None,
 ) -> tuple[str, str]:
     """Returns (text, html) for HR's decision email. The plain-text part is HR's words exactly as written;
-    the HTML part dresses the same words in the Blue World layout (plus an at-a-glance interview card)."""
+    the HTML part dresses the same words in the Blueworld layout (plus an at-a-glance interview card)."""
     approving = decision == "approve"
     inner = ""
     if approving and interview_date is not None:
@@ -331,7 +336,7 @@ def build_applicant_email(
         eyebrow="Interview invitation" if approving else "Application update",
         title="You're invited to interview" if approving else "Thank you for applying",
         inner=inner,
-        note="You received this email because you applied for a role at Blue World Cosmetics.",
+        note="You received this email because you applied for a role at Blueworld Cosmetics.",
     )
     return body, html_out
 
@@ -349,7 +354,7 @@ def build_application_alert_email(*, kind: str, apps: list[dict]) -> tuple[str, 
         title = f"{n} new {plural} are waiting"
         intro = f"New applications have reached {config.APPLICATION_ALERT_THRESHOLD}. Here is everyone who has applied since the last alert."
     else:
-        subject = f"Daily applications digest — {n} new {plural}"
+        subject = f"Daily applications digest, {n} new {plural}"
         eyebrow = "Daily digest"
         title = f"{n} new {plural} since the last update"
         intro = "Here is your daily roundup of the job applications that came in since the last alert."
@@ -388,23 +393,23 @@ def build_application_alert_email(*, kind: str, apps: list[dict]) -> tuple[str, 
     )
     cta = ("Review applications", f"{config.SITE_URL}/admin/applications") if config.SITE_URL else None
     html_out = _brand_email(
-        preheader=f"{n} {plural} waiting — " + ", ".join(a["name"] for a in apps[:3]),
+        preheader=f"{n} {plural} waiting, " + ", ".join(a["name"] for a in apps[:3]),
         eyebrow=eyebrow,
         title=title,
         inner=inner,
         cta=cta,
-        note="You are receiving this because you are an admin or HR member of the Blue World CMS.",
+        note="You are receiving this because you are an admin or HR member of the Blueworld CMS.",
     )
     lines = [f"{title}\n", intro, ""]
     for a in shown:
-        lines.append(f"- {a['name']} <{a['email']}>{' ' + a['phone'] if a['phone'] else ''} — {a['role']} ({a['applied']:%d %b, %H:%M})")
+        lines.append(f"- {a['name']} <{a['email']}>{' ' + a['phone'] if a['phone'] else ''}, {a['role']} ({a['applied']:%d %b, %H:%M})")
     if n > len(shown):
         lines.append(f"...and {n - len(shown)} more.")
     if config.SITE_URL:
         lines += ["", f"Review them here: {config.SITE_URL}/admin/applications"]
     return subject, "\n".join(lines) + "\n", html_out
 # --------------------------------------------------------------------------- #
-# background jobs (each opens its own DB session — the request's is already closed)
+# background jobs (each opens its own DB session, the request's is already closed)
 # --------------------------------------------------------------------------- #
 def notify_new_contact(submission_id: uuid.UUID) -> None:
     """Email alert to the sales inbox(es) for a new contact message. Never raises."""
@@ -449,7 +454,7 @@ def notify_new_contact(submission_id: uuid.UUID) -> None:
                 )
                 send_email(
                     to=config.SALES_NOTIFY_EMAILS,
-                    subject=f"[Website · {row.enquiry_type}] {row.subject} — {row.full_name}",
+                    subject=f"[Website · {row.enquiry_type}] {row.subject}, {row.full_name}",
                     text=text,
                     html_body=html_body,
                     reply_to=row.email,
@@ -491,7 +496,7 @@ def sync_pending_signups(db, limit: int = 50) -> dict:
     from models.submission import NewsletterSignup
 
     if not config.RESEND_API_KEY:
-        raise NotConfigured("Newsletter sync isn't configured yet — set RESEND_API_KEY on the server.")
+        raise NotConfigured("Newsletter sync isn't configured yet, set RESEND_API_KEY on the server.")
     pending = (
         db.query(NewsletterSignup)
         .filter(NewsletterSignup.synced_at.is_(None))
@@ -582,7 +587,8 @@ def _alert_on_waiting_applications(*, min_count: int, kind: str) -> int:
 
     db = SessionLocal()
     try:
-        recipients = _staff_recipients(db)
+        hr_inbox = config.HR_NOTIFY_EMAILS or ([hr_sender()] if hr_sender() else [])
+        recipients = sorted({*_staff_recipients(db), *hr_inbox})
         if not recipients:
             logger.info("Application alert skipped: no active admin or HR users to notify.")
             return 0
@@ -619,7 +625,7 @@ def _alert_on_waiting_applications(*, min_count: int, kind: str) -> int:
 
         try:
             subject, text, html_body = build_application_alert_email(kind=kind, apps=apps)
-            send_email(to=recipients, subject=subject, text=text, html_body=html_body)
+            send_email(to=recipients, subject=subject, text=text, html_body=html_body, from_email=hr_sender())
         except Exception:
             logger.exception("Application %s email failed; will retry on the next check", kind)
             db.rollback()

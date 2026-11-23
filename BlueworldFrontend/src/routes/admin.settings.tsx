@@ -10,10 +10,10 @@ import type { SiteSettings } from "@/lib/types";
 export const Route = createFileRoute("/admin/settings")({
   head: () => ({
     meta: [
-      { title: "Site Settings — Blue World CMS" },
+      { title: "Site Settings | Blueworld CMS" },
       { name: "description", content: "Company contact details, office hours and footer navigation." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Site Settings — Blue World CMS" },
+      { property: "og:title", content: "Site Settings | Blueworld CMS" },
       { property: "og:description", content: "Global company and contact settings." },
     ],
   }),
@@ -34,7 +34,7 @@ type SettingsDraft = {
 const fields: FieldConfig<SettingsDraft>[] = [
   { name: "companyName", label: "Company name" },
   { name: "tagline", label: "Company slogan" },
-  { name: "addressLines", label: "Office address", type: "list", rows: 4, help: "One line per row — e.g. street, city, state." },
+  { name: "addressLines", label: "Office address", type: "list", rows: 4, help: "One line per row, e.g. street, city, state." },
   { name: "phones", label: "Phone numbers", type: "list", rows: 3, help: "One number per row." },
   { name: "emails", label: "Email addresses", type: "list", rows: 3, help: "One email per row." },
   { name: "officeHours", label: "Office hours", type: "list", rows: 4, help: "e.g. 'Mon–Fri: 8am–5pm', one line per row." },
@@ -53,7 +53,7 @@ function SocialLinksEditor({
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
       <h2 className="font-display text-base font-bold text-primary-deep">Social links</h2>
-      <p className="mt-1 text-xs text-muted-foreground">e.g. Instagram, Facebook, LinkedIn — shown in the site footer.</p>
+      <p className="mt-1 text-xs text-muted-foreground">e.g. Instagram, Facebook, LinkedIn, shown in the site footer.</p>
       <div className="mt-4 space-y-3">
         {rows.map((row, i) => (
           <div key={i} className="flex gap-2">

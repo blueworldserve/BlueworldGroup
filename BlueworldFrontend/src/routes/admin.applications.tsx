@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/applications")({
   head: () => ({
-    meta: [{ title: "Applications — Blue World CMS" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Applications | Blueworld CMS" }, { name: "robots", content: "noindex" }],
   }),
   component: ApplicationsPage,
 });

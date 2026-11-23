@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/admin/inbox/")({
   head: () => ({
     meta: [
-      { title: "Inbox — Blue World CMS" },
+      { title: "Inbox | Blueworld CMS" },
       { name: "description", content: "Contact messages and newsletter signups." },
       { name: "robots", content: "noindex" },
     ],
@@ -550,7 +550,7 @@ function InboxPage() {
       <ConfirmDeleteDialog
         open={confirmDelete}
         title="Delete this message?"
-        itemLabel={detail ? `${detail.fullName} — ${detail.subject ?? ""}` : "this message"}
+        itemLabel={detail ? `${detail.fullName}, ${detail.subject ?? ""}` : "this message"}
         onConfirm={() => void deleteSelected()}
         onCancel={() => setConfirmDelete(false)}
       />

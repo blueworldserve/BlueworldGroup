@@ -22,10 +22,10 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/admin/media")({
   head: () => ({
     meta: [
-      { title: "Media Library — Blue World CMS" },
-      { name: "description", content: "Track every image used across the Blue World Cosmetics site." },
+      { title: "Media Library | Blueworld CMS" },
+      { name: "description", content: "Track every image used across the Blueworld Cosmetics site." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Media Library — Blue World CMS" },
+      { property: "og:title", content: "Media Library | Blueworld CMS" },
       { property: "og:description", content: "Image assets and where they are used." },
     ],
   }),
@@ -116,7 +116,7 @@ function MediaAdmin() {
   return (
     <AdminShell
       title="Media Library"
-      description="Upload images directly — they're stored on Cloudinary. Filter by where they're used, open one to edit its details."
+      description="Upload images directly, they're stored on Cloudinary. Filter by where they're used, open one to edit its details."
     >
       <WriteGate resource="media-upload" notice={false}>
         <UploadPanel />

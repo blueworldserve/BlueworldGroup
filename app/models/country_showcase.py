@@ -10,7 +10,7 @@ from db.base import Base
 class CountryShowcase(Base):
     """The photo + write-up shown when a visitor taps a country marker on the
     homepage globe. `name` must match a REACH_MARKERS entry in the frontend's
-    placeholder-content.ts exactly (case-insensitive) — that's how the globe
+    placeholder-content.ts exactly (case-insensitive), that's how the globe
     marker click gets linked back to the right row here."""
 
     __tablename__ = "country_showcases"

@@ -13,6 +13,7 @@ from core.notify import (
     NotConfigured,
     NotifyError,
     available_senders,
+    hr_sender,
     build_applicant_email,
     build_reply_email,
     normalize_sender,
@@ -57,9 +58,11 @@ def _sender_or_422(value: str | None) -> str | None:
 
 
 @router.get("/senders", response_model=SendersOut)
-def list_senders(_=Depends(_can_view)):
+def list_senders(for_: str | None = Query(default=None, alias="for"), _=Depends(_can_view)):
     """Addresses suggested in the CMS 'Send from' box. Staff can also type any other address."""
     senders, default = available_senders()
+    if for_ == "hr" and hr_sender():
+        default = hr_sender()  # interview and decline letters go out as HR by default
     return SendersOut(senders=senders, default=default)
 
 
@@ -251,7 +254,7 @@ def decide_application(
     if application.status != "new":
         raise HTTPException(status.HTTP_409_CONFLICT, f"This application was already {application.status}.")
 
-    from_email = _sender_or_422(payload.from_email)
+    from_email = _sender_or_422(payload.from_email) or hr_sender()  # HR letters come from HR unless staff pick another address
     approving = payload.decision == "approve"
     if approving:
         if payload.interview_date is None:
@@ -268,13 +271,13 @@ def decide_application(
         interview_time=payload.interview_time if approving else None,
     )
     try:
-        # Replies go to the mailbox the CMS reads (Responses page); without one, to the sender / the HR user.
+        # Replies go back to the address the letter was sent from, so they land in that company mailbox.
         send_email(
             to=[application.email],
             subject=payload.subject,
             text=text,
             html_body=html_body,
-            reply_to=mailbox.reply_inbox() or from_email or user.email,
+            reply_to=mailbox.reply_inbox(from_email) or user.email,
             from_email=from_email,
         )
     except NotConfigured as e:

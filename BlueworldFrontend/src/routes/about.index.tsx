@@ -8,13 +8,13 @@ import { useReachMarkers } from "@/hooks/use-reach-markers";
 export const Route = createFileRoute("/about/")({
   head: () => ({
     meta: [
-      { title: "About Blue World Cosmetics — Our Story" },
+      { title: "About Blueworld Cosmetics | Our Story" },
       {
         name: "description",
         content:
-          "Founded in Lagos in 1998, Blue World Cosmetics manufactures five personal-care brands sold across Africa and beyond.",
+          "Founded in Lagos in 1998, Blueworld Cosmetics manufactures five personal-care brands sold across Africa and beyond.",
       },
-      { property: "og:title", content: "About Blue World Cosmetics" },
+      { property: "og:title", content: "About Blueworld Cosmetics" },
       {
         property: "og:description",
         content: "A Nigerian manufacturing house built on formulation discipline and local sourcing.",
@@ -41,7 +41,7 @@ function AboutPage() {
           <div className="overflow-hidden rounded-3xl shadow-lift">
             <CmsImage
               src="about.story"
-              alt="Blue World R&D laboratory in Ikeja"
+              alt="Blueworld R&D laboratory in Ikeja"
               className="aspect-[4/3] w-full object-cover"
             />
           </div>
@@ -49,13 +49,13 @@ function AboutPage() {
             <SectionHeading
               eyebrow="Our story"
               title="From two mixing vessels to five brands"
-              description="Blue World Cosmetics started in 2014 in a rented unit in obadore, Igando with two mixing vessels, a hand-filling bench and one product: a glycerin body lotion."
+              description="Blueworld Cosmetics started in 2014 in a rented unit in obadore, Igando with two mixing vessels, a hand-filling bench and one product: a glycerin body lotion."
             />
             <div className="mt-6 space-y-5 text-base leading-relaxed text-muted-foreground">
               <p>
                 What grew from there was not a single hero product but a house of brands, each
                 answering a different need on a Nigerian shelf: Vivon for skincare, BlueCrystal for
-                hygiene, BlueFragrance for scent, BlowRight for in-house plastic production and the BlueWorld line for
+                hygiene, BlueFragrance for scent, BlowRight for in-house plastic production and the Blueworld line for
                 everyday essentials.
               </p>
               <p>

@@ -9,13 +9,13 @@ import { useBusinessUnits } from "@/hooks/use-cms";
 export const Route = createFileRoute("/business/")({
   head: () => ({
     meta: [
-      { title: "Our Brands — Blue World Cosmetics" },
+      { title: "Our Brands | Blueworld Cosmetics" },
       {
         name: "description",
         content:
-          "Five brands under one Lagos manufacturing house: Vivon skincare, BlueCrystal hygiene, Blow Right haircare, BlueFragrance and BlueWorld Cosmetics essentials.",
+          "Five brands under one Lagos manufacturing house: Vivon skincare, BlueCrystal hygiene, Blow Right haircare, BlueFragrance and Blueworld Cosmetics essentials.",
       },
-      { property: "og:title", content: "Our Brands — Blue World Cosmetics" },
+      { property: "og:title", content: "Our Brands | Blueworld Cosmetics" },
       {
         property: "og:description",
         content: "Skincare, hygiene, haircare, fragrance and household essentials made in Nigeria.",
@@ -35,7 +35,7 @@ function BusinessIndexPage() {
         slug="business"
         eyebrow="Business"
         title="Five brands, one factory floor"
-        description="Each division owns its own chemistry, packaging and audience — all produced, tested and filled at our Obadore, Igando, Lagos manufacturing Company."
+        description="Each division owns its own chemistry, packaging and audience, all produced, tested and filled at our Obadore, Igando, Lagos manufacturing Company."
         image="hero.factory"
       />
       <Section>

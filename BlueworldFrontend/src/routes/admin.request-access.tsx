@@ -11,8 +11,8 @@ import { authInputClass, authInputStyle, authInputFocusStyle, authInputBlurStyle
 export const Route = createFileRoute("/admin/request-access")({
   head: () => ({
     meta: [
-      { title: "Request CMS Access — Blue World Cosmetics" },
-      { name: "description", content: "Request editor or viewer access to the Blue World Cosmetics CMS." },
+      { title: "Request CMS Access | Blueworld Cosmetics" },
+      { name: "description", content: "Request editor or viewer access to the Blueworld Cosmetics CMS." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -58,12 +58,12 @@ function RequestAccessPage() {
         body: JSON.stringify({ email, password, fullName, requestedRole }),
       });
       setSubmitted(true);
-      toast.success("Request submitted — an admin will review it.");
+      toast.success("Request submitted, an admin will review it.");
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         toast.error("An account with this email already exists.");
       } else if (error instanceof ApiError && error.status === 429) {
-        toast.error("Too many requests — please try again later.");
+        toast.error("Too many requests, please try again later.");
       } else {
         toast.error("Could not submit request. Try again shortly.");
       }
@@ -140,7 +140,7 @@ function RequestAccessPage() {
         transition={{ delay: 0.8, duration: 0.7 }}
       >
         <p className="text-xs font-semibold uppercase tracking-widest text-white/30">
-          © {new Date().getFullYear()} Blue World Cosmetics
+          © {new Date().getFullYear()} Blueworld Cosmetics
         </p>
       </motion.div>
 
@@ -177,7 +177,7 @@ function RequestAccessPage() {
               <div className="mb-8 text-center">
                 <h1 className="mb-1 text-2xl font-bold text-white">Request CMS Access</h1>
                 <p className="text-sm text-white/60">
-                  Choose the access you need — an admin must approve it before you can sign in.
+                  Choose the access you need, an admin must approve it before you can sign in.
                 </p>
               </div>
 
@@ -219,7 +219,7 @@ function RequestAccessPage() {
                     placeholder="Password"
                     required
                     minLength={8}
-                    // pr-10 instead of authInputClass's default pr-4 — makes room
+                    // pr-10 instead of authInputClass's default pr-4, makes room
                     // for the eye-toggle button without it overlapping the text.
                     className={cn(authInputClass, "pr-10")}
                     style={authInputStyle}
@@ -248,10 +248,10 @@ function RequestAccessPage() {
                     className="w-full rounded-xl border-2 px-4 py-3 text-sm text-white outline-none"
                     style={{ background: "rgba(255,255,255,0.08)", borderColor: "rgba(255,255,255,0.3)" }}
                   >
-                    <option value="viewer" className="text-primary-deep">Viewer — read-only access</option>
-                    <option value="sales" className="text-primary-deep">Sales — inbox, blog posts and products</option>
-                    <option value="hr" className="text-primary-deep">HR — jobs (create and edit)</option>
-                    <option value="editor" className="text-primary-deep">Editor — can create and edit content</option>
+                    <option value="viewer" className="text-primary-deep">Viewer, read-only access</option>
+                    <option value="sales" className="text-primary-deep">Sales, inbox, blog posts and products</option>
+                    <option value="hr" className="text-primary-deep">HR, jobs (create and edit)</option>
+                    <option value="editor" className="text-primary-deep">Editor, can create and edit content</option>
                   </select>
                 </div>
 

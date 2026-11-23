@@ -11,7 +11,7 @@ def client_ip(request: Request) -> str:
     Behind a reverse proxy (Railway, Render, Cloudflare...) `request.client.host`
     is the PROXY's address, so every visitor would share one bucket. When
     TRUSTED_PROXY_COUNT > 0 we read the real client IP from X-Forwarded-For,
-    counting from the right (the only part our own proxies wrote — the left side
+    counting from the right (the only part our own proxies wrote, the left side
     can be forged by the visitor). With 0 we never trust the header.
     """
     n = config.TRUSTED_PROXY_COUNT

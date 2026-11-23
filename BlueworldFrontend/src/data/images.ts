@@ -3,7 +3,7 @@
  *
  * Every placeholder image on the site resolves through this map. To swap an
  * image WITHOUT the backend running, drop a new file into `src/assets/` and
- * point the matching key below at it — nothing else needs to change.
+ * point the matching key below at it, nothing else needs to change.
  */
 import heroFactory from "@/assets/hero-factory.png";
 import heroBeauty from "@/assets/hero-beauty.jpg";

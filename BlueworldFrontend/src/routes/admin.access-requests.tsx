@@ -10,7 +10,7 @@ import { apiFetch, ENDPOINTS } from "@/lib/api";
 export const Route = createFileRoute("/admin/access-requests")({
   head: () => ({
     meta: [
-      { title: "Access & Team — Blue World CMS" },
+      { title: "Access & Team | Blueworld CMS" },
       { name: "description", content: "Approve access requests and manage existing CMS accounts." },
       { name: "robots", content: "noindex" },
     ],
@@ -167,7 +167,7 @@ function AccessRequestsPage() {
                     <div>
                       <p className="font-semibold text-primary-deep">{r.fullName || r.email}</p>
                       <p className="text-xs text-muted-foreground">
-                        {r.email} — requested{" "}
+                        {r.email}, requested{" "}
                         <span className="font-semibold">{r.isSuperuser ? "Master Key" : r.role}</span>
                       </p>
                     </div>
@@ -216,13 +216,13 @@ function AccessRequestsPage() {
                           )}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {u.email} —{" "}
+                          {u.email} -{" "}
                           {u.isSuperuser || isSelf ? (
                             <span className="font-semibold">{u.isSuperuser ? "Master Key" : u.role}</span>
                           ) : (
                             <RoleSelect user={u} onChanged={load} />
                           )}{" "}
-                          —{" "}
+                          -{" "}
                           <span className={u.status === "suspended" ? "text-destructive" : "text-accent"}>
                             {u.status}
                           </span>

@@ -171,7 +171,7 @@ def list_users(
     db: Session = Depends(get_db),
     _: AdminUser = Depends(require_admin),
 ):
-    """Everyone who has ever been approved or suspended — i.e. not still pending."""
+    """Everyone who has ever been approved or suspended, i.e. not still pending."""
     return (
         db.query(AdminUser)
         .filter(AdminUser.status != AdminStatus.pending)

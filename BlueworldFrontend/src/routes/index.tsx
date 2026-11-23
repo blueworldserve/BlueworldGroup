@@ -20,13 +20,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Blue World Cosmetics — Nigerian Cosmetics Manufacturer" },
+      { title: "Blueworld Cosmetics | Nigerian Cosmetics Manufacturer" },
       {
         name: "description",
         content:
-          "Skincare, hygiene, haircare and fragrance manufactured in Lagos. Home of Vivon, BlueCrystal, Blow Right, BlueFragrance and BlueWorld Cosmetics.",
+          "Skincare, hygiene, haircare and fragrance manufactured in Lagos. Home of Vivon, BlueCrystal, Blow Right, BlueFragrance and Blueworld Cosmetics.",
       },
-      { property: "og:title", content: "Blue World Cosmetics" },
+      { property: "og:title", content: "Blueworld Cosmetics" },
       { property: "og:description", content: "Five brands. One Nigerian manufacturing house. God Is Our Strength." },
     ],
     links: [
@@ -256,7 +256,7 @@ function HomePage() {
             <p className="eyebrow">Where we ship</p>
             <h3 className="mt-2 text-2xl font-bold text-primary-deep">Made in Nigeria, carried around the world</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              From our organization at Obadore, Igando, Lagos, Blue World reaches households across {reachPhrase}. Tap a marker, or a market below.
+              From our organization at Obadore, Igando, Lagos, Blueworld reaches households across {reachPhrase}. Tap a marker, or a market below.
             </p>
             <div className="mt-4">
               <BrandGlobe

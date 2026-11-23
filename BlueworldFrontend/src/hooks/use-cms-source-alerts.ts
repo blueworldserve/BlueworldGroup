@@ -40,7 +40,7 @@ const COLLECTION_LABELS: Record<CollectionKey, string> = {
 
 /**
  * Warns admins when a section is showing local placeholder content instead
- * of real backend data — and confirms once it switches to live. Mount this
+ * of real backend data, and confirms once it switches to live. Mount this
  * once near the top of the admin shell so it covers every /admin page
  * without each route needing its own copy.
  */
@@ -53,14 +53,14 @@ export function useCmsSourceAlerts() {
     const keys = Object.keys(sources) as CollectionKey[];
 
     if (prev === null) {
-      // First read after hydration — flag whatever's still placeholder.
+      // First read after hydration, flag whatever's still placeholder.
       const placeholders = keys.filter((k) => sources[k] === "placeholder");
       if (placeholders.length > 0 && !alreadyWarned()) {
         markWarned();
         toast.warning(
           `Showing placeholders for: ${placeholders.map((k) => COLLECTION_LABELS[k]).join(", ")}`,
           {
-            description: "No live data from the backend yet — what's shown isn't saved content.",
+            description: "No live data from the backend yet, what's shown isn't saved content.",
             duration: 7000,
           },
         );
@@ -72,7 +72,7 @@ export function useCmsSourceAlerts() {
           toast.success(`${COLLECTION_LABELS[key]} is now live from the backend.`);
         }
         if (prev[key] === "live" && sources[key] === "placeholder") {
-          toast.warning(`${COLLECTION_LABELS[key]} dropped back to placeholder — is the backend down?`);
+          toast.warning(`${COLLECTION_LABELS[key]} dropped back to placeholder, is the backend down?`);
         }
       }
     }

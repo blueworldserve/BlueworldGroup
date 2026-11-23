@@ -13,12 +13,12 @@ export function SiteFooter() {
           <div className="flex items-center gap-3">
             <img
               src="/blueworld.png"
-              alt="Blue World Cosmetics"
+              alt="Blueworld Cosmetics"
               className="h-11 w-11 object-cover"
               draggable={false}
             />
             <span className="font-display text-lg font-extrabold tracking-tight">
-              BLUE WORLD COSMETICS
+              BLUEWORLD COSMETICS
             </span>
           </div>
           <p className="mt-5 max-w-sm text-sm leading-relaxed text-primary-foreground/75">

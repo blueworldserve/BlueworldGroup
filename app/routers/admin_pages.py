@@ -35,7 +35,7 @@ def _apply_input(page: Page, payload: PageInput, db: Session):
     page.meta_description = payload.metaDescription
     page.status = payload.status
 
-    # Replace all blocks wholesale — simplest correct behavior for a page editor
+    # Replace all blocks wholesale, simplest correct behavior for a page editor
     # that submits its full block list on every save.
     page.blocks.clear()
     db.flush()
@@ -114,7 +114,7 @@ def delete_page(
     db.commit()
 
 
-# ---- Public read, by slug — used by about.vision-mission.tsx's usePage() ----
+# ---- Public read, by slug, used by about.vision-mission.tsx's usePage() ----
 @public_router.get("/{slug:path}", response_model=PageOut)
 def get_public_page(slug: str, db: Session = Depends(get_db)):
     page = (

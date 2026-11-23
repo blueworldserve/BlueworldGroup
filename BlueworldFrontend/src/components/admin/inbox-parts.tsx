@@ -6,13 +6,13 @@ import { cn } from "@/lib/utils";
 const dateFmt = new Intl.DateTimeFormat("en-NG", { day: "numeric", month: "short", year: "numeric" });
 const timeFmt = new Intl.DateTimeFormat("en-NG", { hour: "numeric", minute: "2-digit" });
 
-/** "3:42 pm" for today, "12 Oct 2026" otherwise — used in the message list. */
+/** "3:42 pm" for today, "12 Oct 2026" otherwise, used in the message list. */
 export function shortWhen(iso: string): string {
   const d = new Date(iso);
   return d.toDateString() === new Date().toDateString() ? timeFmt.format(d) : dateFmt.format(d);
 }
 
-/** "12 Oct 2026 · 3:42 pm" — used in the reading pane. */
+/** "12 Oct 2026 · 3:42 pm", used in the reading pane. */
 export function fullWhen(iso: string): string {
   const d = new Date(iso);
   return `${dateFmt.format(d)} · ${timeFmt.format(d)}`;

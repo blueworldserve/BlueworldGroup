@@ -115,7 +115,7 @@ class PageBlockIn(CamelModel):
     @classmethod
     def _bridge_type_into_payload(cls, data: Any) -> Any:
         """
-        `type` is stored once, as PageBlock's own column — never duplicated
+        `type` is stored once, as PageBlock's own column, never duplicated
         inside the JSON payload itself (the seed script and the frontend admin
         editor both store payloads without it). Since `payload` is a
         discriminated union keyed on an inner `type` field, we inject the

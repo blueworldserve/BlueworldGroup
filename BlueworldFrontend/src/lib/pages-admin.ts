@@ -1,5 +1,5 @@
 /**
- * Admin CRUD client for Pages — separate from cms-store.ts because Page
+ * Admin CRUD client for Pages, separate from cms-store.ts because Page
  * doesn't fit the flat-collection model everything else there uses (nested
  * blocks, identified by slug on the public side, no placeholder fallback).
  * Every call requires an authenticated admin/editor session (JWT attached

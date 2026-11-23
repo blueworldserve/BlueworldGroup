@@ -5,7 +5,8 @@ so one wrong password never blocks the others. Each new email is routed like thi
 
   1. from an applicant who was approved / declined  -> a reply on the CMS "Responses" page
   2. from someone who used the contact form before   -> added to that person's thread in the CMS Inbox (marked unread)
-  3. from anyone else (they emailed us directly)     -> a NEW thread in the CMS Inbox, so staff can answer it there
+  3. from a stranger who emailed a COMPANY address    -> a NEW thread in the CMS Inbox (only if IMAP_IMPORT_UNKNOWN=true)
+  Anything else (verification codes, receipts, newsletters sent to the mailbox itself) is ignored.
 
 Staff then answer from the Inbox, choosing which address to send from. The mailbox is only ever READ
 (BODY.PEEK, read-only select): nothing is marked as read, moved or deleted.
@@ -21,7 +22,7 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 from email.header import decode_header, make_header
-from email.utils import parseaddr, parsedate_to_datetime
+from email.utils import getaddresses, parseaddr, parsedate_to_datetime
 
 from sqlalchemy.exc import IntegrityError
 
@@ -40,8 +41,12 @@ def configured() -> bool:
     return bool(config.IMAP_ACCOUNTS)
 
 
-def reply_inbox() -> str | None:
-    """The address applicants should reply to, so their answer reaches the CMS (None if not set up)."""
+def reply_inbox(sender: str | None = None) -> str | None:
+    """Where replies to a letter should go: the address the letter is sent from, so the answer lands in that company
+    mailbox (and the CMS reads it when that address is one of the configured IMAP mailboxes). With no sender given,
+    the first configured mailbox."""
+    if sender:
+        return sender
     return config.IMAP_ACCOUNTS[0]["user"] if config.IMAP_ACCOUNTS else None
 
 
@@ -166,10 +171,11 @@ def _context(db) -> dict:
         "contacts": {(c.email or "").strip().lower(): c.id for c in contacts},  # latest thread wins per address
         "known": known,
         "own": _system_sender(),
+        "company": set(config.COMPANY_ADDRESSES),
     }
 
 
-def _file_message(db, ctx: dict, acct: dict, *, sender: str, sender_name: str, message_id: str, msg, received: datetime) -> str | None:
+def _file_message(db, ctx: dict, acct: dict, *, sender: str, sender_name: str, message_id: str, msg, received: datetime, recipients: set[str] | None = None) -> str | None:
     """Stores one email. Returns "applicant" / "reply" / "new" / None (skipped)."""
     from models.submission import ApplicationResponse, ContactReply, ContactSubmission
 
@@ -212,6 +218,8 @@ def _file_message(db, ctx: dict, acct: dict, *, sender: str, sender_name: str, m
     else:
         if not config.IMAP_IMPORT_UNKNOWN:
             return None
+        if not (ctx["company"] & (recipients or set())):
+            return None  # sent to a personal inbox, not to a company address (verification codes, receipts, newsletters)
         if received < datetime.now(timezone.utc) - timedelta(days=config.IMAP_NEW_THREAD_DAYS):
             return None  # old mail from a stranger: not worth opening a thread for
         row = ContactSubmission(
@@ -249,7 +257,7 @@ def _poll_account(db, ctx: dict, acct: dict) -> dict:
         imap.select(config.IMAP_FOLDER, readonly=True)  # read-only: nothing gets marked as read
         _, data = imap.search(None, "SINCE", since)
         for num in (data[0].split() if data and data[0] else [])[-300:]:
-            _, head = imap.fetch(num, "(BODY.PEEK[HEADER.FIELDS (FROM MESSAGE-ID AUTO-SUBMITTED PRECEDENCE)])")
+            _, head = imap.fetch(num, "(BODY.PEEK[HEADER.FIELDS (FROM TO CC DELIVERED-TO X-ORIGINAL-TO MESSAGE-ID AUTO-SUBMITTED PRECEDENCE)])")
             header = email.message_from_bytes(head[0][1]) if head and head[0] else None
             if header is None:
                 continue
@@ -259,13 +267,20 @@ def _poll_account(db, ctx: dict, acct: dict) -> dict:
             if not message_id or message_id in ctx["known"] or sender in ctx["own"] or sender == acct["user"].lower() or _is_automatic(sender, header):
                 continue
             counts["checked"] += 1
+            recipients = {
+                a.strip().lower()
+                for _, a in getaddresses(
+                    [_decode(v) for v in [*header.get_all("To", []), *header.get_all("Cc", []), *header.get_all("Delivered-To", []), *header.get_all("X-Original-To", [])]]
+                )
+                if a
+            }
             _, full = imap.fetch(num, "(BODY.PEEK[])")
             msg = email.message_from_bytes(full[0][1])
             try:
                 received = parsedate_to_datetime(msg.get("Date")).astimezone(timezone.utc)
             except Exception:
                 received = datetime.now(timezone.utc)
-            if _file_message(db, ctx, acct, sender=sender, sender_name=name, message_id=message_id, msg=msg, received=received):
+            if _file_message(db, ctx, acct, sender=sender, sender_name=name, message_id=message_id, msg=msg, received=received, recipients=recipients):
                 counts["new"] += 1
     finally:
         try:
@@ -286,7 +301,7 @@ def poll_replies(db, *, respect_backoff: bool = False) -> dict:
     """Checks every mailbox now. Returns {"new": stored, "checked": looked at}.
     Raises NotifyError (with the reason) only if EVERY mailbox failed, so the CMS "check now" button can show why."""
     if not configured():
-        raise NotConfigured("Mailbox reading isn't set up — set IMAP_USER and IMAP_PASSWORD (or SMTP_USER / SMTP_PASSWORD) on the server.")
+        raise NotConfigured("Mailbox reading isn't set up, set IMAP_USER and IMAP_PASSWORD (or SMTP_USER / SMTP_PASSWORD) on the server.")
 
     ctx = _context(db)
     total = {"new": 0, "checked": 0}

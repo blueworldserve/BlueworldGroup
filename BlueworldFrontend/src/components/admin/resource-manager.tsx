@@ -88,7 +88,7 @@ export function ResourceManager<T extends Row>({
         </div>
       )}
 
-      {/* CHANGED: table now hidden below `sm` — a data table with 4+
+      {/* CHANGED: table now hidden below `sm`, a data table with 4+
           columns forces horizontal scroll on a phone just to reach the
           Actions buttons. Kept as-is for tablet/desktop where a mouse and
           wider viewport make that a non-issue. */}
@@ -114,7 +114,7 @@ export function ResourceManager<T extends Row>({
               {items.length === 0 && (
                 <tr>
                   <td colSpan={columns.length + 1} className="px-5 py-10 text-center text-muted-foreground">
-                    Nothing here yet — create your first {singular.toLowerCase()}.
+                    Nothing here yet, create your first {singular.toLowerCase()}.
                   </td>
                 </tr>
               )}
@@ -132,7 +132,7 @@ export function ResourceManager<T extends Row>({
                           />
                         ) : (
                           <span className="line-clamp-2 text-foreground/85">
-                            {Array.isArray(value) ? `${value.length} item(s)` : String(value ?? "—")}
+                            {Array.isArray(value) ? `${value.length} item(s)` : String(value ?? "-")}
                           </span>
                         )}
                       </td>
@@ -168,13 +168,13 @@ export function ResourceManager<T extends Row>({
         </div>
       </div>
 
-      {/* NEW: mobile-only stacked card list — replaces the table below `sm`.
+      {/* NEW: mobile-only stacked card list, replaces the table below `sm`.
           Uses the same ColumnConfig data the table already has, so no
           per-page changes needed anywhere ResourceManager is used. */}
       <div className="space-y-3 sm:hidden">
         {items.length === 0 && (
           <div className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground shadow-card">
-            Nothing here yet — create your first {singular.toLowerCase()}.
+            Nothing here yet, create your first {singular.toLowerCase()}.
           </div>
         )}
         {items.map((item) => (
@@ -193,7 +193,7 @@ export function ResourceManager<T extends Row>({
                   <p key={col.key} className="truncate text-sm">
                     <span className="font-semibold text-primary-deep">{col.label}: </span>
                     <span className="text-foreground/80">
-                      {Array.isArray(value) ? `${value.length} item(s)` : String(value ?? "—")}
+                      {Array.isArray(value) ? `${value.length} item(s)` : String(value ?? "-")}
                     </span>
                   </p>
                 );
@@ -369,7 +369,7 @@ export function ImageField({
           onChange={(e) => onChange(e.target.value)}
           className="w-full min-w-0 rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
         >
-          <option value="">— choose an image —</option>
+          <option value="">Choose an image</option>
           {media.length > 0 && (
             <optgroup label="Uploaded (Media Library)">
               {media.map((asset) => (
@@ -492,7 +492,7 @@ export function RecordEditor<T extends Record<string, unknown>>({
                   onChange={(e) => set(field.name, e.target.value)}
                   className="w-full max-w-md rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
                 >
-                  <option value="">—</option>
+                  <option value="">-</option>
                   {/* A stored value that isn't one of the options (e.g. a raw
                       value seeded before this field became a select) stays
                       visible instead of silently showing as blank. */}

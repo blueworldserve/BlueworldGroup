@@ -14,10 +14,10 @@ export const Route = createFileRoute("/business/$unit/$line")({
   head: ({ loaderData }) => {
     if (!loaderData) {
       return {
-        meta: [{ title: "Range not found — Blue World Cosmetics" }, { name: "robots", content: "noindex" }],
+        meta: [{ title: "Range not found | Blueworld Cosmetics" }, { name: "robots", content: "noindex" }],
       };
     }
-    const title = `${loaderData.name} — Blue World Cosmetics`;
+    const title = `${loaderData.name} | Blueworld Cosmetics`;
     return {
       meta: [
         { title },

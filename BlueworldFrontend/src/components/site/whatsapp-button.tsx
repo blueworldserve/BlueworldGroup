@@ -1,7 +1,7 @@
 import { MessageCircle } from "lucide-react";
 
 /**
- * One-click "speak to sales" on WhatsApp (click-to-chat — the visitor's own WhatsApp opens
+ * One-click "speak to sales" on WhatsApp (click-to-chat, the visitor's own WhatsApp opens
  * with a pre-filled message). Set VITE_WHATSAPP_NUMBER in BlueworldFrontend/.env in
  * international format, digits only, e.g. 2348012345678. If it isn't set, nothing renders.
  */
@@ -9,7 +9,7 @@ const NUMBER = ((import.meta.env["VITE_WHATSAPP_NUMBER"] as string | undefined) 
 
 export const WHATSAPP_ENABLED = NUMBER.length >= 8;
 
-export function whatsappLink(text = "Hello Blue World Cosmetics, I'd like to speak to your sales team."): string {
+export function whatsappLink(text = "Hello Blueworld Cosmetics, I'd like to speak to your sales team."): string {
   return `https://wa.me/${NUMBER}?text=${encodeURIComponent(text)}`;
 }
 

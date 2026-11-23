@@ -8,10 +8,10 @@ import type { HeroSlide } from "@/lib/types";
 export const Route = createFileRoute("/admin/hero-slides")({
   head: () => ({
     meta: [
-      { title: "Hero Slides — Blue World CMS" },
+      { title: "Hero Slides | Blueworld CMS" },
       { name: "description", content: "Manage the homepage hero slider content." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Hero Slides — Blue World CMS" },
+      { property: "og:title", content: "Hero Slides | Blueworld CMS" },
       { property: "og:description", content: "Manage homepage hero slides." },
     ],
   }),

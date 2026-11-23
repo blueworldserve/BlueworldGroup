@@ -11,18 +11,21 @@ export function SenderField({
   onChange,
   disabled,
   preferred,
+  purpose,
 }: {
   value: string;
   onChange: (v: string) => void;
   disabled?: boolean;
   /** Pre-select this address when it is one of ours (e.g. the mailbox a customer's email arrived at). */
   preferred?: string | null | undefined;
+  /** "hr" pre-fills the HR sender (interview and decline letters). */
+  purpose?: "hr" | undefined;
 }) {
   const [options, setOptions] = useState<string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    apiFetch<{ senders: string[]; default: string | null }>(ENDPOINTS.adminSenders)
+    apiFetch<{ senders: string[]; default: string | null }>(purpose ? `${ENDPOINTS.adminSenders}?for=${purpose}` : ENDPOINTS.adminSenders)
       .then((r) => {
         if (cancelled) return;
         setOptions(r.senders);
@@ -51,7 +54,7 @@ export function SenderField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        placeholder="hr@blueworldcosmetics.org"
+        placeholder="hr@blueworldcosmetics.ng"
         className="mt-1.5 h-11 w-full rounded-xl border border-border bg-background px-4 text-sm outline-none transition-colors focus:border-primary disabled:opacity-60"
       />
       {options.length > 0 && (

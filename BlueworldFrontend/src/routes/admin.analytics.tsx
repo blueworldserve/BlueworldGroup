@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/analytics")({
   head: () => ({
-    meta: [{ title: "Analytics — Blue World CMS" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Analytics | Blueworld CMS" }, { name: "robots", content: "noindex" }],
   }),
   component: AnalyticsPage,
 });

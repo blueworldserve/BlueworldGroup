@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/inbox/$messageId/reply")({
   head: () => ({
-    meta: [{ title: "Reply — Blue World CMS" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Reply | Blueworld CMS" }, { name: "robots", content: "noindex" }],
   }),
   component: ReplyPage,
 });
@@ -55,9 +55,9 @@ function ReplyPage() {
         const re = /^re:/i.test(d.subject ?? "") ? (d.subject ?? "") : `Re: ${d.subject ?? ""}`;
         setSubject(re);
         setBody(
-          `Hello ${firstName(d.fullName)},\n\nThank you for contacting Blue World Cosmetics.\n\n\n\nKind regards,\n${
-            session?.fullName ?? "The Blue World team"
-          }\nBlue World Cosmetics`,
+          `Hello ${firstName(d.fullName)},\n\nThank you for contacting Blueworld Cosmetics.\n\n\n\nKind regards,\n${
+            session?.fullName ?? "The Blueworld team"
+          }\nBlueworld Cosmetics`,
         );
         setState("ready");
       } catch (err) {
@@ -99,7 +99,7 @@ function ReplyPage() {
   return (
     <AdminShell
       title={detail ? `Reply to ${detail.fullName}` : "Reply"}
-      description="Your reply is sent from the official BlueWorld email address."
+      description="Your reply is sent from the official Blueworld email address."
       actions={
         <Link
           to="/admin/inbox"
