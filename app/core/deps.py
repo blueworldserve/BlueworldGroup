@@ -1,3 +1,4 @@
+import uuid
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -35,9 +36,16 @@ def get_current_user(
     if user_id is None:
         raise credentials_exception
 
-    user = db.query(AdminUser).filter(AdminUser.id == user_id).first()
+    try:
+        user_uuid = uuid.UUID(str(user_id))
+    except (ValueError, AttributeError):
+        raise credentials_exception  # a token whose subject is not a real user id is simply invalid, never a 500
+
+    user = db.query(AdminUser).filter(AdminUser.id == user_uuid).first()
     if user is None or not user.is_active:
         raise credentials_exception
+    if payload.get("tv", 0) != user.token_version:
+        raise credentials_exception  # signed out, suspended or reset since this token was issued
     return user
 
 

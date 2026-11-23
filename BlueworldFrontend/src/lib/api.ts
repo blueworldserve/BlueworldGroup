@@ -72,6 +72,8 @@ async function request<T>(path: string, init: RequestInit, timeoutMs: number): P
   try {
     const res = await fetch(`${API_BASE_URL}${path}`, {
       ...init,
+      // Sign-in calls carry the httpOnly refresh cookie when the server uses one.
+      ...(path.startsWith("/auth/") ? { credentials: "include" as const } : {}),
       signal: controller.signal,
       headers: {
         // A file upload (FormData) must NOT get a content-type: the browser adds its own, with the boundary.
@@ -293,7 +295,7 @@ export const SESSION_EXPIRED_EVENT = "bwc:session-expired";
 let refreshing: Promise<boolean> | null = null;
 
 function canRefresh(path: string): boolean {
-  return path !== ENDPOINTS.authLogin && path !== ENDPOINTS.authRefresh && !!readTokens()?.refreshToken;
+  return path !== ENDPOINTS.authLogin && path !== ENDPOINTS.authRefresh && !!readTokens();
 }
 
 /** Swaps the refresh token for new tokens. One call at a time; everyone waits for the same result. */
@@ -301,12 +303,14 @@ function refreshAccessToken(): Promise<boolean> {
   if (refreshing) return refreshing;
   refreshing = (async () => {
     const tokens = readTokens();
-    if (!tokens?.refreshToken) return false;
+    if (!tokens) return false;
     try {
+      // With the cookie setting on, tokens.refreshToken is empty and the browser sends the cookie by itself.
       const res = await fetch(`${API_BASE_URL}${ENDPOINTS.authRefresh}`, {
         method: "POST",
+        credentials: "include",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ refreshToken: tokens.refreshToken }),
+        body: JSON.stringify(tokens.refreshToken ? { refreshToken: tokens.refreshToken } : {}),
       });
       if (res.ok) {
         const data = (await res.json()) as { accessToken: string; refreshToken: string };
@@ -352,6 +356,6 @@ async function authedFetch(url: string, init: RequestInit): Promise<Response> {
   }
   const send = () => fetch(url, { ...init, headers: { ...(init.headers ?? {}), ...authHeader() } });
   let res = await send();
-  if (res.status === 401 && readTokens()?.refreshToken && (await refreshAccessToken())) res = await send();
+  if (res.status === 401 && readTokens() && (await refreshAccessToken())) res = await send();
   return res;
 }

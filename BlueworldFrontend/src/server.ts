@@ -17,6 +17,9 @@ const SECURITY_HEADERS: Record<string, string> = {
   "referrer-policy": "strict-origin-when-cross-origin",
   "permissions-policy": "camera=(), microphone=(), geolocation=()",
   "strict-transport-security": "max-age=15552000",
+  // Enforced now: blocks injected plugins, a swapped <base> tag, form hijacking, framing by other sites,
+  // and any script loaded from a website other than our own.
+  "content-security-policy": "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; script-src 'self' 'unsafe-inline'",
   // Report-only: nothing is blocked, but the console lists anything that WOULD be. When quiet, rename to content-security-policy.
   "content-security-policy-report-only":
     `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://res.cloudinary.com; media-src 'self' blob: https://res.cloudinary.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.instagram.com; connect-src 'self' https: ${API_ORIGIN}; object-src 'none'; base-uri 'self'; frame-ancestors 'self'`,

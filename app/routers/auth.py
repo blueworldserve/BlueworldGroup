@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+import uuid
+from fastapi import Response, APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
 from core.audit import CRITICAL, record, record_safe
@@ -21,9 +22,25 @@ EXPIRES_IN = config.ACCESS_TOKEN_EXPIRE_MINUTES * 60
 _DUMMY_HASH = hash_password("this-is-not-a-real-password")
 
 
+def _refresh_for_client(response: Response, refresh_token: str) -> str:
+    """Cookie mode: park the refresh token in an httpOnly cookie and return an empty string for the JSON body."""
+    if not config.REFRESH_COOKIE:
+        return refresh_token
+    response.set_cookie(
+        config.REFRESH_COOKIE_NAME,
+        refresh_token,
+        max_age=config.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+        httponly=True,
+        secure=config.REFRESH_COOKIE_SECURE,
+        samesite=config.REFRESH_COOKIE_SAMESITE,
+        path="/auth",  # the browser only sends it to the sign-in endpoints, never with ordinary API calls
+    )
+    return ""
+
+
 @router.post("/login", response_model=LoginResponse)
 @limiter.limit("10/minute")
-def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)):
+def login(request: Request, response: Response, payload: LoginRequest, db: Session = Depends(get_db)):
     ip = client_ip(request)
     if login_guard.is_locked(ip, payload.email):
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Too many failed attempts. Please wait 15 minutes and try again.")
@@ -41,31 +58,47 @@ def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Account is inactive")
     record_safe(db, request, user, category=CRITICAL, action="login", resource="auth", summary=f"{user.email} signed in")
     return LoginResponse(
-        access_token=create_access_token(str(user.id)),
-        refresh_token=create_refresh_token(str(user.id)),
+        access_token=create_access_token(str(user.id), user.token_version),
+        refresh_token=_refresh_for_client(response, create_refresh_token(str(user.id), user.token_version)),
         expires_in=EXPIRES_IN,
         user=AdminUserOut.model_validate(user),
     )
 
 
 @router.post("/logout", status_code=204)
-def logout(request: Request, db: Session = Depends(get_db), current_user: AdminUser = Depends(get_current_user)):
-    """Tokens are stateless, so this only records the sign-out; the client discards its tokens."""
+def logout(request: Request, response: Response, db: Session = Depends(get_db), current_user: AdminUser = Depends(get_current_user)):
+    """Signing out cancels every token issued to this account (access and refresh), on every device."""
+    response.delete_cookie(config.REFRESH_COOKIE_NAME, path="/auth", httponly=True, secure=config.REFRESH_COOKIE_SECURE, samesite=config.REFRESH_COOKIE_SAMESITE)
+    current_user.token_version += 1
+    db.commit()
     record_safe(db, request, current_user, category=CRITICAL, action="logout", resource="auth", summary=f"{current_user.email} signed out")
 
 
 @router.post("/refresh", response_model=AuthTokens)
 @limiter.limit("30/minute")
-def refresh(request: Request, payload: RefreshRequest, db: Session = Depends(get_db)):
-    decoded = decode_token(payload.refresh_token)
+def refresh(request: Request, response: Response, payload: RefreshRequest | None = None, db: Session = Depends(get_db)):
+    token = payload.refresh_token if payload and payload.refresh_token else None
+    if token is None:
+        token = request.cookies.get(config.REFRESH_COOKIE_NAME)
+        origin = request.headers.get("origin")
+        if token and origin and origin not in config.CORS_ORIGINS:
+            # A cookie rides along automatically, so refuse requests that come from another website.
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Request not allowed from this origin")
+    decoded = decode_token(token) if token else None
     if decoded is None or decoded.get("type") != "refresh":
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid refresh token")
-    user = db.query(AdminUser).filter(AdminUser.id == decoded.get("sub")).first()
+    try:
+        user_uuid = uuid.UUID(str(decoded.get("sub")))
+    except (ValueError, AttributeError):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid refresh token")
+    user = db.query(AdminUser).filter(AdminUser.id == user_uuid).first()
     if not user or not user.is_active:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "User not found")
+    if decoded.get("tv", 0) != user.token_version:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid refresh token")  # signed out or suspended since
     return AuthTokens(
-        access_token=create_access_token(str(user.id)),
-        refresh_token=create_refresh_token(str(user.id)),
+        access_token=create_access_token(str(user.id), user.token_version),
+        refresh_token=_refresh_for_client(response, create_refresh_token(str(user.id), user.token_version)),
         expires_in=EXPIRES_IN,
     )
 
@@ -162,6 +195,7 @@ def suspend_user(
     if user.is_superuser:
         raise HTTPException(403, "The superuser account cannot be suspended")
     user.status = AdminStatus.suspended
+    user.token_version += 1  # a later reactivation must not revive old tokens
     record(db, request, current, category=CRITICAL, action="user_suspended", resource="user", resource_id=user.id,
            summary=f"{current.email} suspended {user.email}")
     db.commit()

@@ -101,7 +101,7 @@ function Marker({
   index: number;
   selected: boolean;
   crowded: boolean;
-  onSelect?: (name: string) => void;
+  onSelect?: ((name: string) => void) | undefined;
 }) {
   const [hovered, setHovered] = useState(false);
   const pulseRef = useRef<THREE.Mesh>(null);
@@ -223,7 +223,7 @@ function GlobeBody({
   markers: GlobeMarker[];
   focus?: GlobeFocus | null;
   selected?: string | null;
-  onSelect?: (name: string) => void;
+  onSelect?: ((name: string) => void) | undefined;
 }) {
   const group = useRef<THREE.Group>(null);
   const spinVelocity = useRef(INTRO_SPIN_SPEED);
@@ -314,7 +314,7 @@ export default function GlobeScene({
   interactive?: boolean;
   focus?: GlobeFocus | null;
   selected?: string | null;
-  onSelect?: (name: string) => void;
+  onSelect?: ((name: string) => void) | undefined;
 }) {
   return (
     <Canvas

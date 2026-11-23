@@ -77,7 +77,7 @@ function Wireframe({ type }: { type: BlockType }) {
       return (
         <div>
           <Heading />
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3 min-[420px]:grid-cols-3">
             {["01", "02", "03"].map((n) => (
               <div key={n} className={card}>
                 <div className="mb-1.5 font-display text-lg font-extrabold text-accent">{n}</div>
@@ -105,7 +105,7 @@ function Wireframe({ type }: { type: BlockType }) {
       return (
         <div>
           <Heading />
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3 min-[420px]:grid-cols-3">
             {[0, 1, 2].map((i) => (
               <div key={i} className={card}>
                 <div className="mb-2 h-2.5 w-2/3 rounded bg-primary-deep/70" />
@@ -120,7 +120,7 @@ function Wireframe({ type }: { type: BlockType }) {
       return (
         <div>
           <Heading />
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-3 min-[420px]:grid-cols-3 sm:grid-cols-4">
             {[0, 1, 2, 3].map((i) => (
               <div key={i}>
                 <div className="aspect-[3/4] rounded-lg bg-primary-soft" />

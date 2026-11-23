@@ -31,7 +31,7 @@ export function usePrefetchSite(enabled: boolean) {
       const id = window.requestIdleCallback(run, { timeout: 4000 });
       return () => window.cancelIdleCallback(id);
     }
-    const id = window.setTimeout(run, 2500);
-    return () => window.clearTimeout(id);
+    const id = globalThis.setTimeout(run, 2500);
+    return () => globalThis.clearTimeout(id);
   }, [enabled, router]);
 }

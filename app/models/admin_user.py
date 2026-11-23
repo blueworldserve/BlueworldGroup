@@ -2,7 +2,7 @@ import uuid
 import enum
 from datetime import datetime, timezone
 
-from sqlalchemy import String, Enum as SAEnum, DateTime
+from sqlalchemy import Integer, String, Enum as SAEnum, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -39,6 +39,9 @@ class AdminUser(Base):
         SAEnum(AdminStatus), default=AdminStatus.pending, nullable=False
     )
     is_superuser: Mapped[bool] = mapped_column(default=False, nullable=False)
+    # Raised on logout, suspension and password reset. Every token carries the number it was issued under,
+    # so raising it cancels all of that user's tokens at once.
+    token_version: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

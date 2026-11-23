@@ -10,6 +10,15 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "90")
 REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:8080").split(",")
 
+# Refresh token in an httpOnly cookie (page scripts cannot read it, so a script-injection bug can no longer steal a 7 day session).
+# Off by default so nothing changes until you turn it on. Turn it on when the website and the API share a parent domain
+# (www.example.com and api.example.com): set REFRESH_COOKIE=true. If they are on unrelated domains, also set
+# REFRESH_COOKIE_SAMESITE=none (needs https, and Safari may refuse such cookies, so prefer a shared domain).
+REFRESH_COOKIE = os.getenv("REFRESH_COOKIE", "false").lower() == "true"
+REFRESH_COOKIE_NAME = "bwc_refresh"
+REFRESH_COOKIE_SAMESITE = os.getenv("REFRESH_COOKIE_SAMESITE", "lax").lower()
+REFRESH_COOKIE_SECURE = os.getenv("REFRESH_COOKIE_SECURE", "true").lower() == "true"
+
 CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
 CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
 CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")

@@ -24,6 +24,7 @@ def main():
             sys.exit(f"No account found for '{email}'.")
 
         user.hashed_password = hash_password(password)
+        user.token_version += 1  # signs out any session that was open under the old password
         db.commit()
         record_safe(
             db, None, None, category=CRITICAL, action="password_reset", resource="auth",

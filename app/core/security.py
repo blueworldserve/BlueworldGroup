@@ -16,18 +16,18 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def _create_token(subject: str, expires_delta: timedelta, token_type: str) -> str:
+def _create_token(subject: str, expires_delta: timedelta, token_type: str, version: int = 0) -> str:
     expire = datetime.now(timezone.utc) + expires_delta
-    payload = {"sub": subject, "exp": expire, "type": token_type}
+    payload = {"sub": subject, "exp": expire, "type": token_type, "tv": version}
     return jwt.encode(payload, config.JWT_SECRET, algorithm=config.JWT_ALGORITHM)
 
 
-def create_access_token(subject: str) -> str:
-    return _create_token(subject, timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES), "access")
+def create_access_token(subject: str, version: int = 0) -> str:
+    return _create_token(subject, timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES), "access", version)
 
 
-def create_refresh_token(subject: str) -> str:
-    return _create_token(subject, timedelta(days=config.REFRESH_TOKEN_EXPIRE_DAYS), "refresh")
+def create_refresh_token(subject: str, version: int = 0) -> str:
+    return _create_token(subject, timedelta(days=config.REFRESH_TOKEN_EXPIRE_DAYS), "refresh", version)
 
 
 def decode_token(token: str) -> dict | None:

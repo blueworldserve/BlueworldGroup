@@ -405,6 +405,16 @@
  * ------------------------------------------------------------------ */
 :root { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
+/* Phones zoom the page in when a field uses text smaller than 16px, and often stay zoomed after the keyboard closes.
+   Keeping every field at 16px on touch screens stops the zoom from ever starting (public site and CMS). */
+@media (pointer: coarse) {
+  input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="hidden"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 /* Native controls (date/time pickers, <select> lists, scrollbars) follow the CMS theme. */
 :root[data-theme] { color-scheme: light; -webkit-tap-highlight-color: transparent; }
 :root[data-theme].dark { color-scheme: dark; }

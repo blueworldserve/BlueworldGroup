@@ -83,7 +83,7 @@ const card = "rounded-2xl border border-border bg-card p-4 shadow-card sm:p-6";
 function StatCard({ label, value, note }: { label: string; value: string | number; note?: string }) {
   return (
     <div className={card}>
-      <p className={eyebrow}>{label}</p>
+      <p className={cn(eyebrow, "break-words")}>{label}</p>
       <p className="mt-3 font-display text-3xl font-extrabold text-primary-deep sm:text-4xl">{value}</p>
       {note && <p className="mt-1 text-xs text-muted-foreground">{note}</p>}
     </div>
@@ -123,10 +123,15 @@ function AnalyticsPage() {
   const [data, setData] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  // Phones have no hover, so a tap on a bar shows its numbers in a line above the chart.
+  const [pickedDay, setPickedDay] = useState<number | null>(null);
+  const [pickedHour, setPickedHour] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setPickedDay(null);
+    setPickedHour(null);
     void (async () => {
       try {
         const params = new URLSearchParams({ since: sinceFor(range) });
@@ -189,7 +194,7 @@ function AnalyticsPage() {
             <StatCard label="Time on a page" value={fmtDuration(t.avgSecondsOnPage)} note="average" />
           </div>
 
-          <div className="grid grid-cols-3 gap-3 sm:gap-5">
+          <div className="grid grid-cols-1 gap-3 min-[460px]:grid-cols-3 sm:gap-5">
             <StatCard label="Messages" value={data.conversions.contactMessages} note="contact form" />
             <StatCard label="Subscribers" value={data.conversions.newsletterSignups} note="newsletter" />
             <StatCard label="Applications" value={data.conversions.jobApplications} note="careers" />
@@ -203,13 +208,27 @@ function AnalyticsPage() {
                 <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-primary-deep" />Visitors</span>
               </span>
             </div>
-            <div className="flex h-40 items-end gap-px sm:gap-1">
-              {data.daily.map((d) => (
-                <div key={d.date} title={`${fmtDay(d.date)}: ${d.visitors} visitors, ${d.pageviews} page views`} className="relative flex h-full min-w-0 flex-1 items-end">
-                  <div className="w-full rounded-t-sm bg-primary-deep/25" style={{ height: `${(d.pageviews / chartMax) * 100}%` }} />
-                  <div className="absolute inset-x-0 bottom-0 rounded-t-sm bg-primary-deep" style={{ height: `${(Math.min(d.visitors, d.pageviews || d.visitors) / chartMax) * 100}%` }} />
-                </div>
-              ))}
+            <p className="mb-2 min-h-5 text-xs font-semibold text-primary-deep">
+              {pickedDay !== null && data.daily[pickedDay]
+                ? `${fmtDay(data.daily[pickedDay].date)}: ${data.daily[pickedDay].visitors} visitors, ${data.daily[pickedDay].pageviews} page views`
+                : <span className="font-normal text-muted-foreground">Tap a bar to see that day.</span>}
+            </p>
+            <div className="overflow-x-auto pb-1">
+              <div className="flex h-40 items-end gap-px sm:gap-1" style={{ minWidth: `${data.daily.length * 10}px` }}>
+                {data.daily.map((d, i) => (
+                  <button
+                    key={d.date}
+                    type="button"
+                    aria-label={`${fmtDay(d.date)}: ${d.visitors} visitors, ${d.pageviews} page views`}
+                    onClick={() => setPickedDay(i)}
+                    title={`${fmtDay(d.date)}: ${d.visitors} visitors, ${d.pageviews} page views`}
+                    className={cn("relative flex h-full min-w-0 flex-1 items-end rounded-sm", pickedDay === i && "ring-2 ring-accent")}
+                  >
+                    <div className="w-full rounded-t-sm bg-primary-deep/25" style={{ height: `${(d.pageviews / chartMax) * 100}%` }} />
+                    <div className="absolute inset-x-0 bottom-0 rounded-t-sm bg-primary-deep" style={{ height: `${(Math.min(d.visitors, d.pageviews || d.visitors) / chartMax) * 100}%` }} />
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="mt-2 flex justify-between text-xs text-muted-foreground">
               <span>{first ? fmtDay(first.date) : ""}</span>
@@ -267,11 +286,23 @@ function AnalyticsPage() {
 
           <section className={card}>
             <h2 className={cn(eyebrow, "mb-4")}>Busiest hours (Lagos time)</h2>
+            <p className="mb-2 min-h-5 text-xs font-semibold text-primary-deep">
+              {pickedHour !== null
+                ? `${String(pickedHour).padStart(2, "0")}:00: ${data.hours[pickedHour] ?? 0} page views`
+                : <span className="font-normal text-muted-foreground">Tap a bar to see that hour.</span>}
+            </p>
             <div className="flex h-24 items-end gap-px sm:gap-1">
               {data.hours.map((n, h) => (
-                <div key={h} title={`${String(h).padStart(2, "0")}:00 · ${n} page views`} className="flex h-full min-w-0 flex-1 items-end">
+                <button
+                  key={h}
+                  type="button"
+                  aria-label={`${String(h).padStart(2, "0")}:00, ${n} page views`}
+                  onClick={() => setPickedHour(h)}
+                  title={`${String(h).padStart(2, "0")}:00 · ${n} page views`}
+                  className={cn("flex h-full min-w-0 flex-1 items-end rounded-sm", pickedHour === h && "ring-2 ring-accent")}
+                >
                   <div className="w-full rounded-t-sm bg-accent" style={{ height: `${(n / hourMax) * 100}%`, minHeight: n > 0 ? 2 : 0 }} />
-                </div>
+                </button>
               ))}
             </div>
             <div className="mt-2 flex justify-between text-xs text-muted-foreground">
