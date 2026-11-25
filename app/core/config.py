@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv()  # reads app/.env into the process environment — must run before any os.getenv() call
+load_dotenv()  # reads app/.env into the process environment, must run before any os.getenv() call
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 JWT_SECRET = os.getenv("JWT_SECRET")
@@ -9,6 +9,15 @@ JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "90"))
 REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:8080").split(",")
+
+# Refresh token in an httpOnly cookie (page scripts cannot read it, so a script-injection bug can no longer steal a 7 day session).
+# Off by default so nothing changes until you turn it on. Turn it on when the website and the API share a parent domain
+# (www.example.com and api.example.com): set REFRESH_COOKIE=true. If they are on unrelated domains, also set
+# REFRESH_COOKIE_SAMESITE=none (needs https, and Safari may refuse such cookies, so prefer a shared domain).
+REFRESH_COOKIE = os.getenv("REFRESH_COOKIE", "false").lower() == "true"
+REFRESH_COOKIE_NAME = "bwc_refresh"
+REFRESH_COOKIE_SAMESITE = os.getenv("REFRESH_COOKIE_SAMESITE", "lax").lower()
+REFRESH_COOKIE_SECURE = os.getenv("REFRESH_COOKIE_SECURE", "true").lower() == "true"
 
 CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
 CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
@@ -22,11 +31,15 @@ CLOUDINARY_UPLOAD_FOLDER = os.getenv("CLOUDINARY_UPLOAD_FOLDER", "blueworld")
 # you also put Cloudflare in front). 0 = connect directly, never trust X-Forwarded-For.
 TRUSTED_PROXY_COUNT = int(os.getenv("TRUSTED_PROXY_COUNT", "0"))
 
-# --- Email (Resend) — leave unset until the account exists; sending is skipped ---
+# --- Email (Resend), leave unset until the account exists; sending is skipped ---
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
-# Official sender, e.g.  Blue World Cosmetics <sales@blueworldcosmetics.org>
+# Official sender, e.g.  Blueworld Cosmetics <sales@blueworldcosmetics.org>
 # (the domain must be verified in Resend)
 MAIL_FROM = os.getenv("MAIL_FROM")
+# The sender for everything HR sends (interview and decline letters) and for the "applications are waiting" alert, e.g.
+#   Blueworld Cosmetics <hr@blueworldcosmetics.ng>   (the domain must be verified in Resend; nothing else to create there)
+# Unset = HR mail goes out as MAIL_FROM.
+HR_MAIL_FROM = os.getenv("HR_MAIL_FROM")
 # Where replies from customers should go (defaults to the first notify address)
 MAIL_REPLY_TO = os.getenv("MAIL_REPLY_TO")
 # Comma-separated inboxes that get an alert for every new contact message
@@ -35,8 +48,8 @@ SALES_NOTIFY_EMAILS = [e.strip() for e in os.getenv("SALES_NOTIFY_EMAILS", "").s
 RESEND_SEGMENT_ID = os.getenv("RESEND_SEGMENT_ID")
 RESEND_AUDIENCE_ID = os.getenv("RESEND_AUDIENCE_ID")
 
-# Display name used with any sender address picked in the CMS ("Blue World Cosmetics <hr@...>")
-MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "Blue World Cosmetics")
+# Display name used with any sender address picked in the CMS ("Blueworld Cosmetics <hr@...>")
+MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "Blueworld Cosmetics")
 # Extra addresses to suggest in the CMS "Send from" box (comma-separated). Staff can still type any address.
 MAIL_SENDERS = [e.strip() for e in os.getenv("MAIL_SENDERS", "").split(",") if e.strip()]
 
@@ -90,8 +103,25 @@ IMAP_POLL_SECONDS = int(os.getenv("IMAP_POLL_SECONDS", "180"))
 # (so the very first check doesn't dump two weeks of old mail into the CMS).
 IMAP_LOOKBACK_DAYS = int(os.getenv("IMAP_LOOKBACK_DAYS", "14"))
 IMAP_NEW_THREAD_DAYS = int(os.getenv("IMAP_NEW_THREAD_DAYS", "2"))
-# Set to "false" to only collect replies from people already in the CMS (contacts / applicants).
-IMAP_IMPORT_UNKNOWN = os.getenv("IMAP_IMPORT_UNKNOWN", "true").lower() != "false"
+# Off by default: the CMS only collects mail from people it already knows (contact-form senders and applicants who
+# were answered). Set to "true" to also open a new inbox thread for a stranger, but ONLY when their email was addressed
+# to a company address (see COMPANY_ADDRESSES). Verification codes, receipts and newsletters sent to a personal
+# mailbox are never imported either way.
+IMAP_IMPORT_UNKNOWN = os.getenv("IMAP_IMPORT_UNKNOWN", "false").lower() == "true"
+# Addresses that count as "the company" for the rule above: the senders you configured plus anything in IMAP_ACCEPT_TO.
+from email.utils import parseaddr as _parseaddr
+
+COMPANY_ADDRESSES = {
+    a.strip().lower()
+    for a in [
+        _parseaddr(MAIL_FROM or "")[1],
+        _parseaddr(HR_MAIL_FROM or "")[1],
+        _parseaddr(MAIL_REPLY_TO or "")[1],
+        *MAIL_SENDERS,
+        *os.getenv("IMAP_ACCEPT_TO", "").split(","),
+    ]
+    if a and a.strip()
+}
 
 # --- Email branding ---------------------------------------------------------
 # Public address of the website, e.g. https://blueworldcosmetics.org (no trailing slash).
@@ -102,7 +132,10 @@ MAIL_LOGO_URL = (os.getenv("MAIL_LOGO_URL") or (f"{SITE_URL}/blueworld.png" if S
 
 # --- Job-application alerts to admins + HR ----------------------------------
 # Email as soon as this many applications are waiting...
-APPLICATION_ALERT_THRESHOLD = int(os.getenv("APPLICATION_ALERT_THRESHOLD", "10"))
+APPLICATION_ALERT_THRESHOLD = int(os.getenv("APPLICATION_ALERT_THRESHOLD", "5"))
+# Extra inboxes for that alert (comma-separated), on top of the active admin and HR users in the CMS.
+# Unset = the HR_MAIL_FROM address, if there is one.
+HR_NOTIFY_EMAILS = [e.strip() for e in os.getenv("HR_NOTIFY_EMAILS", "").split(",") if e.strip()]
 # ...and a roundup of whatever is waiting at this hour every day (Lagos time, 24-hour clock).
 APPLICATION_DIGEST_HOUR = int(os.getenv("APPLICATION_DIGEST_HOUR", "14"))
 # Optional: lets an outside scheduler trigger the roundup (see routers/internal.py). Unset = endpoint disabled.
@@ -114,13 +147,13 @@ DISABLE_SCHEDULER = os.getenv("DISABLE_SCHEDULER", "").lower() == "true"
 
 
 if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL is not set — check that app/.env exists and is being loaded.")
+    raise RuntimeError("DATABASE_URL is not set, check that app/.env exists and is being loaded.")
 if not JWT_SECRET:
-    raise RuntimeError("JWT_SECRET is not set — check that app/.env exists and is being loaded.")
+    raise RuntimeError("JWT_SECRET is not set, check that app/.env exists and is being loaded.")
 if len(JWT_SECRET) < 32:
     # Anyone who can guess this value can forge an admin login token. Generate one with:
     #   python -c "import secrets; print(secrets.token_hex(32))"
     import logging
     logging.getLogger("startup").warning("JWT_SECRET is shorter than 32 characters. Replace it with a long random value.")
 if not (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET):
-    raise RuntimeError("Cloudinary credentials are incomplete — check CLOUDINARY_* vars in app/.env.")
+    raise RuntimeError("Cloudinary credentials are incomplete, check CLOUDINARY_* vars in app/.env.")

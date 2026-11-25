@@ -44,7 +44,7 @@ class AuthTokens(CamelModel):
 
 
 class RefreshRequest(CamelModel):
-    refresh_token: str
+    refresh_token: str | None = None  # empty when the refresh token travels in the httpOnly cookie
 
 
 class RequestAccessRequest(CamelModel):

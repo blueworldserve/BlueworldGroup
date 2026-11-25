@@ -52,7 +52,7 @@ function pointInFeature(lng: number, lat: number, geometry: Geometry): boolean {
 
 /**
  * Samples a regular lat/lng grid and keeps only points that fall inside a
- * land polygon — a cheap way to build a Cloudflare-style dot-matrix map from
+ * land polygon, a cheap way to build a Cloudflare-style dot-matrix map from
  * a countries GeoJSON without a full point-in-polygon library.
  *
  * @param step grid spacing in degrees. 3-4 gives a dense, legible globe;

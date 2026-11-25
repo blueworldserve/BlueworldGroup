@@ -13,16 +13,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/products")({
   head: () => ({
     meta: [
-      { title: "Products - Blue World Cosmetics" },
+      { title: "Products - Blueworld Cosmetics" },
       {
         name: "description",
         content:
-          "Browse the full range of skincare, hygiene, haircare and fragrance products from Vivon, BlueCrystal, Blow Right, BlueFragrance and BlueWorld Cosmetics.",
+          "Browse the full range of skincare, hygiene, haircare and fragrance products from Vivon, BlueCrystal, Blow Right, BlueFragrance and Blueworld Cosmetics.",
       },
-      { property: "og:title", content: "Products - Blue World Cosmetics" },
+      { property: "og:title", content: "Products - Blueworld Cosmetics" },
       {
         property: "og:description",
-        content: "The full BlueWorld Cosmetics product range, made in Lagos, Nigeria.",
+        content: "The full Blueworld Cosmetics product range, made in Lagos, Nigeria.",
       },
     ],
   }),
@@ -101,7 +101,7 @@ function ProductsPage() {
       <CmsPageHero
         slug="products"
         eyebrow="Products"
-        title="The full Blue World range"
+        title="The full Blueworld range"
         description="Skincare, hygiene, haircare and fragrance, formulated, filled and shipped from Lagos."
         image="hero.products"
       />

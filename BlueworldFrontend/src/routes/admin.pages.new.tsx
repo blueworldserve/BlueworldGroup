@@ -30,7 +30,7 @@ function NewPage() {
             toast.success("Page created");
             void navigate({ to: "/admin/pages" });
           } catch {
-            toast.error("Could not create page — check the page path isn't already in use.");
+            toast.error("Could not create page, check the page path isn't already in use.");
           } finally {
             setBusy(false);
           }

@@ -6,13 +6,13 @@ import { LoadingBlock, ErrorBlock, Section } from "@/components/site/primitives"
 export const Route = createFileRoute("/about/who-we-are")({
   head: () => ({
     meta: [
-      { title: "Who We Are — Blue World Cosmetics" },
+      { title: "Who We Are | Blueworld Cosmetics" },
       {
         name: "description",
         content:
-          "Inside Blue World Cosmetics: two production lines, an in-house R&D lab and NAFDAC-certified quality control in Ikeja, Lagos.",
+          "Inside Blueworld Cosmetics: two production lines, an in-house R&D lab and NAFDAC-certified quality control in Ikeja, Lagos.",
       },
-      { property: "og:title", content: "Who We Are — Blue World Cosmetics" },
+      { property: "og:title", content: "Who We Are | Blueworld Cosmetics" },
       {
         property: "og:description",
         content: "The Organization, the people and the standards behind five Nigerian personal-care brands.",
@@ -35,7 +35,7 @@ function WhoWeArePage() {
   if (isError || !page) {
     return (
       <Section>
-        <ErrorBlock label="This page isn't published yet — check Pages in the CMS." />
+        <ErrorBlock label="This page isn't published yet, check Pages in the CMS." />
       </Section>
     );
   }

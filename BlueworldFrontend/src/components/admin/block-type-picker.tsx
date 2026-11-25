@@ -7,7 +7,7 @@ const HELP: Record<BlockType, string> = {
   prose: "A heading and one or more paragraphs of text.",
   prose_image: "Text on one side, a photo on the other.",
   card_grid: "Cards with a title and short text, in 2–4 columns.",
-  numbered_grid: "Numbered cards (01, 02, 03…) — good for steps or values.",
+  numbered_grid: "Numbered cards (01, 02, 03…), good for steps or values.",
   feature_pair: "Two big side-by-side statements, e.g. Vision and Mission.",
   link_cards: "Cards that link to other pages.",
   team_grid: "Shows the people from the Team tab.",
@@ -77,7 +77,7 @@ function Wireframe({ type }: { type: BlockType }) {
       return (
         <div>
           <Heading />
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3 min-[420px]:grid-cols-3">
             {["01", "02", "03"].map((n) => (
               <div key={n} className={card}>
                 <div className="mb-1.5 font-display text-lg font-extrabold text-accent">{n}</div>
@@ -105,7 +105,7 @@ function Wireframe({ type }: { type: BlockType }) {
       return (
         <div>
           <Heading />
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3 min-[420px]:grid-cols-3">
             {[0, 1, 2].map((i) => (
               <div key={i} className={card}>
                 <div className="mb-2 h-2.5 w-2/3 rounded bg-primary-deep/70" />
@@ -120,7 +120,7 @@ function Wireframe({ type }: { type: BlockType }) {
       return (
         <div>
           <Heading />
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-3 min-[420px]:grid-cols-3 sm:grid-cols-4">
             {[0, 1, 2, 3].map((i) => (
               <div key={i}>
                 <div className="aspect-[3/4] rounded-lg bg-primary-soft" />
@@ -161,7 +161,7 @@ export function BlockTypePicker({
   return (
     <div className="grid gap-4 rounded-2xl border border-border bg-card p-4 shadow-card md:grid-cols-[1fr_17rem]">
       <div className="order-2 md:order-1">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-accent">Preview — {BLOCK_TYPE_LABELS[value]}</p>
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-accent">Preview, {BLOCK_TYPE_LABELS[value]}</p>
         <div className="mt-2 rounded-xl border border-dashed border-border bg-secondary p-5">
           <div className="rounded-lg bg-background p-5 shadow-sm">
             <Wireframe type={value} />

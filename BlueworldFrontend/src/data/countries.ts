@@ -1,7 +1,7 @@
 /**
  * Reference list used by the CMS country picker. It is a dictionary of every
  * country and where to put its pin on the globe, NOT the list of countries
- * Blue World sells in: that list lives in the CMS (Country Showcase) and grows
+ * Blueworld sells in: that list lives in the CMS (Country Showcase) and grows
  * whenever an admin picks a country from this dictionary.
  *
  * Coordinates are a representative city (usually the capital), good to well

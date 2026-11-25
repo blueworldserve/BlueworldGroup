@@ -10,13 +10,13 @@ import { memberSlug } from "@/lib/team-slug";
 export const Route = createFileRoute("/about/leadership/")({
   head: () => ({
     meta: [
-      { title: "Leadership — Blue World Cosmetics" },
+      { title: "Leadership | Blueworld Cosmetics" },
       {
         name: "description",
         content:
-          "Meet the executive team running manufacturing, brands, R&D and commercial operations at Blue World Cosmetics.",
+          "Meet the executive team running manufacturing, brands, R&D and commercial operations at Blueworld Cosmetics.",
       },
-      { property: "og:title", content: "Leadership — Blue World Cosmetics" },
+      { property: "og:title", content: "Leadership | Blueworld Cosmetics" },
       {
         property: "og:description",
         content: "The people accountable for every batch that leaves the Organization, and every brand that carries our name.",
@@ -47,7 +47,7 @@ function LeadershipPage() {
         {...(page?.mobileHeroImage ? { mobileImage: page.mobileHeroImage } : {})}
       />
 
-      {/* Mission & Vision — a confident, editorial statement before the people themselves */}
+      {/* Mission & Vision, a confident, editorial statement before the people themselves */}
       <Section className="py-16 lg:py-20">
         <div className="mx-auto max-w-3xl text-center">
           <motion.p
@@ -90,7 +90,7 @@ function LeadershipPage() {
         </div>
       </Section>
 
-      {/* Featured leader — the MD/Chief Visionary spotlight */}
+      {/* Featured leader, the MD/Chief Visionary spotlight */}
       {isLoading && (
         <Section tone="muted">
           <LoadingBlock label="Loading leadership…" />
@@ -130,14 +130,14 @@ function LeadershipPage() {
         </Section>
       )}
 
-      {/* The rest of the leadership team — hover reveals name/role in color,
+      {/* The rest of the leadership team, hover reveals name/role in color,
           others stay desaturated; click opens their own profile page. */}
       <Section className="py-16 lg:py-20">
         <SectionHeading
           eyebrow="Leadership"
           title="The team behind every brand"
           align="center"
-          description="Each member brings their own discipline to the same standard — click through for their full story."
+          description="Each member brings their own discipline to the same standard, click through for their full story."
         />
         {!isLoading && rest.length === 0 && !featured && <EmptyBlock label="No leadership profiles published yet." />}
         <div className="mx-auto mt-10 grid max-w-6xl grid-cols-2 gap-x-6 gap-y-12 sm:grid-cols-3 lg:grid-cols-4">
@@ -156,7 +156,7 @@ function LeadershipPage() {
                     alt={member.name}
                     className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                   />
-                  {/* Diagonal shine sweep — same treatment as the business-unit cards */}
+                  {/* Diagonal shine sweep, same treatment as the business-unit cards */}
                   <div className="pointer-events-none absolute inset-0 -translate-x-[150%] skew-x-[-20deg] bg-gradient-to-r from-transparent via-white/40 to-transparent transition-transform duration-[1100ms] ease-out group-hover:translate-x-[150%]" />
                   <span className="pointer-events-none absolute bottom-0 left-0 h-1 w-0 bg-accent transition-all duration-500 group-hover:w-full" />
                 </div>

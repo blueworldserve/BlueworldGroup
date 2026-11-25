@@ -18,13 +18,13 @@ export const Route = createFileRoute("/blog/")({
   }),
   head: () => ({
     meta: [
-      { title: "Blog & News — Blue World Cosmetics" },
+      { title: "Blog & News | Blueworld Cosmetics" },
       {
         name: "description",
         content:
-          "Formulation science, manufacturing standards and company news from the Blue World Cosmetics team in Lagos.",
+          "Formulation science, manufacturing standards and company news from the Blueworld Cosmetics team in Lagos.",
       },
-      { property: "og:title", content: "Blog & News — Blue World Cosmetics" },
+      { property: "og:title", content: "Blog & News | Blueworld Cosmetics" },
       {
         property: "og:description",
         content: "Notes from our lab, our factory floor and our export desk.",
@@ -49,7 +49,7 @@ function BlogIndexPage() {
         slug="blog"
         eyebrow="Blog"
         title="Notes from the lab and the line"
-        description="Formulation science, quality standards and company news — written by the people doing the work."
+        description="Formulation science, quality standards and company news, written by the people doing the work."
         image="blog.ingredients"
       />
 

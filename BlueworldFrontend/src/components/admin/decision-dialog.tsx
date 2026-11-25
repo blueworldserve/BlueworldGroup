@@ -40,7 +40,7 @@ export function DecisionDialog<T extends DecidableApplication>({
   onDone: (updated: T) => void;
 }) {
   const { settings } = useCmsState();
-  const company = settings?.companyName ?? "Blue World Cosmetics";
+  const company = settings?.companyName ?? "Blueworld Cosmetics";
   const signer = getAdminUser()?.fullName || "The Hiring Team";
   const approving = kind === "approve";
 
@@ -129,7 +129,7 @@ export function DecisionDialog<T extends DecidableApplication>({
           </div>
         )}
 
-        <SenderField value={fromEmail} onChange={setFromEmail} disabled={sending} />
+        <SenderField value={fromEmail} onChange={setFromEmail} disabled={sending} purpose="hr" />
 
         <div className="overflow-hidden rounded-xl border border-border">
           <div className="flex items-center gap-2 border-b border-border bg-secondary px-4 py-2.5 text-xs text-muted-foreground">

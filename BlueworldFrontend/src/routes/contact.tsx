@@ -14,16 +14,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact Us — Blue World Cosmetics" },
+      { title: "Contact Us | Blueworld Cosmetics" },
       {
         name: "description",
         content:
-          "Reach Blue World Cosmetics in Ikeja, Lagos for distribution, contract manufacturing, private label or general enquiries.",
+          "Reach Blueworld Cosmetics in Ikeja, Lagos for distribution, contract manufacturing, private label or general enquiries.",
       },
-      { property: "og:title", content: "Contact Us — Blue World Cosmetics" },
+      { property: "og:title", content: "Contact Us | Blueworld Cosmetics" },
       {
         property: "og:description",
-        content: "Distribution, private label and export enquiries — talk to our Lagos team.",
+        content: "Distribution, private label and export enquiries, talk to our Lagos team.",
       },
     ],
   }),
@@ -60,7 +60,7 @@ function ContactPage() {
       setMessageLength(0);
       toast.success("Message sent", { description: "We reply to enquiries within one business day." });
     } catch (err) {
-      // Keep what they typed so they can retry — never claim success on failure.
+      // Keep what they typed so they can retry, never claim success on failure.
       toast.error("Message not sent", { description: formErrorMessage(err) });
     } finally {
       setSubmitting(false);
@@ -80,7 +80,7 @@ function ContactPage() {
         slug="contact"
         eyebrow="Contact"
         title="Talk to the people who make it"
-        description="Distribution, private label, contract manufacturing or export — send us the detail and the right desk will answer."
+        description="Distribution, private label, contract manufacturing or export, send us the detail and the right desk will answer."
         image="hero.products"
       />
 
@@ -110,7 +110,7 @@ function ContactPage() {
 
             <div className="mt-8 overflow-hidden rounded-2xl border border-border shadow-card">
               <iframe
-                title="Blue World Cosmetics head office location"
+                title="Blueworld Cosmetics head office location"
                 src={settings.mapEmbedUrl}
                 loading="lazy"
                 className="h-72 w-full border-0"

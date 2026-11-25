@@ -6,13 +6,13 @@ import { LoadingBlock, ErrorBlock, Section } from "@/components/site/primitives"
 export const Route = createFileRoute("/about/vision-mission")({
   head: () => ({
     meta: [
-      { title: "Vision & Mission — Blue World Cosmetics" },
+      { title: "Vision & Mission | Blueworld Cosmetics" },
       {
         name: "description",
         content:
-          "Our vision, mission and the five values that govern how Blue World Cosmetics formulates, manufactures and trades.",
+          "Our vision, mission and the five values that govern how Blueworld Cosmetics formulates, manufactures and trades.",
       },
-      { property: "og:title", content: "Vision & Mission — Blue World Cosmetics" },
+      { property: "og:title", content: "Vision & Mission | Blueworld Cosmetics" },
       {
         property: "og:description",
         content: "What we are building, and the standards we hold ourselves to while building it.",
@@ -35,7 +35,7 @@ function VisionMissionPage() {
   if (isError || !page) {
     return (
       <Section>
-        <ErrorBlock label="This page isn't published yet — check Pages in the CMS." />
+        <ErrorBlock label="This page isn't published yet, check Pages in the CMS." />
       </Section>
     );
   }

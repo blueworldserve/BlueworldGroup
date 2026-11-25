@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/audit")({
   head: () => ({
-    meta: [{ title: "Audit Log — Blue World CMS" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Audit Log | Blueworld CMS" }, { name: "robots", content: "noindex" }],
   }),
   component: AuditPage,
 });
@@ -247,7 +247,7 @@ function AuditPage() {
                     <span className="min-w-0 flex-1">
                       <span className="block font-semibold">{e.summary}</span>
                       <span className="mt-0.5 block truncate text-xs text-foreground/60">
-                        {e.actorEmail ?? "unknown"} ({e.actorRole ?? "—"}) · {e.action}
+                        {e.actorEmail ?? "unknown"} ({e.actorRole ?? "-"}) · {e.action}
                         {e.resource ? ` · ${e.resource}` : ""}
                       </span>
                     </span>
@@ -255,7 +255,7 @@ function AuditPage() {
                   {open === e.id && (
                     <div className="space-y-2 bg-primary-soft/40 px-4 pb-4 pl-[4.5rem] text-xs text-foreground/70">
                       <p>
-                        {new Date(e.createdAt).toLocaleString()} · IP {e.ip ?? "—"}
+                        {new Date(e.createdAt).toLocaleString()} · IP {e.ip ?? "-"}
                       </p>
                       {e.details && (
                         <pre className="max-h-64 overflow-auto rounded-lg bg-background p-3">{JSON.stringify(e.details, null, 2)}</pre>

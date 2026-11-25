@@ -6,7 +6,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Blue World Cosmetics design system.
+ * Blueworld Cosmetics design system.
  * Blue = structure (nav, headers, footers). Orange = CTAs, highlights, accents.
  * All colors are oklch semantic tokens. Never hardcode colors in components.
  */
@@ -78,7 +78,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.22 0.045 258);
 
-  /* Blue World blue */
+  /* Blueworld blue */
   --primary: oklch(0.45 0.155 256);
   --primary-foreground: oklch(0.99 0.005 250);
   --primary-deep: oklch(0.29 0.115 258);
@@ -90,7 +90,7 @@
   --muted: oklch(0.965 0.008 250);
   --muted-foreground: oklch(0.40 0.04 256);
 
-  /* Blue World orange */
+  /* Blueworld orange */
   --accent: oklch(0.7 0.185 47);
   --accent-foreground: oklch(0.21 0.05 258);
   --accent-soft: oklch(0.96 0.045 68);
@@ -404,6 +404,16 @@
  * Unlayered on purpose so it beats Tailwind utilities.
  * ------------------------------------------------------------------ */
 :root { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* Phones zoom the page in when a field uses text smaller than 16px, and often stay zoomed after the keyboard closes.
+   Keeping every field at 16px on touch screens stops the zoom from ever starting (public site and CMS). */
+@media (pointer: coarse) {
+  input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="hidden"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
 
 /* Native controls (date/time pickers, <select> lists, scrollbars) follow the CMS theme. */
 :root[data-theme] { color-scheme: light; -webkit-tap-highlight-color: transparent; }

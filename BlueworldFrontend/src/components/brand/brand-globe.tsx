@@ -8,7 +8,7 @@ import { GlobeBoundary } from "@/components/brand/globe-boundary";
 const GlobeScene = lazy(() => import("@/components/brand/globe-scene"));
 
 /**
- * Background presets for the square behind the globe — pick one via
+ * Background presets for the square behind the globe, pick one via
  * `background`, or pass a custom CSS gradient/color string directly.
  * "none" is the default: fully transparent, so the globe floats directly
  * on whatever the parent section's own background is, with no separate
@@ -29,7 +29,7 @@ export type GlobeBackground = keyof typeof GLOBE_BACKGROUNDS;
  *  on the page's own background, which can be light or dark) falls back to
  *  the theme's own foreground variable. A custom raw CSS string passed to
  *  `background` is treated as dark too, since that's the overwhelmingly
- *  common case for this component — override with `wordmarkColor` if not. */
+ *  common case for this component, override with `wordmarkColor` if not. */
 function defaultWordmarkColor(background: GlobeBackground | (string & {})): string {
   return background === "none" ? "var(--color-foreground)" : "#ffffff";
 }
@@ -45,7 +45,7 @@ interface BrandGlobeProps {
   /**
    * Fixed-height mode: a Tailwind height class (with responsive variants,
    * e.g. "h-64 sm:h-72 lg:h-80"), used instead of the aspect-square box.
-   * Takes the full width of its parent — no maxWidthClass cap — since the
+   * Takes the full width of its parent, no maxWidthClass cap, since the
    * point of this mode is "fill this card at this height", not "cap at some
    * max width". When set, this wins over size/maxWidthClass entirely.
    * Note: this squashes the box into a rectangle, which flattens the curved
@@ -54,7 +54,7 @@ interface BrandGlobeProps {
   boxHeightClass?: string;
   className?: string;
   background?: GlobeBackground | (string & {});
-  /** Overrides the automatic contrast pick above — set this explicitly if
+  /** Overrides the automatic contrast pick above, set this explicitly if
    *  you're passing a custom `background` that isn't dark. */
   wordmarkColor?: string;
   markers?: GlobeMarker[];
@@ -71,7 +71,7 @@ interface BrandGlobeProps {
   wordmarkHug?: number;
   wordmarkDepth?: number;
   wordmarkGap?: number;
-  /** Name of the currently-selected marker — must match a marker's `name`
+  /** Name of the currently-selected marker, must match a marker's `name`
    *  and a `name` in the countryShowcases CMS collection. Pass "" or null
    *  to show the default panel. */
   activeCountry?: string | null;
@@ -120,7 +120,7 @@ export function BrandGlobe({
   interactive = true,
   showToggle = true,
   standText = "Five Nigerian-made brands, trusted in homes across Africa and beyond.",
-  // Tightened further from earlier passes — the goal is the sphere nearly
+  // Tightened further from earlier passes, the goal is the sphere nearly
   // filling its box, not floating in a visibly empty square. Bottom stays
   // a bit larger than top/sides because the curved wordmark needs that
   // room underneath the globe.
@@ -138,7 +138,7 @@ export function BrandGlobe({
   const [view, setView] = useState<"animated" | "static">(interactive ? mode : "static");
   const canToggle = interactive && showToggle;
 
-  // Reads the live CMS collection directly — an admin edit shows up here on
+  // Reads the live CMS collection directly, an admin edit shows up here on
   // the next fetch, no rebuild/redeploy needed, and no separate static file
   // to keep in sync with the database.
   const countryShowcases = useCollection("countryShowcases");
@@ -190,13 +190,13 @@ export function BrandGlobe({
 
   return (
     <div className={outerClassName} style={{ ...outerStyle, background: backgroundCss }}>
-      {/* Tint fallback layer — sits behind the photo, only matters if the
+      {/* Tint fallback layer, sits behind the photo, only matters if the
           image 404s, so nothing breaks while a country's image is missing. */}
       {showcase && (
         <div className="absolute inset-0 transition-opacity duration-700" style={{ background: resolveTint(showcase.tint) }} />
       )}
 
-      {/* Country backdrop photo — fades in behind the globe when a marker is selected */}
+      {/* Country backdrop photo, fades in behind the globe when a marker is selected */}
       <div
         className="absolute inset-0 transition-opacity duration-700 ease-out"
         style={{
@@ -213,11 +213,11 @@ export function BrandGlobe({
           country while the logo is up switches to the globe view, so the
           photo isn't hidden behind the logo. */}
       {(view === "static" || !interactive) && !showcase ? (
-        <img src="/blueworld.png" alt="Blue World Cosmetics" className="h-full w-full object-cover" draggable={false} />
+        <img src="/blueworld.png" alt="Blueworld Cosmetics" className="h-full w-full object-cover" draggable={false} />
       ) : (
         <>
           <div className="absolute transition-all duration-700 ease-in-out" style={globeBox}>
-            <GlobeBoundary fallback={<img src="/blueworld.png" alt="Blue World Cosmetics" className="h-full w-full object-contain" draggable={false} />}>
+            <GlobeBoundary fallback={<img src="/blueworld.png" alt="Blueworld Cosmetics" className="h-full w-full object-contain" draggable={false} />}>
               <Suspense fallback={<div className="h-full w-full animate-pulse rounded-full bg-white/10" />}>
                 <GlobeScene
                   markers={markers}
@@ -236,7 +236,7 @@ export function BrandGlobe({
             </div>
           )}
 
-          {/* Curved wordmark — classic serif per brand direction: Times New
+          {/* Curved wordmark, classic serif per brand direction: Times New
               Roman, bold. `fill` uses resolvedWordmarkColor so it stays
               legible against whatever panel this sits on (white on any dark
               preset, theme-aware when background="none"). The path runs left to right
@@ -261,7 +261,7 @@ export function BrandGlobe({
             </svg>
           )}
 
-          {/* Country label — replaces the wordmark/standText while a country is active */}
+          {/* Country label, replaces the wordmark/standText while a country is active */}
           {showcase && (
             <div className="pointer-events-none absolute inset-x-0 bottom-0 p-4">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/80">{showcase.place}</p>
@@ -271,7 +271,7 @@ export function BrandGlobe({
         </>
       )}
 
-      {/* Reset button — only shown while a country is active, clears back
+      {/* Reset button, only shown while a country is active, clears back
           to the deep-blue default panel. Sits top-left so it never overlaps
           the small globe in the top-right corner. */}
       {showcase && onSelectCountry && (

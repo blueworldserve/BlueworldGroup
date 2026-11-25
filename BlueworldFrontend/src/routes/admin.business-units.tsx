@@ -9,10 +9,10 @@ import { stripMarkup } from "@/components/site/rich-text";
 export const Route = createFileRoute("/admin/business-units")({
   head: () => ({
     meta: [
-      { title: "Business Units — Blue World CMS" },
-      { name: "description", content: "Manage the five Blue World brand divisions." },
+      { title: "Business Units | Blueworld CMS" },
+      { name: "description", content: "Manage the five Blueworld brand divisions." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Business Units — Blue World CMS" },
+      { property: "og:title", content: "Business Units | Blueworld CMS" },
       { property: "og:description", content: "Manage brand divisions and their stories." },
     ],
   }),
@@ -25,7 +25,7 @@ const fields: CatalogField<BusinessUnit>[] = [
     label: "Which brand is this?",
     type: "select",
     options: ["vivon", "bluecrystal", "blow-right", "bluefragrance", "blueworld-cosmetics"],
-    help: "This is fixed to one of the five brands — it controls which page on the website this content appears on.",
+    help: "This is fixed to one of the five brands, it controls which page on the website this content appears on.",
   },
   { name: "name", label: "Brand Name (as shown on the page)" },
   { name: "tagline", label: "Short slogan (hero text)", type: "textarea", rich: true, rows: 2, help: "A one-line phrase shown under the brand name, e.g. 'Skincare that listens to your skin'." },
@@ -35,7 +35,7 @@ const fields: CatalogField<BusinessUnit>[] = [
     name: "heroImage",
     label: "Cover Photo",
     type: "image",
-    help: "This is the ONE main photo for this brand — shown on the homepage and at the top of the brand's page. To show several product photos, add them as separate Products (see the Products tab) and tag them to this brand.",
+    help: "This is the ONE main photo for this brand, shown on the homepage and at the top of the brand's page. To show several product photos, add them as separate Products (see the Products tab) and tag them to this brand.",
   },
   {
     name: "mobileHeroImage",

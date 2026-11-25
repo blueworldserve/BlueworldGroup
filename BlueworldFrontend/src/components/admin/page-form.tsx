@@ -87,8 +87,8 @@ export function PageForm({
               onChange={(e) => set("status", e.target.value as "draft" | "published")}
               className={inputClass}
             >
-              <option value="draft">Draft — not visible on the website yet</option>
-              <option value="published">Published — live on the website</option>
+              <option value="draft">Draft, not visible on the website yet</option>
+              <option value="published">Published, live on the website</option>
             </select>
           </div>
           <div className="sm:col-span-2">
@@ -135,7 +135,7 @@ export function PageForm({
         <div className="mt-5 space-y-5">
           {form.blocks.length === 0 && (
             <p className="rounded-2xl border border-dashed border-border bg-secondary py-10 text-center text-sm text-muted-foreground">
-              No sections yet — pick a type above and click "Add section."
+              No sections yet, pick a type above and click "Add section."
             </p>
           )}
           {form.blocks.map((block, i) => (

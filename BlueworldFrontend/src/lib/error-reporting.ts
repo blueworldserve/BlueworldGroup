@@ -33,5 +33,5 @@ export function reportError(
 
   // TODO: forward `payload` to your own logging endpoint or a service like Sentry
   // once the FastAPI backend (or a dedicated logging tool) is wired up. Until then
-  // this is console-only — no external telemetry.
+  // this is console-only, no external telemetry.
 }

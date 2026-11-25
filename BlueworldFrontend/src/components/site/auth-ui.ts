@@ -24,7 +24,7 @@ export const authInputFocusStyle = {
 export const authInputBlurStyle = authInputStyle;
 
 /**
- * 3D offset-shadow button — solid blue at rest, flips to orange background
+ * 3D offset-shadow button, solid blue at rest, flips to orange background
  * with blue text on hover, and visibly "presses in" on click.
  */
 export const authButtonClass =

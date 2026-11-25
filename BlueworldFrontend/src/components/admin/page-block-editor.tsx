@@ -110,7 +110,7 @@ function CardsRepeater({
 
 // CHANGED: row is `flex-col` by default and only goes side-by-side at `sm:`.
 // The label/href inputs no longer fight over a fixed `w-1/2` on narrow
-// screens — each gets its own full-width row on mobile. Delete button
+// screens, each gets its own full-width row on mobile. Delete button
 // moves onto its own row on mobile too, aligned right, so it doesn't
 // squeeze the inputs.
 function LinkCardsRepeater({
@@ -165,7 +165,7 @@ function LinkCardsRepeater({
   );
 }
 
-// CHANGED: same fix — stacks on mobile, and the tone `<select>` gets
+// CHANGED: same fix, stacks on mobile, and the tone `<select>` gets
 // `w-full sm:w-32` instead of a fixed `w-32` so it doesn't force overflow
 // next to the eyebrow input on narrow screens.
 function FeatureItemsRepeater({

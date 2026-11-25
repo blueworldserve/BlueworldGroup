@@ -6,10 +6,10 @@ import { API_BASE_URL } from "@/lib/api";
 export const Route = createFileRoute("/admin/")({
   head: () => ({
     meta: [
-      { title: "CMS Dashboard — Blue World Cosmetics" },
-      { name: "description", content: "Content overview for the Blue World Cosmetics website." },
+      { title: "CMS Dashboard | Blueworld Cosmetics" },
+      { name: "description", content: "Content overview for the Blueworld Cosmetics website." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "CMS Dashboard — Blue World Cosmetics" },
+      { property: "og:title", content: "CMS Dashboard | Blueworld Cosmetics" },
       { property: "og:description", content: "Manage site content, brands, products and jobs." },
     ],
   }),

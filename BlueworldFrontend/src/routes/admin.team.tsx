@@ -21,10 +21,10 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/admin/team")({
   head: () => ({
     meta: [
-      { title: "Team — Blue World CMS" },
+      { title: "Team | Blueworld CMS" },
       { name: "description", content: "Manage the leadership team shown on the About pages." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Team — Blue World CMS" },
+      { property: "og:title", content: "Team | Blueworld CMS" },
       { property: "og:description", content: "Manage leadership profiles." },
     ],
   }),

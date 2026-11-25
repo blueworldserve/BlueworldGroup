@@ -29,7 +29,7 @@ function AdminPagesList() {
   });
 
   useEffect(() => {
-    if (isError) toast.error("Could not load pages — check your connection or permissions.");
+    if (isError) toast.error("Could not load pages, check your connection or permissions.");
   }, [isError]);
 
   const pages = [...(data ?? [])].sort((a, b) => a.slug.localeCompare(b.slug));
@@ -37,7 +37,7 @@ function AdminPagesList() {
   return (
     <AdminShell
       title="Pages"
-      description="Create new pages and edit the content and banner photos of existing ones — About, Business, Career, Blog, Contact and any page you add. Open a card to edit it."
+      description="Create new pages and edit the content and banner photos of existing ones, About, Business, Career, Blog, Contact and any page you add. Open a card to edit it."
     >
       {isLoading ? (
         <div className="rounded-2xl border border-border bg-card py-10 text-center text-sm text-muted-foreground">Loading pages…</div>

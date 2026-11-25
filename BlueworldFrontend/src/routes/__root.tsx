@@ -28,7 +28,7 @@ function NotFoundComponent() {
       <div className="max-w-md text-center">
         <img
           src="/blueworld.png"
-          alt="Blue World Cosmetics"
+          alt="Blueworld Cosmetics"
           className="mx-auto h-20 w-20 object-cover"
           draggable={false}
         />
@@ -78,7 +78,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
       <div className="max-w-md text-center">
         <img
           src="/blueworld.png"
-          alt="Blue World Cosmetics"
+          alt="Blueworld Cosmetics"
           className="mx-auto h-20 w-20 object-cover"
           draggable={false}
         />
@@ -125,15 +125,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" },
-      { title: "Blue World Cosmetics — Nigerian Cosmetics Manufacturer" },
+      { title: "Blueworld Cosmetics | Nigerian Cosmetics Manufacturer" },
       {
         name: "description",
         content:
-          "Blue World Cosmetics manufactures skincare, hygiene, haircare and fragrance brands in Lagos, Nigeria for markets across Africa and Asia.",
+          "Blueworld Cosmetics manufactures skincare, hygiene, haircare and fragrance brands in Lagos, Nigeria for markets across Africa and Asia.",
       },
-      { name: "author", content: "Blue World Cosmetics Limited" },
-      { property: "og:site_name", content: "Blue World Cosmetics" },
-      { property: "og:title", content: "Blue World Cosmetics" },
+      { name: "author", content: "Blueworld Cosmetics Limited" },
+      { property: "og:site_name", content: "Blueworld Cosmetics" },
+      { property: "og:title", content: "Blueworld Cosmetics" },
       {
         property: "og:description",
         content: "A Nigerian multi-brand cosmetics manufacturing house. God Is Our Strength.",
@@ -142,9 +142,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image", content: OG_IMAGE },
       { property: "og:image:width", content: "256" },
       { property: "og:image:height", content: "256" },
-      { property: "og:image:alt", content: "Blue World Cosmetics logo" },
+      { property: "og:image:alt", content: "Blueworld Cosmetics logo" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Blue World Cosmetics" },
+      { name: "twitter:title", content: "Blueworld Cosmetics" },
       {
         name: "twitter:description",
         content: "A Nigerian multi-brand cosmetics manufacturing house. God Is Our Strength.",

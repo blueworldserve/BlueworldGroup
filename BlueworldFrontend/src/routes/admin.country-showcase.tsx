@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/admin/country-showcase")({
   head: () => ({
     meta: [
-      { title: "Country Showcase — Blue World CMS" },
+      { title: "Country Showcase | Blueworld CMS" },
       { name: "description", content: "The photo and write-up shown when a visitor taps a country marker on the homepage globe." },
       { name: "robots", content: "noindex" },
     ],
@@ -152,7 +152,7 @@ function CountryShowcaseAdmin() {
   return (
     <AdminShell
       title="Country Showcase"
-      description="What appears when someone taps a market on the homepage globe — one entry per country marker."
+      description="What appears when someone taps a market on the homepage globe, one entry per country marker."
     >
       <WriteGate resource="country-showcases">
         <div className="grid gap-6 lg:grid-cols-[270px_minmax(0,1fr)]">

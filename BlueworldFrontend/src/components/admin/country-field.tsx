@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 /**
  * Searchable country picker. You can only choose a real country from the list,
  * so the name is always spelled right, and its position on the globe is looked
- * up automatically — there's nothing to type and nothing to get wrong.
+ * up automatically, there's nothing to type and nothing to get wrong.
  */
 export function CountryField({
   id,

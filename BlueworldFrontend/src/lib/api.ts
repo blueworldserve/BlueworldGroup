@@ -72,6 +72,8 @@ async function request<T>(path: string, init: RequestInit, timeoutMs: number): P
   try {
     const res = await fetch(`${API_BASE_URL}${path}`, {
       ...init,
+      // Sign-in calls carry the httpOnly refresh cookie when the server uses one.
+      ...(path.startsWith("/auth/") ? { credentials: "include" as const } : {}),
       signal: controller.signal,
       headers: {
         // A file upload (FormData) must NOT get a content-type: the browser adds its own, with the boundary.
@@ -85,7 +87,7 @@ async function request<T>(path: string, init: RequestInit, timeoutMs: number): P
       try {
         detail = await res.json();
       } catch {
-        // response wasn't JSON — leave detail null
+        // response wasn't JSON, leave detail null
       }
       throw new ApiError(res.status, detail, `API ${res.status} on ${path}`);
     }
@@ -151,7 +153,7 @@ export interface SourcedResult<T> {
  * Same fallback behaviour as `fetchWithFallback`, but also reports whether
  * the result actually came from the backend or is local placeholder content.
  * Use this wherever the caller needs to know the difference (e.g. the admin
- * panel warning banner) — use the plain `fetchWithFallback` wherever the
+ * panel warning banner), use the plain `fetchWithFallback` wherever the
  * caller just wants data and doesn't care where it came from.
  */
 export async function fetchWithSource<T>(path: string, fallback: T): Promise<SourcedResult<T>> {
@@ -174,7 +176,7 @@ export async function fetchWithSource<T>(path: string, fallback: T): Promise<Sou
 }
 
 /**
- * Read helper. Never throws — resolves to `fallback` when the backend is not
+ * Read helper. Never throws, resolves to `fallback` when the backend is not
  * reachable. Accepts either a bare array or `{ items: [...] }`. Real errors
  * are logged to the console so they're visible during development instead of
  * silently disappearing.
@@ -188,7 +190,7 @@ const FORM_TIMEOUT_MS = 15_000;
 
 /**
  * POST for public forms (contact, newsletter, careers). It NEVER pretends it worked: if the server is unreachable, times out or rejects the
- * request, it throws — show `formErrorMessage(err)` to the visitor.
+ * request, it throws, show `formErrorMessage(err)` to the visitor.
  */
 export async function submitForm<TBody>(path: string, body: TBody): Promise<void> {
   await apiFetch<unknown>(path, { method: "POST", body: JSON.stringify(body) }, FORM_TIMEOUT_MS);
@@ -225,7 +227,7 @@ export function formErrorMessage(err: unknown): string {
   if (err instanceof ApiError) {
     if (err.status === 429) return "Too many attempts. Please wait a minute and try again.";
     if (err.status === 400 || err.status === 409 || err.status === 413 || err.status === 415) {
-      // The server explains file problems in plain words ("larger than 5 MB…") — show those as they are.
+      // The server explains file problems in plain words ("larger than 5 MB…"), show those as they are.
       const message = (err.detail as { detail?: unknown } | null)?.detail;
       if (typeof message === "string" && message) return message;
       if (err.status === 413) return "That file is too large. Please upload one under 5 MB.";
@@ -287,13 +289,13 @@ function authHeader(): Record<string, string> {
 
 /* ---------------------------- silent token refresh ---------------------------- */
 
-/** Fired when the refresh token itself is no longer valid — the admin must sign in again. */
+/** Fired when the refresh token itself is no longer valid, the admin must sign in again. */
 export const SESSION_EXPIRED_EVENT = "bwc:session-expired";
 
 let refreshing: Promise<boolean> | null = null;
 
 function canRefresh(path: string): boolean {
-  return path !== ENDPOINTS.authLogin && path !== ENDPOINTS.authRefresh && !!readTokens()?.refreshToken;
+  return path !== ENDPOINTS.authLogin && path !== ENDPOINTS.authRefresh && !!readTokens();
 }
 
 /** Swaps the refresh token for new tokens. One call at a time; everyone waits for the same result. */
@@ -301,12 +303,14 @@ function refreshAccessToken(): Promise<boolean> {
   if (refreshing) return refreshing;
   refreshing = (async () => {
     const tokens = readTokens();
-    if (!tokens?.refreshToken) return false;
+    if (!tokens) return false;
     try {
+      // With the cookie setting on, tokens.refreshToken is empty and the browser sends the cookie by itself.
       const res = await fetch(`${API_BASE_URL}${ENDPOINTS.authRefresh}`, {
         method: "POST",
+        credentials: "include",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ refreshToken: tokens.refreshToken }),
+        body: JSON.stringify(tokens.refreshToken ? { refreshToken: tokens.refreshToken } : {}),
       });
       if (res.ok) {
         const data = (await res.json()) as { accessToken: string; refreshToken: string };
@@ -320,7 +324,7 @@ function refreshAccessToken(): Promise<boolean> {
       }
       return false;
     } catch {
-      return false; // network trouble — keep the session, let the caller report the error
+      return false; // network trouble, keep the session, let the caller report the error
     }
   })().finally(() => {
     refreshing = null;
@@ -352,6 +356,6 @@ async function authedFetch(url: string, init: RequestInit): Promise<Response> {
   }
   const send = () => fetch(url, { ...init, headers: { ...(init.headers ?? {}), ...authHeader() } });
   let res = await send();
-  if (res.status === 401 && readTokens()?.refreshToken && (await refreshAccessToken())) res = await send();
+  if (res.status === 401 && readTokens() && (await refreshAccessToken())) res = await send();
   return res;
 }

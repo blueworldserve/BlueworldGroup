@@ -20,13 +20,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Blue World Cosmetics — Nigerian Cosmetics Manufacturer" },
+      { title: "Blueworld Cosmetics | Nigerian Cosmetics Manufacturer" },
       {
         name: "description",
         content:
-          "Skincare, hygiene, haircare and fragrance manufactured in Lagos. Home of Vivon, BlueCrystal, Blow Right, BlueFragrance and BlueWorld Cosmetics.",
+          "Skincare, hygiene, haircare and fragrance manufactured in Lagos. Home of Vivon, BlueCrystal, Blow Right, BlueFragrance and Blueworld Cosmetics.",
       },
-      { property: "og:title", content: "Blue World Cosmetics" },
+      { property: "og:title", content: "Blueworld Cosmetics" },
       { property: "og:description", content: "Five brands. One Nigerian manufacturing house. God Is Our Strength." },
     ],
     links: [
@@ -256,7 +256,7 @@ function HomePage() {
             <p className="eyebrow">Where we ship</p>
             <h3 className="mt-2 text-2xl font-bold text-primary-deep">Made in Nigeria, carried around the world</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              From our organization at Obadore, Igando, Lagos, Blue World reaches households across {reachPhrase}. Tap a marker, or a market below.
+              From our organization at Obadore, Igando, Lagos, Blueworld reaches households across {reachPhrase}. Tap a marker, or a market below.
             </p>
             <div className="mt-4">
               <BrandGlobe
@@ -498,6 +498,8 @@ function NewsletterBlock() {
           onSubmit={async (e) => {
             e.preventDefault();
             if (busy) return;
+            // Close the keyboard so phones return to normal zoom after the visitor presses Enter or Go.
+            (document.activeElement as HTMLElement | null)?.blur();
             const website = String(new FormData(e.currentTarget).get("website") ?? "");
             setBusy(true);
             try {
@@ -513,7 +515,7 @@ function NewsletterBlock() {
         >
           {/* Honeypot: invisible to people, tempting to bots. */}
           <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 opacity-0" />
-          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" className="h-12 w-full shrink-0 border border-primary-foreground/25 bg-primary-foreground/10 px-6 text-sm text-primary-foreground placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-accent sm:w-auto sm:min-w-0 sm:flex-1" />
+          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" className="h-12 w-full shrink-0 border border-primary-foreground/25 bg-primary-foreground/10 px-6 text-base text-primary-foreground placeholder:text-primary-foreground/50 sm:text-sm focus:outline-none focus:ring-2 focus:ring-accent sm:w-auto sm:min-w-0 sm:flex-1" />
           <button type="submit" disabled={busy} className="h-12 shrink-0 bg-accent px-8 text-[0.72rem] font-bold uppercase tracking-[0.16em] text-accent-foreground disabled:opacity-60">
             {busy ? "Subscribing…" : "Subscribe"}
           </button>

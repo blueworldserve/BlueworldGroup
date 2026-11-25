@@ -1,5 +1,5 @@
 /**
- * Shared data models for the Blue World Cosmetics site.
+ * Shared data models for the Blueworld Cosmetics site.
  *
  * These interfaces are the contract between this frontend and the FastAPI
  * backend that will be built separately. Pydantic schemas should line up
@@ -124,7 +124,7 @@ export interface ContactSubmission {
   enquiryType: string;
   subject: string;
   message: string;
-  /** Honeypot — hidden field real visitors never fill in. Always send it as-is. */
+  /** Honeypot, hidden field real visitors never fill in. Always send it as-is. */
   website?: string;
 }
 
@@ -264,7 +264,7 @@ export interface CmsPage {
 
 export interface CountryShowcase {
   id: string;
-  /** Must match a REACH_MARKERS `name` (case-insensitive) — that's how a
+  /** Must match a REACH_MARKERS `name` (case-insensitive), that's how a
    *  globe marker click links to this write-up. */
   name: string;
   place: string;

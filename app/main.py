@@ -39,7 +39,7 @@ logger = logging.getLogger("startup")
 # Interactive API docs list every admin endpoint, so they're OFF unless you set ENABLE_DOCS=true.
 _docs_on = os.getenv("ENABLE_DOCS", "").lower() == "true"
 app = FastAPI(
-    title="BlueWorld Cosmetics API",
+    title="Blueworld Cosmetics API",
     docs_url="/docs" if _docs_on else None,
     redoc_url="/redoc" if _docs_on else None,
     openapi_url="/openapi.json" if _docs_on else None,
@@ -118,7 +118,7 @@ app.include_router(make_admin_crud_router("company-apps", CompanyApp, CompanyApp
 
 @app.on_event("startup")
 def run_startup_tasks():
-    # 1. Run migrations — safe to call every boot; alembic no-ops if already at head
+    # 1. Run migrations, safe to call every boot; alembic no-ops if already at head
     try:
         from alembic.config import Config
         from alembic import command
@@ -134,9 +134,9 @@ def run_startup_tasks():
         logger.info("Migrations complete.")
     except Exception:
         logger.exception("Migration step failed on startup")
-        raise  # fail loudly — don't let the app serve traffic against an unmigrated DB
+        raise  # fail loudly, don't let the app serve traffic against an unmigrated DB
 
-    # 2. Make sure a superuser exists — no-ops if one already exists (login bootstrap only, no site content)
+    # 2. Make sure a superuser exists, no-ops if one already exists (login bootstrap only, no site content)
     try:
         from scripts.seed_superuser import seed_superuser
         seed_superuser(interactive=False)
@@ -172,4 +172,4 @@ def health_db(request: Request):
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to the BlueWorld Cosmetics API!"}
+    return {"message": "Welcome to the Blueworld Cosmetics API!"}

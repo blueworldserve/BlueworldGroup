@@ -1,5 +1,5 @@
 /**
- * Client-side CMS store — backed by the real FastAPI backend.
+ * Client-side CMS store, backed by the real FastAPI backend.
  *
  * Reads hit the public /cms/* endpoints (falling back to placeholder content
  * if the backend is unreachable, via fetchWithSource). Writes hit the
@@ -7,7 +7,7 @@
  * session with the JWT already attached via api.ts's authHeader().
  *
  * Each collection also tracks a `dataSource` ("live" | "placeholder") so
- * callers — specifically the admin panel — can tell real backend data apart
+ * callers, specifically the admin panel, can tell real backend data apart
  * from local fallback content. See useCmsDataSources() below.
  */
 import { useSyncExternalStore } from "react";
@@ -59,7 +59,7 @@ const INITIAL: CmsState = {
   blogPosts: BLOG_POSTS,
   jobPostings: JOB_POSTINGS,
   // No hardcoded placeholder set for this one (it didn't exist as a
-  // collection before this feature) — an empty array is fine here: the
+  // collection before this feature), an empty array is fine here: the
   // homepage already renders a perfectly normal "overview" panel with no
   // country selected when this list is empty, so there's no broken-UI risk
   // while waiting for the backend/seed data to load.
@@ -322,7 +322,7 @@ export async function upsertItem<K extends CollectionKey>(key: K, item: CmsState
     }
     await refetch(key);
   } catch (error) {
-    toast.error("Could not save — check your connection or permissions.");
+    toast.error("Could not save, check your connection or permissions.");
     throw error;
   }
 }
@@ -333,7 +333,7 @@ export async function deleteItem(key: CollectionKey, id: string) {
     await apiFetch(`${admin}/${id}`, { method: "DELETE" });
     await refetch(key);
   } catch (error) {
-    toast.error("Could not delete — check your connection or permissions.");
+    toast.error("Could not delete, check your connection or permissions.");
     throw error;
   }
 }
@@ -356,7 +356,7 @@ export async function updateSettings(settings: SiteSettings) {
     persist();
     emit();
   } catch (error) {
-    toast.error("Could not save settings — check your connection or permissions.");
+    toast.error("Could not save settings, check your connection or permissions.");
     throw error;
   }
 }

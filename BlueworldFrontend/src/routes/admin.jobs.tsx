@@ -9,10 +9,10 @@ import { CatalogManager, type CatalogField, type CatalogGroup } from "@/componen
 export const Route = createFileRoute("/admin/jobs")({
   head: () => ({
     meta: [
-      { title: "Job Postings — Blue World CMS" },
+      { title: "Job Postings | Blueworld CMS" },
       { name: "description", content: "Publish and close roles listed on the careers page." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Job Postings — Blue World CMS" },
+      { property: "og:title", content: "Job Postings | Blueworld CMS" },
       { property: "og:description", content: "Manage open roles." },
     ],
   }),

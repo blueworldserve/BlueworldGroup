@@ -3,7 +3,7 @@ export function renderErrorPage(): string {
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>This page didn't load — Blue World Cosmetics</title>
+    <title>This page didn't load | Blueworld Cosmetics</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -22,7 +22,7 @@ export function renderErrorPage(): string {
   </head>
   <body>
     <main class="card">
-      <img class="logo" src="/blueworld.png" alt="Blue World Cosmetics" />
+      <img class="logo" src="/blueworld.png" alt="Blueworld Cosmetics" />
       <p class="eyebrow">Something went wrong</p>
       <h1>This page didn't load</h1>
       <p>Something went wrong on our end. Please try again, or head back to the home page.</p>

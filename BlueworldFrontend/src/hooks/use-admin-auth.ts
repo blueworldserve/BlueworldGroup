@@ -31,7 +31,7 @@ function emit() {
   listeners.forEach((l) => l());
 }
 
-/** Direct (non-reactive) session read — safe to call inside effects after mount. */
+/** Direct (non-reactive) session read, safe to call inside effects after mount. */
 export function getAdminUser(): AdminUser | null {
   return read();
 }
@@ -61,7 +61,7 @@ export async function login(email: string, password: string): Promise<AdminUser>
     });
   } catch (error) {
     if (error instanceof ApiError && error.status === 429) {
-      throw new Error("Too many attempts — please wait a minute and try again.");
+      throw new Error("Too many attempts, please wait a minute and try again.");
     }
     if (error instanceof ApiError) {
       throw new Error("Invalid email or password.");

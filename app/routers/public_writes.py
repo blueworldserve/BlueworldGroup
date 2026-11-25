@@ -52,7 +52,7 @@ def submit_contact(
     if payload.website:
         return {"ok": True}
 
-     # 1. Save first — the lead is safe even if email is down or not set up.
+     # 1. Save first, the lead is safe even if email is down or not set up.
     row = ContactSubmission(**payload.model_dump(exclude={"website"}))
     db.add(row)
     db.commit()

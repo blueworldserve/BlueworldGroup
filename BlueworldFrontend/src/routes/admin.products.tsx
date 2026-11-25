@@ -21,11 +21,11 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/admin/products")({
   head: () => ({
     meta: [
-      { title: "Products — Blue World CMS" },
+      { title: "Products | Blueworld CMS" },
       { name: "description", content: "Manage the product catalogue across all brands." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Products — Blue World CMS" },
-      { property: "og:description", content: "Manage the Blue World product catalogue." },
+      { property: "og:title", content: "Products | Blueworld CMS" },
+      { property: "og:description", content: "Manage the Blueworld product catalogue." },
     ],
   }),
   component: ProductsAdmin,
@@ -56,7 +56,7 @@ const UNITS = [
   { value: "bluecrystal", label: "Blue Crystal" },
   { value: "blow-right", label: "Blow Right" },
   { value: "bluefragrance", label: "Blue Fragrance" },
-  { value: "blueworld-cosmetics", label: "Blue World Cosmetics" },
+  { value: "blueworld-cosmetics", label: "Blueworld Cosmetics" },
 ] as const;
 
 const VIVON_RANGES = ["face", "body", "children"] as const;

@@ -45,7 +45,7 @@ export const NAV_ITEMS: NavItem[] = [
       { label: "BlueCrystal", to: "/business/bluecrystal" },
       { label: "Blow Right", to: "/business/blow-right" },
       { label: "BlueFragrance", to: "/business/bluefragrance" },
-      { label: "BlueWorld Cosmetics", to: "/business/blueworld-cosmetics" },
+      { label: "Blueworld Cosmetics", to: "/business/blueworld-cosmetics" },
     ],
   },
   { label: "Products", to: "/products" },
@@ -168,7 +168,7 @@ export function SiteHeader() {
           <Link to="/" className="group flex items-center gap-3" onClick={() => setOpenMobile(false)}>
             <img
               src="/blueworld.png"
-              alt="Blue World Cosmetics"
+              alt="Blueworld Cosmetics"
               className="h-12 w-12 rounded-xl object-cover"
               draggable={false}
             />
@@ -179,7 +179,7 @@ export function SiteHeader() {
                   transparent ? "text-white" : "text-primary-deep",
                 )}
               >
-                BLUE WORLD
+                BLUEWORLD
               </span>
               <span
                 className={cn(

@@ -13,8 +13,8 @@ import { PLACEHOLDER_WARNED_KEY } from "@/hooks/use-cms-source-alerts";
 export const Route = createFileRoute("/admin/login")({
   head: () => ({
     meta: [
-      { title: "CMS Sign In — Blue World Cosmetics" },
-      { name: "description", content: "Secure sign-in for the Blue World Cosmetics content management system." },
+      { title: "CMS Sign In | Blueworld Cosmetics" },
+      { name: "description", content: "Secure sign-in for the Blueworld Cosmetics content management system." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -74,7 +74,7 @@ function AdminLoginPage() {
         /* ignore */
       }
       if (isDemoSession()) {
-        toast.warning("Signed in with the offline demo session — backend is unreachable, this is not real data.");
+        toast.warning("Signed in with the offline demo session, backend is unreachable, this is not real data.");
       } else {
         toast.success("Signed in");
       }
@@ -106,14 +106,14 @@ function AdminLoginPage() {
                 backgroundImage: `url(${bgImages[currentBg]})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
-                // "Glossy" pop — punchier saturation/contrast than a flat photo.
+                // "Glossy" pop, punchier saturation/contrast than a flat photo.
                 filter: "saturate(1.2) contrast(1.08) brightness(1.02)",
               }}
             />
           </AnimatePresence>
         )}
 
-        {/* Diagonal light sheen sweeping across the image — the "shiny" pass */}
+        {/* Diagonal light sheen sweeping across the image, the "shiny" pass */}
         <motion.div
           className="pointer-events-none absolute inset-0"
           style={{
@@ -160,7 +160,7 @@ function AdminLoginPage() {
         transition={{ delay: 0.8, duration: 0.7 }}
       >
         <p className="text-xs font-semibold uppercase tracking-widest text-white/30">
-          © {new Date().getFullYear()} Blue World Cosmetics
+          © {new Date().getFullYear()} Blueworld Cosmetics
         </p>
       </motion.div>
 
@@ -190,7 +190,7 @@ function AdminLoginPage() {
             >
               <img
                 src="/blueworld.png"
-                alt="Blue World Cosmetics"
+                alt="Blueworld Cosmetics"
                 className="h-full w-full object-cover"
                 onError={(e) => {
                   const target = e.currentTarget;
@@ -204,7 +204,7 @@ function AdminLoginPage() {
                 }}
               />
             </div>
-            <h1 className="mb-1 text-2xl font-bold text-white">Blue World Cosmetics</h1>
+            <h1 className="mb-1 text-2xl font-bold text-white">Blueworld Cosmetics</h1>
             <p className="text-sm font-semibold uppercase tracking-widest" style={{ color: "hsl(var(--primary))" }}>
               Admin Portal
             </p>
@@ -215,7 +215,7 @@ function AdminLoginPage() {
             style={{ background: "rgba(239, 68, 68, 0.12)", border: "1px solid rgba(239, 68, 68, 0.25)" }}
           >
             <p className="text-xs leading-relaxed text-red-300">
-              This portal is strictly for verified Blue World Cosmetics administrators. Unauthorized access is prohibited.
+              This portal is strictly for verified Blueworld Cosmetics administrators. Unauthorized access is prohibited.
             </p>
           </div>
 
@@ -243,7 +243,7 @@ function AdminLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
                 required
-                // pr-10 instead of authInputClass's default pr-4 — makes room
+                // pr-10 instead of authInputClass's default pr-4, makes room
                 // for the eye-toggle button without it overlapping the text.
                 className={cn(authInputClass, "pr-10")}
                 style={authInputStyle}
