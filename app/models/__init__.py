@@ -17,6 +17,7 @@ from models.site_settings import SiteSettings
 from models.submission import ContactSubmission, ContactReply, CareerApplication, ApplicationResponse, NewsletterSignup
 from models.page import Page, PageBlock, BlockType, PageStatus
 from models.country_showcase import CountryShowcase
+from models.company_app import CompanyApp
 
 __all__ = [
     # admin users
@@ -49,4 +50,5 @@ __all__ = [
     "BlockType",
     "PageStatus",
     "CountryShowcase",
+    "CompanyApp",
 ]

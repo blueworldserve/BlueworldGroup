@@ -12,6 +12,7 @@ from models.team_member import TeamMember
 from models.blog_post import BlogPost
 from models.job_posting import JobPosting
 from models.country_showcase import CountryShowcase
+from models.company_app import CompanyApp
 
 
 from sqlalchemy import text
@@ -23,6 +24,7 @@ from schemas.blog_post import BlogPostOut, BlogPostCreate
 
 from schemas.job_posting import JobPostingOut, JobPostingCreate
 from schemas.country_showcase import CountryShowcaseOut, CountryShowcaseCreate
+from schemas.company_app import CompanyAppOut, CompanyAppCreate
 
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -112,6 +114,7 @@ app.include_router(make_admin_crud_router("team", TeamMember, TeamMemberOut, Tea
 app.include_router(make_admin_crud_router("blog-posts", BlogPost, BlogPostOut, BlogPostCreate))
 app.include_router(make_admin_crud_router("jobs", JobPosting, JobPostingOut, JobPostingCreate))
 app.include_router(make_admin_crud_router("country-showcases", CountryShowcase, CountryShowcaseOut, CountryShowcaseCreate))
+app.include_router(make_admin_crud_router("company-apps", CompanyApp, CompanyAppOut, CompanyAppCreate))
 
 @app.on_event("startup")
 def run_startup_tasks():

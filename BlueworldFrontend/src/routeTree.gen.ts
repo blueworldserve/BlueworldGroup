@@ -20,6 +20,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAccessRequestsRouteImport } from './routes/admin.access-requests'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminApplicationsRouteImport } from './routes/admin.applications'
+import { Route as AdminAppsRouteImport } from './routes/admin.apps'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminBlogRouteImport } from './routes/admin.blog'
 import { Route as AdminBusinessUnitsRouteImport } from './routes/admin.business-units'
@@ -99,6 +100,11 @@ const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
 const AdminApplicationsRoute = AdminApplicationsRouteImport.update({
   id: '/admin/applications',
   path: '/admin/applications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAppsRoute = AdminAppsRouteImport.update({
+  id: '/admin/apps',
+  path: '/admin/apps',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminAuditRoute = AdminAuditRouteImport.update({
@@ -238,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/admin/access-requests': typeof AdminAccessRequestsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
+  '/admin/apps': typeof AdminAppsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/business-units': typeof AdminBusinessUnitsRoute
@@ -276,6 +283,7 @@ export interface FileRoutesByTo {
   '/admin/access-requests': typeof AdminAccessRequestsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
+  '/admin/apps': typeof AdminAppsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/business-units': typeof AdminBusinessUnitsRoute
@@ -315,6 +323,7 @@ export interface FileRoutesById {
   '/admin/access-requests': typeof AdminAccessRequestsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/applications': typeof AdminApplicationsRoute
+  '/admin/apps': typeof AdminAppsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/business-units': typeof AdminBusinessUnitsRoute
@@ -355,6 +364,7 @@ export interface FileRouteTypes {
     | '/admin/access-requests'
     | '/admin/analytics'
     | '/admin/applications'
+    | '/admin/apps'
     | '/admin/audit'
     | '/admin/blog'
     | '/admin/business-units'
@@ -393,6 +403,7 @@ export interface FileRouteTypes {
     | '/admin/access-requests'
     | '/admin/analytics'
     | '/admin/applications'
+    | '/admin/apps'
     | '/admin/audit'
     | '/admin/blog'
     | '/admin/business-units'
@@ -431,6 +442,7 @@ export interface FileRouteTypes {
     | '/admin/access-requests'
     | '/admin/analytics'
     | '/admin/applications'
+    | '/admin/apps'
     | '/admin/audit'
     | '/admin/blog'
     | '/admin/business-units'
@@ -470,6 +482,7 @@ export interface RootRouteChildren {
   AdminAccessRequestsRoute: typeof AdminAccessRequestsRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminApplicationsRoute: typeof AdminApplicationsRoute
+  AdminAppsRoute: typeof AdminAppsRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminBlogRoute: typeof AdminBlogRoute
   AdminBusinessUnitsRoute: typeof AdminBusinessUnitsRoute
@@ -576,6 +589,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/applications'
       fullPath: '/admin/applications'
       preLoaderRoute: typeof AdminApplicationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/apps': {
+      id: '/admin/apps'
+      path: '/admin/apps'
+      fullPath: '/admin/apps'
+      preLoaderRoute: typeof AdminAppsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/audit': {
@@ -766,6 +786,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminAccessRequestsRoute: AdminAccessRequestsRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminApplicationsRoute: AdminApplicationsRoute,
+  AdminAppsRoute: AdminAppsRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminBlogRoute: AdminBlogRoute,
   AdminBusinessUnitsRoute: AdminBusinessUnitsRoute,

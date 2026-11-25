@@ -18,6 +18,7 @@ WRITE_ROLES: dict[str, tuple[R, ...]] = {
     "business-units":    (R.admin, R.editor),
     "pages":             (R.admin, R.editor),
     "country-showcases": (R.admin, R.editor),
+    "company-apps":      (R.admin, R.editor),
     "team":              (R.admin, R.editor),
     "settings":          (R.admin, R.editor),
     "media":             (R.admin, R.editor),             # rename / delete library items

@@ -22,6 +22,7 @@ import {
   ClipboardList,
   BarChart3,
   Reply,
+  AppWindow,
 } from "lucide-react";
 import { getAdminUser, logout, useAdminUser } from "@/hooks/use-admin-auth";
 import { apiFetch } from "@/lib/api";
@@ -29,6 +30,7 @@ import { BrandGlobe } from "@/components/brand/brand-globe";
 import { cn } from "@/lib/utils";
 import { useCmsSourceAlerts } from "@/hooks/use-cms-source-alerts";
 import { ThemeToggle } from "@/components/admin/theme-toggle";
+import { AppsLauncher } from "@/components/admin/apps-launcher";
 import { useCmsThemeScope } from "@/hooks/use-cms-theme";
 
 // Every admin page mounts its own AdminShell, so the sidebar is rebuilt on each click. Remembering where its list was
@@ -52,6 +54,7 @@ export const ADMIN_NAV = [
   { label: "Media", to: "/admin/media", icon: Images },
   { label: "Access Requests", to: "/admin/access-requests", icon: UserCheck },
   { label: "Analytics", to: "/admin/analytics", icon: BarChart3 },
+  { label: "Company Apps", to: "/admin/apps", icon: AppWindow },
   { label: "Audit Log", to: "/admin/audit", icon: ScrollText },
   { label: "Site Settings", to: "/admin/settings", icon: Settings },
 ] as const;
@@ -358,6 +361,8 @@ export function AdminShell({
           </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {actions}
+            {/* Grid button: lists every app Blueworld owns, like the Google apps menu */}
+            <AppsLauncher />
             <ThemeToggle />
             {/* On phones the name and sign-out live inside the side panel instead */}
             <div className="hidden items-center gap-3 sm:flex">
